@@ -7,33 +7,25 @@ export type FreshnessResult = {
   freshSectionIds: Set<string>;
 };
 
-export function gymFreshness(
-  sections: Section[],
-  lastVisitedISO: string | null,
-): FreshnessResult {
+export function gymFreshness(sections: Section[], lastVisitedISO: string | null): FreshnessResult {
   const freshSectionIds = new Set<string>();
+  const hasAnyResets = sections.some((s) => s.resets.length > 0);
+
+  if (sections.length === 0 || !hasAnyResets) {
+    return { percent: null, freshSectionIds };
+  }
 
   if (lastVisitedISO === null) {
-    const cutoff = Date.now() - 7 * DAY_MS;
     for (const section of sections) {
-      const isFresh = section.resets.some(
-        (r) => Date.parse(r.reset_on) >= cutoff,
-      );
-      if (isFresh) freshSectionIds.add(section.id);
+      freshSectionIds.add(section.id);
     }
-    return { percent: null, freshSectionIds };
+    return { percent: 100, freshSectionIds };
   }
 
   const visitedTime = Date.parse(lastVisitedISO);
   for (const section of sections) {
-    const isFresh = section.resets.some(
-      (r) => Date.parse(r.reset_on) > visitedTime,
-    );
+    const isFresh = section.resets.some((r) => Date.parse(r.reset_on) > visitedTime);
     if (isFresh) freshSectionIds.add(section.id);
-  }
-
-  if (sections.length === 0) {
-    return { percent: 0, freshSectionIds };
   }
 
   const percent = Math.round((freshSectionIds.size / sections.length) * 100);
@@ -62,6 +54,10 @@ export function daysSince(isoDate: string): number {
 export function relativeDay(isoDate: string): string {
   const days = daysSince(isoDate);
   if (days <= 0) return "today";
-  if (days === 1) return "yesterday";
-  return `${days} days ago`;
+  if (days === 1) return "1 day ago";
+  if (days <= 30) return `${days} days ago`;
+  if (days <= 60) return "about a month ago";
+  if (days <= 365) return `~${Math.round(days / 30)} months ago`;
+  const years = Math.round(days / 365);
+  return years === 1 ? "~1 year ago" : `~${years} years ago`;
 }

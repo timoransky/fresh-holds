@@ -6,9 +6,7 @@ export async function getActiveGymsWithSections(): Promise<GymWithSections[]> {
   const cookieStore = await cookies();
   const supabase = createClient(cookieStore);
 
-  const sixtyDaysAgo = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000)
-    .toISOString()
-    .slice(0, 10);
+  const cutoffISO = new Date(Date.now() - 240 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
 
   const { data, error } = await supabase
     .from("gyms")
@@ -23,7 +21,7 @@ export async function getActiveGymsWithSections(): Promise<GymWithSections[]> {
     )
     .eq("is_active", true)
     .eq("sections.is_active", true)
-    .gte("sections.resets.reset_on", sixtyDaysAgo)
+    .gte("sections.resets.reset_on", cutoffISO)
     .order("display_order", { ascending: true })
     .order("display_order", { referencedTable: "sections", ascending: true })
     .order("reset_on", {

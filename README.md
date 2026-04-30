@@ -14,6 +14,7 @@ Built with Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS, and Supa
    ```bash
    cp .env.local.example .env.local
    ```
+
    - `NEXT_PUBLIC_SUPABASE_URL` — your project URL
    - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` — publishable (anon-equivalent) key. Reads are protected by RLS public-read policies set up by the migration.
 
@@ -24,6 +25,7 @@ Built with Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS, and Supa
 3. Run [`supabase/seed.sql`](supabase/seed.sql) to insert Bratislava + four gyms + sections + one reset per section.
 
 To log a new reset later, insert a row directly in the `resets` table:
+
 ```sql
 insert into resets (section_id, reset_on, notes)
 values ((select id from sections where name = 'Cave' and gym_id = (select id from gyms where slug = 'spot')),
@@ -36,6 +38,7 @@ values ((select id from sections where name = 'Cave' and gym_id = (select id fro
 ```bash
 npm run dev
 ```
+
 Open http://localhost:3000.
 
 ## Deploy to Vercel
