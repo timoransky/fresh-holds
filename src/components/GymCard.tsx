@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { VisitedButton } from "@/components/VisitedButton";
 import { FreshnessBadge } from "@/components/FreshnessBadge";
 import { percentToTier, type TierKey } from "@/lib/tier";
+import { ledgeButtonClass } from "@/lib/styles";
 import { cn } from "@/lib/utils";
 
 type Variant = "hero" | "compact";
@@ -26,32 +27,35 @@ type Props = {
 const cardSurface: Record<TierKey, CSSProperties> = {
   hot: {
     "--surface-tint": "oklch(0.97 0.04 30 / 0.7)",
+    "--surface-stroke": "oklch(0.86 0.07 30)",
     "--surface-shadow": "oklch(0.55 0.20 30 / 0.18)",
   } as CSSProperties,
   worth: {
     "--surface-tint": "oklch(0.97 0.07 92 / 0.7)",
+    "--surface-stroke": "oklch(0.88 0.09 85)",
     "--surface-shadow": "oklch(0.62 0.16 80 / 0.18)",
   } as CSSProperties,
   slim: {
     "--surface-tint": "oklch(0.97 0.04 165 / 0.7)",
+    "--surface-stroke": "oklch(0.87 0.06 165)",
     "--surface-shadow": "oklch(0.58 0.13 165 / 0.16)",
   } as CSSProperties,
   stale: {
     "--surface-tint": "oklch(0.96 0.015 285 / 0.7)",
+    "--surface-stroke": "oklch(0.86 0.03 285)",
     "--surface-shadow": "oklch(0.65 0.05 285 / 0.14)",
   } as CSSProperties,
   unknown: {
     "--surface-tint": "oklch(1 0 0 / 0.7)",
+    "--surface-stroke": "oklch(0.86 0 0)",
     "--surface-shadow": "oklch(0.55 0 0 / 0.10)",
   } as CSSProperties,
 };
 
 const chipStyles: Record<"fresh" | "stale" | "none", string> = {
-  fresh:
-    "bg-[oklch(0.93_0.07_165)] text-[oklch(0.34_0.10_165)] border-[oklch(0.78_0.10_165)]",
-  stale:
-    "bg-[oklch(0.94_0.015_285)] text-[oklch(0.42_0.04_285)] border-[oklch(0.82_0.03_285)]",
-  none: "bg-transparent text-[oklch(0.55_0_0)] border-[oklch(0.85_0_0)] border-dashed",
+  fresh: "border border-foreground/50 bg-background/30 text-foreground",
+  stale: "border border-foreground/50 bg-transparent text-foreground opacity-40",
+  none: "border border-dashed border-foreground/15 bg-transparent text-muted-foreground/70",
 };
 
 export function GymCard({
@@ -97,7 +101,7 @@ export function GymCard({
       <div
         key={section.id}
         className={cn(
-          "inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium",
+          "inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium",
           chipStyles[state],
         )}
       >
@@ -113,9 +117,9 @@ export function GymCard({
     <article
       style={surfaceStyle}
       className={cn(
-        "group relative flex flex-col gap-4 rounded-3xl border-2 border-foreground/10 bg-(--surface-tint) backdrop-blur-sm transition-all",
-        "shadow-[0_2px_0_0_var(--surface-shadow),0_12px_32px_-12px_var(--surface-shadow)]",
-        "hover:-translate-y-0.5 hover:shadow-[0_4px_0_0_var(--surface-shadow),0_18px_40px_-12px_var(--surface-shadow)]",
+        "group relative flex flex-col gap-4 rounded-3xl border-2 border-(--surface-stroke) bg-(--surface-tint) backdrop-blur-sm transition-all",
+        "shadow-[0_2px_0_0_var(--surface-stroke),0_12px_32px_-12px_var(--surface-shadow)]",
+        // "hover:-translate-y-0.5 hover:shadow-[0_4px_0_0_var(--surface-stroke),0_18px_40px_-12px_var(--surface-shadow)]",
         isHero ? "p-5 sm:p-6" : "p-4 sm:p-5",
       )}
     >
@@ -135,9 +139,7 @@ export function GymCard({
           >
             {gym.name}
           </h2>
-          {gym.neighborhood && (
-            <p className="mt-1 text-xs text-muted-foreground">{gym.neighborhood}</p>
-          )}
+          <p className="mt-1 text-xs text-muted-foreground">{`${freshSectionIds.size}/${sectionsByOrder.length} fresh sectors`}</p>
         </div>
         <FreshnessBadge percent={percent} size={isHero ? "hero" : "compact"} bob={isHero} />
       </header>
@@ -165,7 +167,7 @@ export function GymCard({
                 onClick={onToggle}
                 aria-expanded={expanded}
                 aria-controls={detailsId}
-                className="mt-1 -ml-1.5 text-muted-foreground hover:bg-foreground/5"
+                className="mt-1 -ml-1.5"
               >
                 {expanded
                   ? "hide sectors"
@@ -183,8 +185,8 @@ export function GymCard({
       )}
 
       <footer className="flex items-center justify-between gap-3 pt-1">
-        <div className="flex gap-1.5">
-          <Button asChild variant="outline" size="icon-sm" className="rounded-full">
+        <div className="flex gap-2">
+          <Button asChild variant="outline" size="icon-sm" className={ledgeButtonClass}>
             <a
               href={navigateUrl}
               target="_blank"
@@ -195,7 +197,7 @@ export function GymCard({
             </a>
           </Button>
           {gym.website_url && (
-            <Button asChild variant="outline" size="icon-sm" className="rounded-full">
+            <Button asChild variant="outline" size="icon-sm" className={ledgeButtonClass}>
               <a
                 href={gym.website_url}
                 target="_blank"
@@ -207,7 +209,7 @@ export function GymCard({
             </Button>
           )}
           {instagramUrl && (
-            <Button asChild variant="outline" size="icon-sm" className="rounded-full">
+            <Button asChild variant="outline" size="icon-sm" className={ledgeButtonClass}>
               <a
                 href={instagramUrl}
                 target="_blank"

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { relativeDay } from "@/lib/freshness";
+import { ledgeButtonClass } from "@/lib/styles";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -72,12 +73,10 @@ export function VisitedButton({ visitedDates, onChangeVisits }: Props) {
           type="button"
           variant="outline"
           size="sm"
-          onClick={(e) => e.stopPropagation()}
           className={cn(
-            "rounded-full font-semibold transition-colors",
-            hasVisits
-              ? "border-[oklch(0.78_0.10_165)] bg-[oklch(0.95_0.06_165)] text-[oklch(0.32_0.10_165)] hover:bg-[oklch(0.92_0.08_165)]"
-              : "border-foreground/15",
+            ledgeButtonClass,
+            "font-semibold text-foreground",
+            hasVisits && "bg-background hover:bg-background",
           )}
         >
           {hasVisits ? (
