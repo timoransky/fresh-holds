@@ -1,9 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { CheckIcon, PlusIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
+import { relativeDay } from "@/lib/freshness";
+import { cn } from "@/lib/utils";
 
 type Props = {
   visitedDates: string[];
@@ -40,6 +43,11 @@ export function VisitedButton({ visitedDates, onChangeVisits }: Props) {
   const visitedToday = visitedDates.includes(today);
   const visitedYesterday = visitedDates.includes(yesterday);
 
+  const latestVisit = useMemo(() => {
+    if (visitedDates.length === 0) return null;
+    return visitedDates.reduce((max, d) => (d > max ? d : max));
+  }, [visitedDates]);
+
   const selectedDates = useMemo(() => visitedDates.map(dateFromISO), [visitedDates]);
 
   const handleSelect = (dates: Date[] | undefined) => {
@@ -55,11 +63,34 @@ export function VisitedButton({ visitedDates, onChangeVisits }: Props) {
     setOpen(false);
   };
 
+  const hasVisits = latestVisit !== null;
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button type="button" variant="outline" size="sm" onClick={(e) => e.stopPropagation()}>
-          Log visit
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={(e) => e.stopPropagation()}
+          className={cn(
+            "rounded-full font-semibold transition-colors",
+            hasVisits
+              ? "border-[oklch(0.78_0.10_165)] bg-[oklch(0.95_0.06_165)] text-[oklch(0.32_0.10_165)] hover:bg-[oklch(0.92_0.08_165)]"
+              : "border-foreground/15",
+          )}
+        >
+          {hasVisits ? (
+            <>
+              <CheckIcon className="size-3.5" />
+              <span>climbed {relativeDay(latestVisit)}</span>
+            </>
+          ) : (
+            <>
+              <PlusIcon className="size-3.5" />
+              <span>i climbed here</span>
+            </>
+          )}
         </Button>
       </PopoverTrigger>
       <PopoverContent
@@ -76,7 +107,7 @@ export function VisitedButton({ visitedDates, onChangeVisits }: Props) {
               className="flex-1 shadow-none"
               onClick={() => togglePreset(today)}
             >
-              Today {visitedToday && "✓"}
+              today {visitedToday && <CheckIcon className="size-3" />}
             </Button>
             <Button
               type="button"
@@ -85,7 +116,7 @@ export function VisitedButton({ visitedDates, onChangeVisits }: Props) {
               className="flex-1 shadow-none"
               onClick={() => togglePreset(yesterday)}
             >
-              Yesterday {visitedYesterday && "✓"}
+              yesterday {visitedYesterday && <CheckIcon className="size-3" />}
             </Button>
           </div>
           <Calendar

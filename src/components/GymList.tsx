@@ -13,7 +13,6 @@ type Props = {
 export function GymList({ gyms }: Props) {
   const { visits, history, setVisits } = useVisits();
   const [openGymId, setOpenGymId] = useState<string | null>(null);
-  const [hasInteracted, setHasInteracted] = useState(false);
 
   const computed = useMemo(() => {
     return gyms.map((gym) => {
@@ -41,38 +40,81 @@ export function GymList({ gyms }: Props) {
         return br.localeCompare(ar);
       });
     const withoutData = computed.filter((c) => c.percent === null);
-    return [...withData, ...withoutData];
+    return { withData, withoutData };
   }, [computed]);
 
-  const freshestPickId = useMemo(() => {
-    const top = sorted.find((c) => c.lastVisited !== null && (c.percent ?? 0) > 0);
-    return top?.gym.id ?? null;
-  }, [sorted]);
+  const hero = sorted.withData[0] ?? sorted.withoutData[0] ?? null;
+  const runnersUp = sorted.withData[0] ? sorted.withData.slice(1) : sorted.withoutData.slice(1);
+  const noDataExtras =
+    sorted.withData.length > 0 ? sorted.withoutData : sorted.withoutData.slice(1);
 
-  const effectiveOpenId = hasInteracted ? openGymId : (sorted[0]?.gym.id ?? null);
-
-  const handleToggle = (id: string) => {
-    setHasInteracted(true);
-    setOpenGymId(effectiveOpenId === id ? null : id);
-  };
+  if (!hero) return null;
 
   return (
-    <ul className="flex flex-col gap-3 sm:gap-4">
-      {sorted.map((c) => (
-        <li key={c.gym.id}>
-          <GymCard
-            gym={c.gym}
-            percent={c.percent}
-            freshSectionIds={c.freshSectionIds}
-            isFreshestPick={c.gym.id === freshestPickId}
-            lastVisited={c.lastVisited}
-            expanded={c.gym.id === effectiveOpenId}
-            onToggle={() => handleToggle(c.gym.id)}
-            visitedDates={history[c.gym.slug] ?? []}
-            onChangeVisits={(dates) => setVisits(c.gym.slug, dates)}
-          />
-        </li>
-      ))}
-    </ul>
+    <div className="flex flex-col gap-10">
+      <section aria-label="Top pick">
+        <GymCard
+          gym={hero.gym}
+          percent={hero.percent}
+          freshSectionIds={hero.freshSectionIds}
+          variant="hero"
+          expanded
+          onToggle={() => {}}
+          visitedDates={history[hero.gym.slug] ?? []}
+          onChangeVisits={(dates) => setVisits(hero.gym.slug, dates)}
+        />
+      </section>
+
+      {runnersUp.length > 0 && (
+        <section aria-label="Other gyms" className="flex flex-col gap-3">
+          <h2 className="px-1 text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">
+            also worth a look
+          </h2>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
+            {runnersUp.map((c) => (
+              <GymCard
+                key={c.gym.id}
+                gym={c.gym}
+                percent={c.percent}
+                freshSectionIds={c.freshSectionIds}
+                variant="compact"
+                expanded={c.gym.id === openGymId}
+                onToggle={() =>
+                  setOpenGymId((prev) => (prev === c.gym.id ? null : c.gym.id))
+                }
+                visitedDates={history[c.gym.slug] ?? []}
+                onChangeVisits={(dates) => setVisits(c.gym.slug, dates)}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {noDataExtras.length > 0 && (
+        <section aria-label="Gyms with no reset data" className="flex flex-col gap-3">
+          <h2 className="px-1 text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">
+            no reset data yet
+          </h2>
+          <ul className="flex flex-col gap-2">
+            {noDataExtras.map((c) => (
+              <li
+                key={c.gym.id}
+                className="flex items-center justify-between gap-3 rounded-2xl border border-dashed border-foreground/15 bg-background/60 px-4 py-3"
+              >
+                <div className="min-w-0">
+                  <p className="font-semibold text-foreground truncate">{c.gym.name}</p>
+                  {c.gym.neighborhood && (
+                    <p className="text-xs text-muted-foreground">{c.gym.neighborhood}</p>
+                  )}
+                </div>
+                <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                  no data
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+    </div>
   );
 }

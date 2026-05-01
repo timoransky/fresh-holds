@@ -1,31 +1,64 @@
 "use client";
 
+import type { CSSProperties } from "react";
 import { AtSignIcon, ChevronDownIcon, GlobeIcon, NavigationIcon } from "lucide-react";
 import type { GymWithSections } from "@/lib/types";
 import { mostRecentReset, relativeDay } from "@/lib/freshness";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { VisitedButton } from "@/components/VisitedButton";
+import { FreshnessBadge } from "@/components/FreshnessBadge";
+import { percentToTier, type TierKey } from "@/lib/tier";
+import { cn } from "@/lib/utils";
+
+type Variant = "hero" | "compact";
 
 type Props = {
   gym: GymWithSections;
   percent: number | null;
   freshSectionIds: Set<string>;
-  isFreshestPick: boolean;
-  lastVisited: string | null;
+  variant: Variant;
   expanded: boolean;
   visitedDates: string[];
   onToggle: () => void;
   onChangeVisits: (isoDates: string[]) => void;
 };
 
+const cardSurface: Record<TierKey, CSSProperties> = {
+  hot: {
+    "--surface-tint": "oklch(0.97 0.04 30 / 0.7)",
+    "--surface-shadow": "oklch(0.55 0.20 30 / 0.18)",
+  } as CSSProperties,
+  worth: {
+    "--surface-tint": "oklch(0.97 0.07 92 / 0.7)",
+    "--surface-shadow": "oklch(0.62 0.16 80 / 0.18)",
+  } as CSSProperties,
+  slim: {
+    "--surface-tint": "oklch(0.97 0.04 165 / 0.7)",
+    "--surface-shadow": "oklch(0.58 0.13 165 / 0.16)",
+  } as CSSProperties,
+  stale: {
+    "--surface-tint": "oklch(0.96 0.015 285 / 0.7)",
+    "--surface-shadow": "oklch(0.65 0.05 285 / 0.14)",
+  } as CSSProperties,
+  unknown: {
+    "--surface-tint": "oklch(1 0 0 / 0.7)",
+    "--surface-shadow": "oklch(0.55 0 0 / 0.10)",
+  } as CSSProperties,
+};
+
+const chipStyles: Record<"fresh" | "stale" | "none", string> = {
+  fresh:
+    "bg-[oklch(0.93_0.07_165)] text-[oklch(0.34_0.10_165)] border-[oklch(0.78_0.10_165)]",
+  stale:
+    "bg-[oklch(0.94_0.015_285)] text-[oklch(0.42_0.04_285)] border-[oklch(0.82_0.03_285)]",
+  none: "bg-transparent text-[oklch(0.55_0_0)] border-[oklch(0.85_0_0)] border-dashed",
+};
+
 export function GymCard({
   gym,
   percent,
   freshSectionIds,
-  isFreshestPick,
-  lastVisited,
+  variant,
   expanded,
   visitedDates,
   onToggle,
@@ -39,8 +72,7 @@ export function GymCard({
     return bLatest.localeCompare(aLatest);
   });
   const recent = mostRecentReset(sectionsByOrder);
-  const allSameFreshness =
-    freshSectionIds.size === 0 || freshSectionIds.size === sectionsByOrder.length;
+  const tier = percentToTier(percent);
 
   const instagramUrl = gym.instagram_handle
     ? `https://instagram.com/${gym.instagram_handle.replace(/^@/, "")}`
@@ -50,133 +82,145 @@ export function GymCard({
   )}`;
 
   const detailsId = `gym-details-${gym.id}`;
-  const hasMoreSections = recent !== null && sectionsByRecent.length > 1;
+  const isHero = variant === "hero";
+
+  const surfaceStyle = cardSurface[tier.key];
 
   const renderSection = (section: (typeof gym.sections)[number]) => {
     const sectionMostRecent = section.resets[0];
-    const isFresh = freshSectionIds.has(section.id);
+    const state: "fresh" | "stale" | "none" = !sectionMostRecent
+      ? "none"
+      : freshSectionIds.has(section.id)
+        ? "fresh"
+        : "stale";
     return (
-      <li key={section.id} className="flex items-center justify-between gap-3 text-sm">
-        <span className="text-neutral-800">{section.name}</span>
-        <span className="flex items-center gap-2 text-neutral-500 text-xs">
-          <span>
-            {sectionMostRecent ? relativeDay(sectionMostRecent.reset_on) : "no recent reset"}
-          </span>
-          {!allSameFreshness && (
-            <span
-              className={`inline-flex text-xs px-2 py-0.5 rounded-full ${
-                isFresh ? "bg-emerald-50 text-emerald-700" : "bg-neutral-100 text-neutral-500"
-              }`}
-            >
-              {isFresh ? "fresh" : "stale"}
-            </span>
-          )}
+      <div
+        key={section.id}
+        className={cn(
+          "inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium",
+          chipStyles[state],
+        )}
+      >
+        <span className="font-semibold">{section.name}</span>
+        <span className="opacity-70 font-mono tabular-nums text-[10px]">
+          {sectionMostRecent ? relativeDay(sectionMostRecent.reset_on) : "—"}
         </span>
-      </li>
+      </div>
     );
   };
 
   return (
-    <div className="p-0 gap-0 isolate">
-      <Card className="gap-4 p-4 sm:p-5 py-4 sm:py-5 rounded-b-xl bg-background overflow-hidden relative z-20">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="text-lg font-semibold text-neutral-900 truncate">{gym.name}</h2>
-            </div>
-          </div>
-          <div className="text-right shrink-0">
-            {percent === null ? (
-              <>
-                <div className="text-3xl font-semibold text-neutral-400 leading-none">—</div>
-                <div className="text-[11px] text-neutral-400 mt-1">no reset data</div>
-              </>
-            ) : (
-              <>
-                <div
-                  className={`text-3xl font-semibold leading-none ${
-                    percent > 0 ? "text-emerald-600" : "text-neutral-400"
-                  }`}
-                >
-                  {percent}%
-                </div>
-                <div className="text-[11px] text-neutral-400 mt-1">of the gym is fresh for you</div>
-              </>
-            )}
-          </div>
-        </div>
+    <article
+      style={surfaceStyle}
+      className={cn(
+        "group relative flex flex-col gap-4 rounded-3xl border-2 border-foreground/10 bg-(--surface-tint) backdrop-blur-sm transition-all",
+        "shadow-[0_2px_0_0_var(--surface-shadow),0_12px_32px_-12px_var(--surface-shadow)]",
+        "hover:-translate-y-0.5 hover:shadow-[0_4px_0_0_var(--surface-shadow),0_18px_40px_-12px_var(--surface-shadow)]",
+        isHero ? "p-5 sm:p-6" : "p-4 sm:p-5",
+      )}
+    >
+      {isHero && (
+        <span className="absolute -top-3 left-6 inline-flex items-center gap-1 rounded-full bg-foreground px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-background">
+          today&rsquo;s pick
+        </span>
+      )}
 
-        <div className="flex justify-between items-center gap-3 ">
-          <div className="flex gap-2 min-w-0">
-            <Button asChild variant="secondary" size="icon-sm">
-              <a
-                href={navigateUrl}
-                target="_blank"
-                rel="noreferrer"
-                aria-label="Open in Google Maps"
+      <header className="flex items-start justify-between gap-4">
+        <div className="min-w-0 flex-1">
+          <h2
+            className={cn(
+              "font-extrabold tracking-tight text-foreground text-balance leading-[1.05]",
+              isHero ? "text-3xl sm:text-4xl" : "text-xl",
+            )}
+          >
+            {gym.name}
+          </h2>
+          {gym.neighborhood && (
+            <p className="mt-1 text-xs text-muted-foreground">{gym.neighborhood}</p>
+          )}
+        </div>
+        <FreshnessBadge percent={percent} size={isHero ? "hero" : "compact"} bob={isHero} />
+      </header>
+
+      {recent && sectionsByOrder.length > 0 && (
+        <>
+          {isHero ? (
+            <div className="flex flex-wrap gap-1.5">{sectionsByRecent.map(renderSection)}</div>
+          ) : (
+            <div className="overflow-hidden">
+              <div
+                id={detailsId}
+                className={cn(
+                  "[interpolate-size:allow-keywords] overflow-hidden transition-[height] duration-300 ease-out",
+                  expanded ? "h-auto" : "h-0",
+                )}
               >
-                <NavigationIcon />
-              </a>
-            </Button>
-            {gym.website_url && (
-              <Button asChild variant="secondary" size="icon-sm">
-                <a
-                  href={gym.website_url}
-                  target="_blank"
-                  rel="noreferrer"
-                  aria-label="Open website"
-                >
-                  <GlobeIcon />
-                </a>
-              </Button>
-            )}
-            {instagramUrl && (
-              <Button asChild variant="secondary" size="icon-sm">
-                <a href={instagramUrl} target="_blank" rel="noreferrer" aria-label="Open Instagram">
-                  <AtSignIcon />
-                </a>
-              </Button>
-            )}
-          </div>
-          <VisitedButton visitedDates={visitedDates} onChangeVisits={onChangeVisits} />
-        </div>
-      </Card>
-
-      {recent && sectionsByRecent.length > 0 && (
-        <div className="px-5">
-          <Card className="gap-0 pt-4 -top-4 bg-neutral-100 px-4 sm:px-5 pb-0 relative z-10 rounded-t-none">
-            {hasMoreSections && (
-              <div className="relative ">
-                <div
-                  id={detailsId}
-                  className={`[interpolate-size:allow-keywords] overflow-hidden transition-[height] duration-300 ease-out ${
-                    expanded ? "h-auto" : "h-0"
-                  }`}
-                >
-                  <ul className={`space-y-1 pt-4`}>{sectionsByRecent.map(renderSection)}</ul>
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {sectionsByRecent.map(renderSection)}
                 </div>
               </div>
-            )}
-
-            <Button
-              variant="link"
-              onClick={onToggle}
-              className={`flex w-full z-10 items-center justify-center gap-1 text-xs text-neutral-500 ${
-                expanded ? "" : ""
-              }`}
-            >
-              {expanded
-                ? "hide all sectors"
-                : `${freshSectionIds.size} of ${sectionsByOrder.length} sectors are fresh`}
-              <ChevronDownIcon
-                className={`size-3.5 transition-transform duration-200 ${
-                  expanded ? "rotate-180" : ""
-                }`}
-              />
-            </Button>
-          </Card>
-        </div>
+              <Button
+                variant="ghost"
+                size="xs"
+                onClick={onToggle}
+                aria-expanded={expanded}
+                aria-controls={detailsId}
+                className="mt-1 -ml-1.5 text-muted-foreground hover:bg-foreground/5"
+              >
+                {expanded
+                  ? "hide sectors"
+                  : `${freshSectionIds.size}/${sectionsByOrder.length} fresh sectors`}
+                <ChevronDownIcon
+                  className={cn(
+                    "size-3 transition-transform duration-200",
+                    expanded && "rotate-180",
+                  )}
+                />
+              </Button>
+            </div>
+          )}
+        </>
       )}
-    </div>
+
+      <footer className="flex items-center justify-between gap-3 pt-1">
+        <div className="flex gap-1.5">
+          <Button asChild variant="outline" size="icon-sm" className="rounded-full">
+            <a
+              href={navigateUrl}
+              target="_blank"
+              rel="noreferrer"
+              aria-label={`Open ${gym.name} in Google Maps`}
+            >
+              <NavigationIcon />
+            </a>
+          </Button>
+          {gym.website_url && (
+            <Button asChild variant="outline" size="icon-sm" className="rounded-full">
+              <a
+                href={gym.website_url}
+                target="_blank"
+                rel="noreferrer"
+                aria-label={`Open ${gym.name} website`}
+              >
+                <GlobeIcon />
+              </a>
+            </Button>
+          )}
+          {instagramUrl && (
+            <Button asChild variant="outline" size="icon-sm" className="rounded-full">
+              <a
+                href={instagramUrl}
+                target="_blank"
+                rel="noreferrer"
+                aria-label={`Open ${gym.name} on Instagram`}
+              >
+                <AtSignIcon />
+              </a>
+            </Button>
+          )}
+        </div>
+        <VisitedButton visitedDates={visitedDates} onChangeVisits={onChangeVisits} />
+      </footer>
+    </article>
   );
 }
