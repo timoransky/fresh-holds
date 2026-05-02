@@ -10,12 +10,12 @@ export async function middleware(request: NextRequest) {
     return supabaseResponse;
   }
 
-  const isLoginPage = pathname === "/admin/login";
+  const isLoginPage = pathname === "/login";
   const isAdminRoute = pathname.startsWith("/admin");
 
-  if (isAdminRoute && !isLoginPage && !user) {
+  if (isAdminRoute && !user) {
     const url = request.nextUrl.clone();
-    url.pathname = "/admin/login";
+    url.pathname = "/login";
     url.search = "";
     return NextResponse.redirect(url);
   }
@@ -31,5 +31,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/auth/callback"],
+  matcher: ["/admin/:path*", "/login", "/auth/callback"],
 };

@@ -13,7 +13,7 @@ export default async function ProtectedAdminLayout({ children }: { children: Rea
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/admin/login");
+    redirect("/login");
   }
 
   const { data: profile } = await supabase
