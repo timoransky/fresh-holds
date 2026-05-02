@@ -107,35 +107,50 @@ export function VisitedButton({ visitedDates, onChangeVisits }: Props) {
     </Button>
   );
 
+  const header = (
+    <div className="flex items-center justify-between gap-4 px-4 pt-4 pb-2">
+      <p className="text-base font-semibold">when did you climb?</p>
+      <div className="flex gap-1.5">
+        <button
+          type="button"
+          onClick={() => togglePreset(today)}
+          className={cn(
+            "rounded-full border px-3 py-1 text-xs font-medium transition-colors cursor-pointer",
+            pendingToday
+              ? "border-foreground bg-foreground text-background"
+              : "border-border bg-transparent text-foreground hover:bg-muted",
+          )}
+        >
+          today
+        </button>
+        <button
+          type="button"
+          onClick={() => togglePreset(yesterday)}
+          className={cn(
+            "rounded-full border px-3 py-1 text-xs font-medium transition-colors cursor-pointer",
+            pendingYesterday
+              ? "border-foreground bg-foreground text-background"
+              : "border-border bg-transparent text-foreground hover:bg-muted",
+          )}
+        >
+          yesterday
+        </button>
+      </div>
+    </div>
+  );
+
   const pickerContent = (
     <div onClick={(e) => e.stopPropagation()}>
-      <div className="flex flex-wrap gap-3 border-b bg-muted/50 p-3">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="flex-1 shadow-none"
-          onClick={() => togglePreset(today)}
-        >
-          today {pendingToday && <CheckIcon className="size-3" />}
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="flex-1 shadow-none"
-          onClick={() => togglePreset(yesterday)}
-        >
-          yesterday {pendingYesterday && <CheckIcon className="size-3" />}
-        </Button>
+      {header}
+      <div className="flex justify-center border-t pt-1">
+        <Calendar
+          mode="multiple"
+          selected={selectedDates}
+          onSelect={(dates) => setPendingDates((dates ?? []).map(isoFromDate))}
+          disabled={{ after: new Date() }}
+          autoFocus
+        />
       </div>
-      <Calendar
-        mode="multiple"
-        selected={selectedDates}
-        onSelect={(dates) => setPendingDates((dates ?? []).map(isoFromDate))}
-        disabled={{ after: new Date() }}
-        autoFocus
-      />
     </div>
   );
 
