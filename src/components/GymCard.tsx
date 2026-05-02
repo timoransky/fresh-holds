@@ -32,26 +32,31 @@ type Props = {
 
 const cardSurface: Record<TierKey, CSSProperties> = {
   hot: {
+    "--badge-width": "170px",
     "--surface-tint": "oklch(0.97 0.04 30 / 0.7)",
     "--surface-stroke": "oklch(0.86 0.07 30)",
     "--surface-shadow": "oklch(0.55 0.20 30 / 0.18)",
   } as CSSProperties,
   worth: {
+    "--badge-width": "140px",
     "--surface-tint": "oklch(0.97 0.07 92 / 0.7)",
     "--surface-stroke": "oklch(0.88 0.09 85)",
     "--surface-shadow": "oklch(0.62 0.16 80 / 0.18)",
   } as CSSProperties,
   slim: {
+    "--badge-width": "140px",
     "--surface-tint": "oklch(0.97 0.04 165 / 0.7)",
     "--surface-stroke": "oklch(0.87 0.06 165)",
     "--surface-shadow": "oklch(0.58 0.13 165 / 0.16)",
   } as CSSProperties,
   stale: {
+    "--badge-width": "140px",
     "--surface-tint": "oklch(0.96 0.015 285 / 0.7)",
     "--surface-stroke": "oklch(0.86 0.03 285)",
     "--surface-shadow": "oklch(0.65 0.05 285 / 0.14)",
   } as CSSProperties,
   unknown: {
+    "--badge-width": "140px",
     "--surface-tint": "oklch(1 0 0 / 0.7)",
     "--surface-stroke": "oklch(0.86 0 0)",
     "--surface-shadow": "oklch(0.55 0 0 / 0.10)",
@@ -60,7 +65,7 @@ const cardSurface: Record<TierKey, CSSProperties> = {
 
 const chipStyles: Record<"fresh" | "stale" | "none", string> = {
   fresh: "border border-foreground/50 bg-background/30 text-foreground",
-  stale: "border border-foreground/50 bg-transparent text-foreground opacity-40",
+  stale: "border border-foreground/20 bg-transparent text-muted-foreground/70",
   none: "border border-dashed border-foreground/15 bg-transparent text-muted-foreground/70",
 };
 
@@ -136,10 +141,10 @@ export function GymCard({
       )}
 
       <header className="flex relative items-start justify-between gap-4">
-        <div className="min-w-0  flex-1 w-full max-w-[calc(100%-170px)]">
+        <div className="min-w-0 flex-1 w-full">
           <h2
             className={cn(
-              "font-extrabold tracking-tight text-foreground text-balance leading-[1.05]",
+              "font-extrabold tracking-tight text-foreground text-balance leading-[1.05] max-w-[calc(100%-var(--badge-width))]",
               isHero ? "text-3xl sm:text-4xl" : "text-xl",
             )}
           >
