@@ -77,20 +77,10 @@ export function VisitedButton({ visitedDates, onChangeVisits }: Props) {
     <Button
       type="button"
       size="sm"
+      variant={hasVisits ? "outline" : "default"}
       className={cn(
-        "rounded-full cursor-pointer font-semibold",
-        "hover:-translate-y-0.5 active:translate-y-0.5",
-        hasVisits
-          ? cn(
-              ledgeButtonClass,
-              "bg-background text-foreground hover:bg-background",
-            )
-          : cn(
-              "bg-foreground text-background border-transparent hover:bg-foreground",
-              "shadow-[0_2px_0_0_oklch(0.08_0.02_270/0.5)]",
-              "hover:shadow-[0_3px_0_0_oklch(0.08_0.02_270/0.5)]",
-              "active:shadow-[0_1px_0_0_oklch(0.08_0.02_270/0.5)]",
-            ),
+        "rounded-full cursor-pointer",
+        hasVisits && cn(ledgeButtonClass, "bg-background text-foreground hover:bg-background"),
       )}
     >
       {hasVisits ? (
