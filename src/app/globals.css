@@ -63,11 +63,9 @@
   }
   body {
     @apply bg-background text-foreground;
-    /* background-image:
-      radial-gradient(ellipse 80% 50% at 15% 0%, oklch(0.94 0.08 30 / 0.35), transparent 60%),
-      radial-gradient(ellipse 60% 40% at 95% 10%, oklch(0.94 0.13 92 / 0.3), transparent 60%),
-      radial-gradient(ellipse 70% 50% at 80% 100%, oklch(0.93 0.07 165 / 0.25), transparent 60%);
-    background-attachment: fixed; */
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'><g fill='%231a1a2e' fill-opacity='0.12'><circle cx='0' cy='0' r='1'/><circle cx='40' cy='0' r='1'/><circle cx='0' cy='40' r='1'/><circle cx='40' cy='40' r='1'/><circle cx='20' cy='20' r='1'/></g></svg>");
+    background-size: 40px 40px;
+    background-attachment: fixed;
   }
   html {
     @apply font-sans;
