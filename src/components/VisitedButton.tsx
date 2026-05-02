@@ -3,11 +3,13 @@
 import { useMemo, useState } from "react";
 import { CheckIcon, PlusIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Drawer, DrawerContent, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Calendar } from "@/components/ui/calendar";
 import { relativeDay } from "@/lib/freshness";
 import { ledgeButtonClass } from "@/lib/styles";
 import { cn } from "@/lib/utils";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 
 type Props = {
   visitedDates: string[];
@@ -38,95 +40,136 @@ function yesterdayISO(): string {
 
 export function VisitedButton({ visitedDates, onChangeVisits }: Props) {
   const [open, setOpen] = useState(false);
+  const [pendingDates, setPendingDates] = useState<string[]>([]);
+  const isDesktop = useMediaQuery("(min-width: 768px)");
 
   const today = todayISO();
   const yesterday = yesterdayISO();
-  const visitedToday = visitedDates.includes(today);
-  const visitedYesterday = visitedDates.includes(yesterday);
 
   const latestVisit = useMemo(() => {
     if (visitedDates.length === 0) return null;
     return visitedDates.reduce((max, d) => (d > max ? d : max));
   }, [visitedDates]);
 
-  const selectedDates = useMemo(() => visitedDates.map(dateFromISO), [visitedDates]);
+  const hasVisits = latestVisit !== null;
 
-  const handleSelect = (dates: Date[] | undefined) => {
-    onChangeVisits((dates ?? []).map(isoFromDate));
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (nextOpen) setPendingDates(visitedDates);
+    setOpen(nextOpen);
+  };
+
+  const handleConfirm = () => {
+    onChangeVisits(pendingDates);
     setOpen(false);
   };
 
   const togglePreset = (iso: string) => {
-    const next = visitedDates.includes(iso)
-      ? visitedDates.filter((d) => d !== iso)
-      : [...visitedDates, iso];
-    onChangeVisits(next);
-    setOpen(false);
+    setPendingDates((prev) =>
+      prev.includes(iso) ? prev.filter((d) => d !== iso) : [...prev, iso],
+    );
   };
 
-  const hasVisits = latestVisit !== null;
+  const selectedDates = useMemo(() => pendingDates.map(dateFromISO), [pendingDates]);
+  const pendingToday = pendingDates.includes(today);
+  const pendingYesterday = pendingDates.includes(yesterday);
 
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
+  const trigger = (
+    <Button
+      type="button"
+      size="sm"
+      className={cn(
+        "rounded-full cursor-pointer font-semibold",
+        "hover:-translate-y-0.5 active:translate-y-0.5",
+        hasVisits
+          ? cn(
+              ledgeButtonClass,
+              "bg-background text-foreground hover:bg-background",
+            )
+          : cn(
+              "bg-foreground text-background border-transparent hover:bg-foreground",
+              "shadow-[0_2px_0_0_oklch(0.08_0.02_270/0.5)]",
+              "hover:shadow-[0_3px_0_0_oklch(0.08_0.02_270/0.5)]",
+              "active:shadow-[0_1px_0_0_oklch(0.08_0.02_270/0.5)]",
+            ),
+      )}
+    >
+      {hasVisits ? (
+        <>
+          <CheckIcon className="size-3.5" />
+          <span>climbed {relativeDay(latestVisit)}</span>
+        </>
+      ) : (
+        <>
+          <PlusIcon className="size-3.5" />
+          <span>i climbed here</span>
+        </>
+      )}
+    </Button>
+  );
+
+  const pickerContent = (
+    <div onClick={(e) => e.stopPropagation()}>
+      <div className="flex flex-wrap gap-3 border-b bg-muted/50 p-3">
         <Button
           type="button"
           variant="outline"
           size="sm"
-          className={cn(
-            ledgeButtonClass,
-            "font-semibold text-foreground",
-            hasVisits && "bg-background hover:bg-background",
-          )}
+          className="flex-1 shadow-none"
+          onClick={() => togglePreset(today)}
         >
-          {hasVisits ? (
-            <>
-              <CheckIcon className="size-3.5" />
-              <span>climbed {relativeDay(latestVisit)}</span>
-            </>
-          ) : (
-            <>
-              <PlusIcon className="size-3.5" />
-              <span>i climbed here</span>
-            </>
-          )}
+          today {pendingToday && <CheckIcon className="size-3" />}
         </Button>
-      </PopoverTrigger>
-      <PopoverContent
-        className="w-auto p-0 overflow-hidden"
-        align="end"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div>
-          <div className="flex flex-wrap gap-3 border-b bg-muted/50 p-3">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="flex-1 shadow-none"
-              onClick={() => togglePreset(today)}
-            >
-              today {visitedToday && <CheckIcon className="size-3" />}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="flex-1 shadow-none"
-              onClick={() => togglePreset(yesterday)}
-            >
-              yesterday {visitedYesterday && <CheckIcon className="size-3" />}
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="flex-1 shadow-none"
+          onClick={() => togglePreset(yesterday)}
+        >
+          yesterday {pendingYesterday && <CheckIcon className="size-3" />}
+        </Button>
+      </div>
+      <Calendar
+        mode="multiple"
+        selected={selectedDates}
+        onSelect={(dates) => setPendingDates((dates ?? []).map(isoFromDate))}
+        disabled={{ after: new Date() }}
+        autoFocus
+      />
+    </div>
+  );
+
+  if (isDesktop) {
+    return (
+      <Dialog open={open} onOpenChange={handleOpenChange}>
+        <DialogTrigger asChild>{trigger}</DialogTrigger>
+        <DialogContent className="w-auto p-0">
+          <DialogHeader className="sr-only">
+            <DialogTitle>Log a visit</DialogTitle>
+          </DialogHeader>
+          {pickerContent}
+          <div className="p-3 border-t">
+            <Button onClick={handleConfirm} className="w-full">
+              Done
             </Button>
           </div>
-          <Calendar
-            mode="multiple"
-            selected={selectedDates}
-            onSelect={handleSelect}
-            disabled={{ after: new Date() }}
-            autoFocus
-          />
-        </div>
-      </PopoverContent>
-    </Popover>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  return (
+    <Drawer open={open} onOpenChange={handleOpenChange}>
+      <DrawerTrigger asChild>{trigger}</DrawerTrigger>
+      <DrawerContent>
+        <DrawerHeader className="sr-only">
+          <DrawerTitle>Log a visit</DrawerTitle>
+        </DrawerHeader>
+        {pickerContent}
+        <DrawerFooter>
+          <Button onClick={handleConfirm}>Done</Button>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
   );
 }
