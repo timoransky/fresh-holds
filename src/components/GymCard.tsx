@@ -14,7 +14,6 @@ import { Button } from "@/components/ui/button";
 import { VisitedButton } from "@/components/VisitedButton";
 import { FreshnessBadge } from "@/components/FreshnessBadge";
 import { percentToTier, type TierKey } from "@/lib/tier";
-import { ledgeButtonClass } from "@/lib/styles";
 import { cn } from "@/lib/utils";
 
 type Variant = "hero" | "compact";
@@ -192,7 +191,7 @@ export function GymCard({
 
       <footer className="flex mt-4 items-center justify-between gap-3 pt-1">
         <div className="flex gap-2">
-          <Button asChild variant="outline" size="icon-sm" className={ledgeButtonClass}>
+          <Button asChild variant="outline" size="icon-sm" className="rounded-full">
             <a
               href={navigateUrl}
               target="_blank"
@@ -203,7 +202,7 @@ export function GymCard({
             </a>
           </Button>
           {gym.website_url && (
-            <Button asChild variant="outline" size="icon-sm" className={ledgeButtonClass}>
+            <Button asChild variant="outline" size="icon-sm" className="rounded-full">
               <a
                 href={gym.website_url}
                 target="_blank"
@@ -215,7 +214,7 @@ export function GymCard({
             </Button>
           )}
           {instagramUrl && (
-            <Button asChild variant="outline" size="icon-sm" className={ledgeButtonClass}>
+            <Button asChild variant="outline" size="icon-sm" className="rounded-full">
               <a
                 href={instagramUrl}
                 target="_blank"

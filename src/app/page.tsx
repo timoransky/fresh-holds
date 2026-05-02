@@ -12,10 +12,10 @@ export default async function Home() {
         <span className="inline-block rounded-full border-2 border-foreground/80 bg-background px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-foreground">
           fresh holds · bratislava
         </span>
-        <h1 className="mt-4 text-balance text-4xl font-extrabold leading-[1.02] tracking-tight text-foreground sm:text-6xl">
+        <h1 className="mt-6 text-balance text-4xl font-extrabold leading-[1.02] tracking-tight text-foreground sm:text-6xl">
           where&rsquo;s the freshest <span className="italic">climbing</span> right now?
         </h1>
-        <p className="mt-3 max-w-prose text-base text-muted-foreground sm:text-lg">
+        <p className="mt-6 max-w-prose text-base text-muted-foreground sm:text-lg">
           Sorted by what&rsquo;s new since you were last there. Tap{" "}
           <span className="font-semibold text-foreground">i climbed here</span> after a session and
           the list re-shuffles for next time.

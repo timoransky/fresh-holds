@@ -20,7 +20,6 @@ import {
 } from "@/components/ui/dialog";
 import { Calendar } from "@/components/ui/calendar";
 import { relativeDay } from "@/lib/freshness";
-import { ledgeButtonClass } from "@/lib/styles";
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 
@@ -97,10 +96,7 @@ export function VisitedButton({ visitedDates, onChangeVisits }: Props) {
       type="button"
       size="sm"
       variant={hasVisits ? "outline" : "default"}
-      className={cn(
-        "rounded-full cursor-pointer",
-        hasVisits && cn(ledgeButtonClass, "bg-background text-foreground hover:bg-background"),
-      )}
+      className="rounded-full"
     >
       {hasVisits ? (
         <>

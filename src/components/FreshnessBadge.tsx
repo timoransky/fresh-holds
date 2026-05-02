@@ -77,7 +77,7 @@ export function FreshnessBadge({ percent, size = "hero", bob = false, className 
       style={baseStyle}
       className={cn(
         "inline-flex flex-col items-start gap-0.5 origin-center select-none rounded-2xl border-2 px-4 py-3 ",
-        // "shadow-[0_4px_0_0_var(--tier-ring)]",
+        "shadow-[0_3px_0_0_var(--tier-ring)]",
         "absolute -top-8 -right-8",
         "bg-(--tier-bg) text-(--tier-fg) border-(--tier-ring)",
         isUnknown && "border-dashed shadow-none",

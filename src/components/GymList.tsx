@@ -1,10 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type CSSProperties } from "react";
+import { AtSignIcon, GlobeIcon, NavigationIcon } from "lucide-react";
 import { useVisits } from "@/hooks/useVisits";
 import { gymFreshness, mostRecentReset } from "@/lib/freshness";
 import type { GymWithSections } from "@/lib/types";
 import { GymCard } from "@/components/GymCard";
+import { Button } from "@/components/ui/button";
 
 type Props = {
   gyms: GymWithSections[];
@@ -93,23 +95,73 @@ export function GymList({ gyms }: Props) {
           <h2 className="px-1 text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">
             no reset data yet
           </h2>
-          <ul className="flex flex-col gap-2">
-            {noDataExtras.map((c) => (
-              <li
-                key={c.gym.id}
-                className="flex items-center justify-between gap-3 rounded-2xl border border-dashed border-foreground/15 bg-background/60 px-4 py-3"
-              >
-                <div className="min-w-0">
-                  <p className="font-semibold text-foreground truncate">{c.gym.name}</p>
-                  {c.gym.neighborhood && (
-                    <p className="text-xs text-muted-foreground">{c.gym.neighborhood}</p>
-                  )}
-                </div>
-                <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                  no data
-                </span>
-              </li>
-            ))}
+          <ul className="flex flex-col gap-3">
+            {noDataExtras.map((c) => {
+              const navigateUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                [c.gym.name, c.gym.neighborhood, "Bratislava"].filter(Boolean).join(" "),
+              )}`;
+              const instagramUrl = c.gym.instagram_handle
+                ? `https://instagram.com/${c.gym.instagram_handle.replace(/^@/, "")}`
+                : null;
+              return (
+                <li
+                  key={c.gym.id}
+                  style={
+                    {
+                      "--surface-stroke": "oklch(0.85 0.015 270)",
+                      "--surface-shadow": "oklch(0.55 0.02 270 / 0.15)",
+                    } as CSSProperties
+                  }
+                  className="flex items-center justify-between gap-3 rounded-2xl border-2 border-(--surface-stroke) bg-background px-5 py-3 shadow-[0_2px_0_0_var(--surface-stroke),0_12px_32px_-12px_var(--surface-shadow)]"
+                >
+                  <div className="min-w-0">
+                    <h2 className="font-bold tracking-tight text-foreground truncate text-lg">
+                      {c.gym.name}
+                    </h2>
+                    <p className="text-xs text-muted-foreground">
+                      No reset data — check for yourself
+                    </p>
+                  </div>
+
+                  <div className="flex shrink-0 gap-2">
+                    <Button asChild variant="outline" size="icon-sm" className="rounded-full">
+                      <a
+                        href={navigateUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        aria-label={`Open ${c.gym.name} in Google Maps`}
+                      >
+                        <NavigationIcon />
+                      </a>
+                    </Button>
+                    {c.gym.website_url && (
+                      <Button asChild variant="outline" size="icon-sm" className="rounded-full">
+                        <a
+                          href={c.gym.website_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          aria-label={`Open ${c.gym.name} website`}
+                        >
+                          <GlobeIcon />
+                        </a>
+                      </Button>
+                    )}
+                    {instagramUrl && (
+                      <Button asChild variant="outline" size="icon-sm" className="rounded-full">
+                        <a
+                          href={instagramUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          aria-label={`Open ${c.gym.name} on Instagram`}
+                        >
+                          <AtSignIcon />
+                        </a>
+                      </Button>
+                    )}
+                  </div>
+                </li>
+              );
+            })}
           </ul>
         </section>
       )}
