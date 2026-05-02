@@ -79,9 +79,7 @@ export function GymList({ gyms }: Props) {
                 freshSectionIds={c.freshSectionIds}
                 variant="compact"
                 expanded={c.gym.id === openGymId}
-                onToggle={() =>
-                  setOpenGymId((prev) => (prev === c.gym.id ? null : c.gym.id))
-                }
+                onToggle={() => setOpenGymId((prev) => (prev === c.gym.id ? null : c.gym.id))}
                 visitedDates={history[c.gym.slug] ?? []}
                 onChangeVisits={(dates) => setVisits(c.gym.slug, dates)}
               />

@@ -3,8 +3,21 @@
 import { useMemo, useState } from "react";
 import { CheckIcon, PlusIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Drawer, DrawerContent, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Calendar } from "@/components/ui/calendar";
 import { relativeDay } from "@/lib/freshness";
 import { ledgeButtonClass } from "@/lib/styles";
@@ -64,14 +77,20 @@ export function VisitedButton({ visitedDates, onChangeVisits }: Props) {
   };
 
   const togglePreset = (iso: string) => {
-    setPendingDates((prev) =>
-      prev.includes(iso) ? prev.filter((d) => d !== iso) : [...prev, iso],
-    );
+    setPendingDates((prev) => (prev.length === 1 && prev[0] === iso ? [] : [iso]));
   };
 
   const selectedDates = useMemo(() => pendingDates.map(dateFromISO), [pendingDates]);
   const pendingToday = pendingDates.includes(today);
   const pendingYesterday = pendingDates.includes(yesterday);
+
+  const defaultMonth = useMemo(() => {
+    if (!isDesktop) return undefined;
+    const d = new Date();
+    d.setDate(1);
+    d.setMonth(d.getMonth() - 1);
+    return d;
+  }, [isDesktop]);
 
   const trigger = (
     <Button
@@ -98,49 +117,57 @@ export function VisitedButton({ visitedDates, onChangeVisits }: Props) {
   );
 
   const header = (
-    <div className="flex items-center justify-between gap-4 px-4 pt-4 pb-2">
-      <p className="text-base font-semibold">when did you climb?</p>
-      <div className="flex gap-1.5">
-        <button
-          type="button"
-          onClick={() => togglePreset(today)}
-          className={cn(
-            "rounded-full border px-3 py-1 text-xs font-medium transition-colors cursor-pointer",
-            pendingToday
-              ? "border-foreground bg-foreground text-background"
-              : "border-border bg-transparent text-foreground hover:bg-muted",
-          )}
-        >
-          today
-        </button>
-        <button
-          type="button"
-          onClick={() => togglePreset(yesterday)}
-          className={cn(
-            "rounded-full border px-3 py-1 text-xs font-medium transition-colors cursor-pointer",
-            pendingYesterday
-              ? "border-foreground bg-foreground text-background"
-              : "border-border bg-transparent text-foreground hover:bg-muted",
-          )}
-        >
-          yesterday
-        </button>
-      </div>
+    <div className="px-4 pt-4 pb-2">
+      <p className="text-center text-lg font-semibold">when did you climb?</p>
+    </div>
+  );
+
+  const presets = (
+    <div className="flex justify-center gap-1.5 px-4 pb-4 pt-2">
+      <button
+        type="button"
+        onClick={() => togglePreset(today)}
+        className={cn(
+          "rounded-full border px-3 py-1 text-xs font-medium transition-colors cursor-pointer",
+          pendingToday
+            ? "border-foreground bg-foreground text-background"
+            : "border-border bg-transparent text-foreground hover:bg-muted",
+        )}
+      >
+        today
+      </button>
+      <button
+        type="button"
+        onClick={() => togglePreset(yesterday)}
+        className={cn(
+          "rounded-full border px-3 py-1 text-xs font-medium transition-colors cursor-pointer",
+          pendingYesterday
+            ? "border-foreground bg-foreground text-background"
+            : "border-border bg-transparent text-foreground hover:bg-muted",
+        )}
+      >
+        yesterday
+      </button>
     </div>
   );
 
   const pickerContent = (
     <div onClick={(e) => e.stopPropagation()}>
       {header}
-      <div className="flex justify-center border-t pt-1">
+      <div className="flex justify-center border-t p-4">
         <Calendar
           mode="multiple"
+          numberOfMonths={isDesktop ? 2 : 1}
+          defaultMonth={defaultMonth}
+          fixedWeeks
           selected={selectedDates}
           onSelect={(dates) => setPendingDates((dates ?? []).map(isoFromDate))}
           disabled={{ after: new Date() }}
           autoFocus
+          className="p-0 [--cell-size:--spacing(9.5)]"
         />
       </div>
+      {/* {presets} */}
     </div>
   );
 
@@ -148,13 +175,13 @@ export function VisitedButton({ visitedDates, onChangeVisits }: Props) {
     return (
       <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogTrigger asChild>{trigger}</DialogTrigger>
-        <DialogContent className="w-auto p-0">
+        <DialogContent className="w-auto min-w-sm p-0">
           <DialogHeader className="sr-only">
             <DialogTitle>Log a visit</DialogTitle>
           </DialogHeader>
           {pickerContent}
-          <div className="p-3 border-t">
-            <Button onClick={handleConfirm} className="w-full">
+          <div className="p-3 border-t flex items-center justify-center">
+            <Button onClick={handleConfirm} className="w-full max-w-3xs mx-auto">
               Done
             </Button>
           </div>

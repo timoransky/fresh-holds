@@ -30,7 +30,7 @@ export function percentToTier(percent: number | null): Tier {
   if (percent >= 40) {
     return {
       key: "worth",
-      label: "worth a trip",
+      label: "worth a climb",
       sub: "decent options",
       emoji: "⚡",
       rotateDeg: 1.5,

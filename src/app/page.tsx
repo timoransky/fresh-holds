@@ -7,7 +7,7 @@ export default async function Home() {
   const gyms = await getActiveGymsWithSections();
 
   return (
-    <main className="mx-auto min-h-dvh w-full max-w-4xl px-4 py-10 sm:py-14">
+    <main className="mx-auto min-h-dvh w-full max-w-4xl px-4 py-10 sm:py-14 overflow-hidden">
       <header className="mb-10 sm:mb-14">
         <span className="inline-block rounded-full border-2 border-foreground/80 bg-background px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-foreground">
           fresh holds · bratislava

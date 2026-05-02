@@ -55,6 +55,7 @@ export function FreshnessBadge({ percent, size = "hero", bob = false, className 
         className={cn(
           "inline-flex shrink-0 origin-center select-none items-center gap-1.5 rounded-lg border-2 px-2.5 py-1 text-xs font-bold tracking-tight",
           "bg-(--tier-bg) text-(--tier-fg) border-(--tier-ring)",
+          "absolute -top-6 -right-6",
           isUnknown && "border-dashed",
           className,
         )}
@@ -75,7 +76,9 @@ export function FreshnessBadge({ percent, size = "hero", bob = false, className 
       data-tier={tier.key}
       style={baseStyle}
       className={cn(
-        "inline-flex flex-col items-start gap-0.5 origin-center select-none rounded-2xl border-[3px] px-4 py-3 shadow-[0_4px_0_0_var(--tier-ring)]",
+        "inline-flex flex-col items-start gap-0.5 origin-center select-none rounded-2xl border-2 px-4 py-3 ",
+        // "shadow-[0_4px_0_0_var(--tier-ring)]",
+        "absolute -top-8 -right-8",
         "bg-(--tier-bg) text-(--tier-fg) border-(--tier-ring)",
         isUnknown && "border-dashed shadow-none",
         bob && "motion-safe:animate-[badge-bob_3.6s_ease-in-out_infinite]",

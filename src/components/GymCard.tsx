@@ -1,7 +1,13 @@
 "use client";
 
 import type { CSSProperties } from "react";
-import { AtSignIcon, ChevronDownIcon, GlobeIcon, NavigationIcon } from "lucide-react";
+import {
+  AtSignIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
+  GlobeIcon,
+  NavigationIcon,
+} from "lucide-react";
 import type { GymWithSections } from "@/lib/types";
 import { mostRecentReset, relativeDay } from "@/lib/freshness";
 import { Button } from "@/components/ui/button";
@@ -101,7 +107,7 @@ export function GymCard({
       <div
         key={section.id}
         className={cn(
-          "inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium",
+          "inline-flex items-center gap-2 rounded-full px-2 py-1 text-[10px] font-medium",
           chipStyles[state],
         )}
       >
@@ -117,7 +123,7 @@ export function GymCard({
     <article
       style={surfaceStyle}
       className={cn(
-        "group relative flex flex-col gap-4 rounded-3xl border-2 border-(--surface-stroke) bg-(--surface-tint) backdrop-blur-sm transition-all",
+        "group relative flex flex-col rounded-3xl border-2 border-(--surface-stroke) bg-(--surface-tint) backdrop-blur-sm transition-all",
         "shadow-[0_2px_0_0_var(--surface-stroke),0_12px_32px_-12px_var(--surface-shadow)]",
         // "hover:-translate-y-0.5 hover:shadow-[0_4px_0_0_var(--surface-stroke),0_18px_40px_-12px_var(--surface-shadow)]",
         isHero ? "p-5 sm:p-6" : "p-4 sm:p-5",
@@ -129,8 +135,8 @@ export function GymCard({
         </span>
       )}
 
-      <header className="flex items-start justify-between gap-4">
-        <div className="min-w-0 flex-1">
+      <header className="flex relative items-start justify-between gap-4">
+        <div className="min-w-0  flex-1 w-full max-w-[calc(100%-170px)]">
           <h2
             className={cn(
               "font-extrabold tracking-tight text-foreground text-balance leading-[1.05]",
@@ -139,52 +145,48 @@ export function GymCard({
           >
             {gym.name}
           </h2>
-          <p className="mt-1 text-xs text-muted-foreground">{`${freshSectionIds.size}/${sectionsByOrder.length} fresh sectors`}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{`${freshSectionIds.size} out of ${sectionsByOrder.length} sectors are fresh since your last visit.`}</p>
         </div>
         <FreshnessBadge percent={percent} size={isHero ? "hero" : "compact"} bob={isHero} />
       </header>
 
       {recent && sectionsByOrder.length > 0 && (
         <>
-          {isHero ? (
+          {/* {isHero ? (
             <div className="flex flex-wrap gap-1.5">{sectionsByRecent.map(renderSection)}</div>
-          ) : (
-            <div className="overflow-hidden">
-              <div
-                id={detailsId}
-                className={cn(
-                  "[interpolate-size:allow-keywords] overflow-hidden transition-[height] duration-300 ease-out",
-                  expanded ? "h-auto" : "h-0",
-                )}
-              >
-                <div className="flex flex-wrap gap-1.5 pt-1">
-                  {sectionsByRecent.map(renderSection)}
-                </div>
-              </div>
-              <Button
-                variant="ghost"
-                size="xs"
+          ) : ( */}
+          <div className="overflow-hidden mt-2">
+            {!isHero && (
+              <button
                 onClick={onToggle}
                 aria-expanded={expanded}
                 aria-controls={detailsId}
-                className="mt-1 -ml-1.5"
+                className="flex items-center gap-1 cursor-pointer text-muted-foreground text-sm"
               >
-                {expanded
-                  ? "hide sectors"
-                  : `${freshSectionIds.size}/${sectionsByOrder.length} fresh sectors`}
+                Show details
                 <ChevronDownIcon
                   className={cn(
                     "size-3 transition-transform duration-200",
                     expanded && "rotate-180",
                   )}
                 />
-              </Button>
+              </button>
+            )}
+            <div
+              id={detailsId}
+              className={cn(
+                "[interpolate-size:allow-keywords] overflow-hidden transition-[height] duration-300 ease-out",
+                expanded ? "h-auto" : "h-0",
+              )}
+            >
+              <div className="flex flex-wrap gap-1 pt-1">{sectionsByRecent.map(renderSection)}</div>
             </div>
-          )}
+          </div>
+          {/* )} */}
         </>
       )}
 
-      <footer className="flex items-center justify-between gap-3 pt-1">
+      <footer className="flex mt-4 items-center justify-between gap-3 pt-1">
         <div className="flex gap-2">
           <Button asChild variant="outline" size="icon-sm" className={ledgeButtonClass}>
             <a
