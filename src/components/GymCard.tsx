@@ -129,7 +129,7 @@ export function GymCard({
       className={cn(
         "group relative flex flex-col rounded-3xl border-2 border-(--surface-stroke) bg-(--surface-tint) backdrop-blur-sm transition-all",
         "shadow-[0_2px_0_0_var(--surface-stroke),0_12px_32px_-12px_var(--surface-shadow)]",
-        isHero ? "p-5 sm:p-6" : "p-4 sm:p-5",
+        "p-4 sm:p-5",
       )}
     >
       {isHero && (

@@ -112,7 +112,7 @@ export function GymList({ gyms }: Props) {
                       "--surface-shadow": "oklch(0.55 0.02 270 / 0.15)",
                     } as CSSProperties
                   }
-                  className="flex items-center justify-between gap-3 rounded-2xl border-2 border-(--surface-stroke) bg-background px-5 py-3 shadow-[0_2px_0_0_var(--surface-stroke),0_12px_32px_-12px_var(--surface-shadow)]"
+                  className="flex items-center justify-between gap-3 rounded-2xl border-2 border-(--surface-stroke) bg-background p-4 sm:p-5 shadow-[0_2px_0_0_var(--surface-stroke),0_12px_32px_-12px_var(--surface-shadow)]"
                 >
                   <div className="min-w-0">
                     <h2 className="font-bold tracking-tight text-foreground truncate text-lg">
