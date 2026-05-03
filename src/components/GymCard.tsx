@@ -13,6 +13,7 @@ import { mostRecentReset, relativeDay } from "@/lib/freshness";
 import { Button } from "@/components/ui/button";
 import { VisitedButton } from "@/components/VisitedButton";
 import { FreshnessBadge } from "@/components/FreshnessBadge";
+import { SubmitResetDialog } from "@/components/SubmitResetDialog";
 import { percentToTier, type TierKey } from "@/lib/tier";
 import { cn } from "@/lib/utils";
 
@@ -25,6 +26,7 @@ type Props = {
   variant: Variant;
   expanded: boolean;
   visitedDates: string[];
+  authed: boolean;
   onToggle: () => void;
   onChangeVisits: (isoDates: string[]) => void;
 };
@@ -75,6 +77,7 @@ export function GymCard({
   variant,
   expanded,
   visitedDates,
+  authed,
   onToggle,
   onChangeVisits,
 }: Props) {
@@ -226,7 +229,10 @@ export function GymCard({
             </Button>
           )}
         </div>
-        <VisitedButton visitedDates={visitedDates} onChangeVisits={onChangeVisits} />
+        <div className="flex items-center gap-2">
+          <SubmitResetDialog gym={gym} authed={authed} />
+          <VisitedButton visitedDates={visitedDates} onChangeVisits={onChangeVisits} />
+        </div>
       </footer>
     </article>
   );

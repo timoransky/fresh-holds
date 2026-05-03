@@ -6,6 +6,7 @@ import { useSyncedVisits } from "@/hooks/useSyncedVisits";
 import { gymFreshness, mostRecentReset } from "@/lib/freshness";
 import type { GymWithSections } from "@/lib/types";
 import { GymCard } from "@/components/GymCard";
+import { SubmitResetDialog } from "@/components/SubmitResetDialog";
 import { Button } from "@/components/ui/button";
 
 type Props = {
@@ -62,6 +63,7 @@ export function GymList({ gyms, authed }: Props) {
           freshSectionIds={hero.freshSectionIds}
           variant="hero"
           expanded
+          authed={authed}
           onToggle={() => {}}
           visitedDates={history[hero.gym.slug] ?? []}
           onChangeVisits={(dates) => setVisits(hero.gym.slug, dates)}
@@ -82,6 +84,7 @@ export function GymList({ gyms, authed }: Props) {
                 freshSectionIds={c.freshSectionIds}
                 variant="compact"
                 expanded={c.gym.id === openGymId}
+                authed={authed}
                 onToggle={() => setOpenGymId((prev) => (prev === c.gym.id ? null : c.gym.id))}
                 visitedDates={history[c.gym.slug] ?? []}
                 onChangeVisits={(dates) => setVisits(c.gym.slug, dates)}
@@ -124,7 +127,7 @@ export function GymList({ gyms, authed }: Props) {
                     </p>
                   </div>
 
-                  <div className="flex shrink-0 gap-2">
+                  <div className="flex shrink-0 items-center gap-2">
                     <Button asChild variant="outline" size="icon-sm" className="rounded-full">
                       <a
                         href={navigateUrl}
@@ -159,6 +162,7 @@ export function GymList({ gyms, authed }: Props) {
                         </a>
                       </Button>
                     )}
+                    <SubmitResetDialog gym={c.gym} authed={authed} />
                   </div>
                 </li>
               );
