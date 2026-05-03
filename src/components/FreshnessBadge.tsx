@@ -53,35 +53,20 @@ export function FreshnessBadge({ percent, size = "hero", bob = false, className 
         data-tier={tier.key}
         style={baseStyle}
         className={cn(
-          "inline-flex flex-col items-start gap-0.5 origin-center select-none rounded-2xl border-2 px-3 py-2",
+          "inline-flex items-center gap-1.5 origin-center select-none rounded-2xl border-2 px-2.5 py-1.5",
           "shadow-[0_3px_0_0_var(--tier-ring)]",
           "bg-(--tier-bg) text-(--tier-fg) border-(--tier-ring)",
-          "absolute -top-6 -right-6",
+          "absolute -top-4 -right-4",
           isUnknown && "border-dashed shadow-none",
           className,
         )}
       >
-        <div className="flex items-center gap-1.5">
-          <span className="text-xl leading-none" aria-hidden>
-            {tier.emoji}
-          </span>
-          <span className="text-sm font-extrabold tracking-tight lowercase leading-none">
-            {tier.label}
-          </span>
-        </div>
-        <div className="flex items-baseline gap-1.5 self-stretch">
-          {percent === null ? (
-            <span className="text-[10px] opacity-70">{tier.sub}</span>
-          ) : (
-            <>
-              <span className="font-mono text-xl font-bold tabular-nums leading-none">
-                {percent}
-                <span className="text-sm font-bold opacity-60">%</span>
-              </span>
-              <span className="text-[10px] opacity-70">{tier.sub}</span>
-            </>
-          )}
-        </div>
+        <span className="text-base leading-none" aria-hidden>
+          {tier.emoji}
+        </span>
+        <span className="font-mono text-sm font-bold tabular-nums leading-none">
+          {percent !== null ? `${percent}%` : "—"}
+        </span>
       </div>
     );
   }
@@ -109,17 +94,16 @@ export function FreshnessBadge({ percent, size = "hero", bob = false, className 
         </span>
       </div>
       <div className="flex items-baseline gap-1.5 self-stretch">
-        {percent === null ? (
-          <span className="text-xs opacity-70">{tier.sub}</span>
-        ) : (
-          <>
-            <span className="font-mono text-2xl font-bold tabular-nums leading-none">
+        <span className="font-mono text-2xl font-bold tabular-nums leading-none">
+          {percent !== null ? (
+            <>
               {percent}
               <span className="text-base font-bold opacity-60">%</span>
-            </span>
-            <span className="text-[11px] opacity-70">{tier.sub}</span>
-          </>
-        )}
+            </>
+          ) : (
+            <span className="text-base opacity-60">—</span>
+          )}
+        </span>
       </div>
     </div>
   );
