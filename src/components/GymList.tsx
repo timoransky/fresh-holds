@@ -2,7 +2,7 @@
 
 import { useMemo, useState, type CSSProperties } from "react";
 import { AtSignIcon, GlobeIcon, NavigationIcon } from "lucide-react";
-import { useVisits } from "@/hooks/useVisits";
+import { useSyncedVisits } from "@/hooks/useSyncedVisits";
 import { gymFreshness, mostRecentReset } from "@/lib/freshness";
 import type { GymWithSections } from "@/lib/types";
 import { GymCard } from "@/components/GymCard";
@@ -10,10 +10,11 @@ import { Button } from "@/components/ui/button";
 
 type Props = {
   gyms: GymWithSections[];
+  authed: boolean;
 };
 
-export function GymList({ gyms }: Props) {
-  const { visits, history, setVisits } = useVisits();
+export function GymList({ gyms, authed }: Props) {
+  const { visits, history, setVisits } = useSyncedVisits(authed);
   const [openGymId, setOpenGymId] = useState<string | null>(null);
 
   const computed = useMemo(() => {

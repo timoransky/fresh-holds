@@ -25,3 +25,5 @@ export type Gym = {
 export type GymWithSections = Gym & {
   sections: Section[];
 };
+
+export type VisitHistory = Record<string, string[]>;

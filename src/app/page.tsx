@@ -1,17 +1,22 @@
 import { getActiveGymsWithSections } from "@/lib/db/gyms";
+import { getCurrentUser } from "@/lib/auth";
 import { GymList } from "@/components/GymList";
+import { HeaderAuth } from "@/components/HeaderAuth";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const gyms = await getActiveGymsWithSections();
+  const [gyms, user] = await Promise.all([getActiveGymsWithSections(), getCurrentUser()]);
 
   return (
     <main className="mx-auto min-h-dvh w-full max-w-4xl px-4 py-10 sm:py-14 overflow-hidden">
       <header className="mb-10 sm:mb-14">
-        <span className="inline-block rounded-full border-2 border-foreground/80 bg-background px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-foreground">
-          fresh holds · bratislava
-        </span>
+        <div className="flex items-start justify-between gap-3">
+          <span className="inline-block rounded-full border-2 border-foreground/80 bg-background px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-foreground">
+            fresh holds · bratislava
+          </span>
+          <HeaderAuth />
+        </div>
         <h1 className="mt-6 text-balance text-4xl font-extrabold leading-[1.02] tracking-tight text-foreground sm:text-6xl">
           where&rsquo;s the freshest <span className="italic">climbing</span> right now?
         </h1>
@@ -27,7 +32,7 @@ export default async function Home() {
           No gyms yet. Run the migration and seed in Supabase to get started.
         </p>
       ) : (
-        <GymList gyms={gyms} />
+        <GymList gyms={gyms} authed={Boolean(user)} />
       )}
 
       <footer className="mt-16 flex flex-col items-center gap-2 text-center text-xs text-muted-foreground">
