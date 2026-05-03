@@ -53,7 +53,7 @@ export function FreshnessBadge({ percent, size = "hero", bob = false, className 
         data-tier={tier.key}
         style={baseStyle}
         className={cn(
-          "inline-flex items-center gap-1.5 origin-center select-none rounded-2xl border-2 px-2.5 py-1.5",
+          "inline-flex items-center gap-2 origin-center select-none rounded-xl border-2 px-2.5 py-1.5",
           "shadow-[0_3px_0_0_var(--tier-ring)]",
           "bg-(--tier-bg) text-(--tier-fg) border-(--tier-ring)",
           "absolute -top-4 -right-4",
@@ -61,12 +61,29 @@ export function FreshnessBadge({ percent, size = "hero", bob = false, className 
           className,
         )}
       >
-        <span className="text-base leading-none" aria-hidden>
+        <span className="text-lg leading-none" aria-hidden>
           {tier.emoji}
         </span>
-        <span className="font-mono text-sm font-bold tabular-nums leading-none">
-          {percent !== null ? `${percent}%` : "—"}
-        </span>
+        <div className="flex flex-col gap-0.5">
+          <span className="text-[10px] font-extrabold tracking-tight lowercase leading-none">
+            {tier.label}
+          </span>
+          <div className="flex items-baseline gap-1">
+            <span className="font-mono text-sm font-semibold tabular-nums leading-none">
+              {percent !== null ? (
+                <>
+                  {percent}
+                  <span className="text-[10px]">%</span>
+                </>
+              ) : (
+                "—"
+              )}
+            </span>
+            {percent !== null && (
+              <span className="text-[10px] font-semibold">fresh</span>
+            )}
+          </div>
+        </div>
       </div>
     );
   }
@@ -76,7 +93,7 @@ export function FreshnessBadge({ percent, size = "hero", bob = false, className 
       data-tier={tier.key}
       style={baseStyle}
       className={cn(
-        "inline-flex flex-col items-start gap-0.5 origin-center select-none rounded-2xl border-2 px-4 py-3 ",
+        "inline-flex items-center gap-3 origin-center select-none rounded-2xl border-2 px-4 py-3",
         "shadow-[0_3px_0_0_var(--tier-ring)]",
         "absolute -top-8 -right-8",
         "bg-(--tier-bg) text-(--tier-fg) border-(--tier-ring)",
@@ -85,25 +102,28 @@ export function FreshnessBadge({ percent, size = "hero", bob = false, className 
         className,
       )}
     >
-      <div className="flex items-center gap-2">
-        <span className="text-2xl leading-none" aria-hidden>
-          {tier.emoji}
-        </span>
+      <span className="text-2xl leading-none" aria-hidden>
+        {tier.emoji}
+      </span>
+      <div className="flex flex-col gap-0.5">
         <span className="text-base font-extrabold tracking-tight lowercase leading-none">
           {tier.label}
         </span>
-      </div>
-      <div className="flex items-baseline gap-1.5 self-stretch">
-        <span className="font-mono text-2xl font-bold tabular-nums leading-none">
-          {percent !== null ? (
-            <>
-              {percent}
-              <span className="text-base font-bold opacity-60">%</span>
-            </>
-          ) : (
-            <span className="text-base opacity-60">—</span>
+        <div className="flex items-baseline gap-1.5">
+          <span className="font-mono text-2xl font-semibold tabular-nums leading-none">
+            {percent !== null ? (
+              <>
+                {percent}
+                <span className="text-base">%</span>
+              </>
+            ) : (
+              "—"
+            )}
+          </span>
+          {percent !== null && (
+            <span className="text-sm font-semibold">fresh</span>
           )}
-        </span>
+        </div>
       </div>
     </div>
   );
