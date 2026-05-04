@@ -57,6 +57,12 @@
   --radius: 0.875rem;
 }
 
+@utility squircle {
+  @supports (corner-shape: squircle) {
+    corner-shape: squircle;
+  }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/0;
