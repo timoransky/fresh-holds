@@ -13,12 +13,11 @@ export default async function Home() {
           fresh holds · bratislava
         </span>
         <h1 className="mt-6 text-balance text-4xl font-extrabold leading-[1.02] tracking-tight text-foreground sm:text-6xl">
-          where&rsquo;s the freshest <span className="italic">climbing</span> right now?
+          where&rsquo;s the freshest <span className="italic text-cobalt">climbing</span> right now?
         </h1>
-        <p className="mt-6 max-w-prose text-base text-muted-foreground sm:text-lg">
-          Sorted by what&rsquo;s new since you were last there. Tap{" "}
-          <span className="font-semibold text-foreground">i climbed here</span> after a session and
-          the list re-shuffles for next time.
+        <p className="mt-6 max-w-prose text-base text-balance text-muted-foreground sm:text-lg">
+          Log your visits to get the best recommedation for you next climbing session. Sorted by
+          what&rsquo;s new since you were last there.
         </p>
       </header>
 
