@@ -95,7 +95,7 @@ export function VisitedButton({ visitedDates, onChangeVisits }: Props) {
     <Button
       type="button"
       size="sm"
-      variant={hasVisits ? "outline" : "default"}
+      variant="default"
       className="rounded-full"
     >
       {hasVisits ? (
