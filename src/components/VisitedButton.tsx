@@ -92,23 +92,18 @@ export function VisitedButton({ visitedDates, onChangeVisits }: Props) {
   }, [isDesktop]);
 
   const trigger = (
-    <Button
-      type="button"
-      size="sm"
-      variant="default"
-      className="rounded-full"
-    >
-      {hasVisits ? (
+    <Button type="button" size="sm" variant="default" className="rounded-full">
+      {/* {hasVisits ? (
         <>
           <CheckIcon className="size-3.5" />
           <span>climbed {relativeDay(latestVisit)}</span>
         </>
-      ) : (
-        <>
-          <PlusIcon className="size-3.5" />
-          <span>i climbed here</span>
-        </>
-      )}
+      ) : ( */}
+      <>
+        <PlusIcon className="size-3.5" />
+        <span>track my visit</span>
+      </>
+      {/* )} */}
     </Button>
   );
 

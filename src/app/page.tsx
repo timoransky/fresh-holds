@@ -9,11 +9,11 @@ export default async function Home() {
   return (
     <main className="mx-auto min-h-dvh w-full max-w-4xl px-4 py-10 sm:py-14 overflow-hidden">
       <header className="mb-10 sm:mb-14">
-        <span className="inline-block rounded-full border-2 border-foreground/80 bg-background px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-foreground">
+        {/* <span className="inline-block rounded-full border-2 border-foreground/80 bg-background px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-foreground">
           fresh holds · bratislava
-        </span>
+        </span> */}
         <h1 className="mt-6 text-balance text-4xl font-extrabold leading-[1.02] tracking-tight text-foreground sm:text-6xl">
-          where&rsquo;s the freshest <span className="italic text-cobalt">climbing</span> right now?
+          where are the <span className=" text-cobalt">fresh holds</span> right now?
         </h1>
         <p className="mt-6 max-w-prose text-base text-balance text-muted-foreground sm:text-lg">
           Log your visits to get the best recommedation for you next climbing session. Sorted by
@@ -29,11 +29,15 @@ export default async function Home() {
         <GymList gyms={gyms} />
       )}
 
-      <footer className="mt-16 flex flex-col items-center gap-2 text-center text-xs text-muted-foreground">
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-foreground/10 bg-background/70 px-3 py-1 font-medium">
-          made for sending in bratislava 🧗
+      <footer className="mt-16 flex flex-row justify-center flex-wrap items-center gap-2 text-center text-xs text-muted-foreground">
+        <span>resets logged manually</span>
+        <span>·&nbsp;&nbsp;visits saved on this device only&nbsp;&nbsp;·</span>
+        <span>
+          created with 🫀 by{" "}
+          <a href="https://janci.dev" className="text-cobalt hover:text-cobalt-shadow">
+            janci.dev
+          </a>
         </span>
-        <span>resets logged manually · visits saved on this device only</span>
       </footer>
     </main>
   );

@@ -56,7 +56,7 @@ export function relativeDay(isoDate: string): string {
   if (days <= 0) return "today";
   if (days === 1) return "1 day ago";
   if (days <= 30) return `${days} days ago`;
-  if (days <= 60) return "about a month ago";
+  if (days <= 60) return "~1 month ago";
   if (days <= 365) return `~${Math.round(days / 30)} months ago`;
   const years = Math.round(days / 365);
   return years === 1 ? "~1 year ago" : `~${years} years ago`;

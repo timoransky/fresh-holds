@@ -1,13 +1,7 @@
 "use client";
 
 import type { CSSProperties } from "react";
-import {
-  AtSignIcon,
-  ChevronDownIcon,
-  ChevronUpIcon,
-  GlobeIcon,
-  NavigationIcon,
-} from "lucide-react";
+import { AtSignIcon, ChevronDownIcon, GlobeIcon, NavigationIcon } from "lucide-react";
 import type { GymWithSections } from "@/lib/types";
 import { mostRecentReset, relativeDay } from "@/lib/freshness";
 import { Button } from "@/components/ui/button";
@@ -63,9 +57,9 @@ const cardSurface: Record<TierKey, CSSProperties> = {
 };
 
 const chipStyles: Record<"fresh" | "stale" | "none", string> = {
-  fresh: "border border-foreground/50 bg-background/30 text-foreground",
-  stale: "border border-foreground/20 bg-transparent text-muted-foreground/70",
-  none: "border border-dashed border-foreground/15 bg-transparent text-muted-foreground/70",
+  fresh: "border-muted-foreground/90 text-muted-foreground/90",
+  stale: " border-dashed border-muted-foreground/60 text-muted-foreground/60",
+  none: " border-dotted border-muted-foreground/30 text-muted-foreground/30",
 };
 
 export function GymCard({
@@ -111,12 +105,12 @@ export function GymCard({
       <div
         key={section.id}
         className={cn(
-          "inline-flex items-center gap-2 rounded-full px-2 py-1 text-[10px] font-medium",
+          "inline-flex items-baseline gap-1 rounded-full squircle px-2 py-1 border bg-transparent",
           chipStyles[state],
         )}
       >
-        <span className="font-semibold">{section.name}</span>
-        <span className="opacity-70 font-mono tabular-nums text-[10px]">
+        <span className="font-medium text-xs">{section.name}</span>
+        <span className="opacity-70 tracking-tight text-[10px]">
           {sectionMostRecent ? relativeDay(sectionMostRecent.reset_on) : "—"}
         </span>
       </div>
@@ -133,7 +127,7 @@ export function GymCard({
       )}
     >
       {isHero && (
-        <span className="absolute -top-3 left-6 inline-flex items-center gap-1 rounded-full bg-foreground px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-background">
+        <span className="absolute -top-3 left-5 inline-flex items-center gap-1 rounded-full squircle bg-cobalt px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-background">
           today&rsquo;s pick
         </span>
       )}
@@ -143,7 +137,7 @@ export function GymCard({
           <h2
             className={cn(
               "font-extrabold tracking-tight text-foreground text-balance leading-[1.05] max-w-[calc(100%-var(--badge-width))]",
-              isHero ? "text-3xl sm:text-4xl" : "text-xl",
+              isHero ? "text-3xl sm:text-4xl" : "text-xl sm:text-2xl",
             )}
           >
             {gym.name}
@@ -189,7 +183,7 @@ export function GymCard({
         </>
       )}
 
-      <footer className="flex mt-4 items-center justify-between gap-3 pt-1">
+      <footer className="flex flex-wrap mt-4 items-center justify-between gap-3 pt-1">
         <div className="flex gap-2">
           <Button asChild variant="outline" size="icon-sm" className="rounded-full">
             <a

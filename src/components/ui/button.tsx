@@ -5,14 +5,14 @@ import { Slot } from "radix-ui";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "group/button squircle-xl inline-flex cursor-pointer shrink-0 items-center rounded-lg justify-center border border-transparent text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:ring-3 focus-visible:ring-ring/50 active:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "group/button squircle-xl inline-flex cursor-pointer shrink-0 items-center rounded-lg justify-center border border-transparent text-sm font-medium whitespace-nowrap  hover:-translate-y-0.5 focus-visible:-translate-y-0.5 transition-all outline-none select-none   active:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
         default:
-          "bg-cobalt text-background font-semibold border-cobalt-shadow hover:bg-cobalt shadow-[0_2px_0_0_var(--cobalt-shadow)] hover:-translate-y-0.5 hover:shadow-[0_4px_0_0_var(--cobalt-shadow)] active:shadow-[0_1px_0_0_var(--cobalt-shadow)]",
+          "bg-muted-foreground/85 text-background font-semibold border-foreground hover:bg-muted-foreground/90 shadow-[0_2px_0_0_var(--foreground)] hover:shadow-[0_4px_0_0_var(--foreground)] focus-visible:shadow-[0_4px_0_0_var(--foreground)] active:shadow-[0_1px_0_0_var(--foreground)]",
         outline:
-          "border-[var(--surface-stroke,var(--foreground))] bg-background shadow-[0_2px_0_0_var(--surface-stroke,var(--foreground))] hover:-translate-y-0.5 hover:shadow-[0_4px_0_0_var(--surface-stroke,var(--foreground))] active:shadow-[0_1px_0_0_var(--surface-stroke,var(--foreground))] aria-expanded:bg-muted aria-expanded:text-foreground",
+          "border-[var(--surface-stroke,var(--foreground))] bg-background shadow-[0_2px_0_0_var(--surface-stroke,var(--foreground))] hover:shadow-[0_4px_0_0_var(--surface-stroke,var(--foreground))] focus-visible:shadow-[0_4px_0_0_var(--surface-stroke,var(--foreground))]   active:shadow-[0_1px_0_0_var(--surface-stroke,var(--foreground))] aria-expanded:bg-muted aria-expanded:text-foreground",
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-secondary/80 aria-expanded:bg-secondary aria-expanded:text-secondary-foreground",
         ghost:

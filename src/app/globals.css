@@ -58,7 +58,7 @@
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.88 0.015 90);
   --input: oklch(0.88 0.015 90);
-  --ring: oklch(0.55 0.18 30);
+  --ring: oklch(0.45 0.02 270);
   --radius: 0.875rem;
 }
 
@@ -71,7 +71,8 @@
 @utility squircle-* {
   @supports (corner-shape: squircle) {
     corner-shape: squircle;
-    border-radius: --value(--radius-*) !important;
+    border-radius: --value([integer]);
+    border-radius: --value(--radius- *);
   }
 }
 
