@@ -127,7 +127,7 @@ export function GymCard({
     <article
       style={surfaceStyle}
       className={cn(
-        "group squircle relative flex flex-col rounded-3xl border-2 border-(--surface-stroke) bg-(--surface-tint) backdrop-blur-sm transition-all",
+        "group squircle-4xl relative flex flex-col rounded-3xl border-2 border-(--surface-stroke) bg-(--surface-tint) backdrop-blur-sm transition-all",
         "shadow-[0_2px_0_0_var(--surface-stroke),0_12px_32px_-12px_var(--surface-shadow)]",
         "p-4 sm:p-5",
       )}

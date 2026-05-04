@@ -53,7 +53,7 @@ export function FreshnessBadge({ percent, size = "hero", bob = false, className 
         data-tier={tier.key}
         style={baseStyle}
         className={cn(
-          "inline-flex items-center gap-2 origin-center select-none rounded-xl border-2 px-3 py-2",
+          "inline-flex items-center gap-2 origin-center select-none rounded-xl squircle-2xl border-2 px-3 py-2",
           "shadow-[0_2px_0_0_var(--tier-ring)]",
           "bg-(--tier-bg) text-(--tier-fg) border-(--tier-ring)",
           "absolute -top-6 -right-6 md:-top-7 md:-right-7",
@@ -91,7 +91,7 @@ export function FreshnessBadge({ percent, size = "hero", bob = false, className 
       data-tier={tier.key}
       style={baseStyle}
       className={cn(
-        "inline-flex items-center gap-2.5 origin-center select-none rounded-2xl border-2 px-4 pl-3 py-3",
+        "inline-flex items-center gap-2.5 origin-center select-none rounded-2xl squircle-3xl border-2 px-4 pl-3 py-3",
         "shadow-[0_3px_0_0_var(--tier-ring)]",
         "absolute -top-8 -right-8",
         "bg-(--tier-bg) text-(--tier-fg) border-(--tier-ring)",
