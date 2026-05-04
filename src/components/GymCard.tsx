@@ -25,31 +25,31 @@ type Props = {
 
 const cardSurface: Record<TierKey, CSSProperties> = {
   hot: {
-    "--badge-width": "120px",
+    "--badge-width": "140px",
     "--surface-tint": "oklch(0.97 0.04 30 / 0.7)",
     "--surface-stroke": "oklch(0.86 0.07 30)",
     "--surface-shadow": "oklch(0.55 0.20 30 / 0.18)",
   } as CSSProperties,
   worth: {
-    "--badge-width": "90px",
+    "--badge-width": "110px",
     "--surface-tint": "oklch(0.97 0.07 92 / 0.7)",
     "--surface-stroke": "oklch(0.88 0.09 85)",
     "--surface-shadow": "oklch(0.62 0.16 80 / 0.18)",
   } as CSSProperties,
   slim: {
-    "--badge-width": "90px",
+    "--badge-width": "110px",
     "--surface-tint": "oklch(0.97 0.04 165 / 0.7)",
     "--surface-stroke": "oklch(0.87 0.06 165)",
     "--surface-shadow": "oklch(0.58 0.13 165 / 0.16)",
   } as CSSProperties,
   stale: {
-    "--badge-width": "90px",
+    "--badge-width": "110px",
     "--surface-tint": "oklch(0.96 0.015 285 / 0.7)",
     "--surface-stroke": "oklch(0.86 0.03 285)",
     "--surface-shadow": "oklch(0.65 0.05 285 / 0.14)",
   } as CSSProperties,
   unknown: {
-    "--badge-width": "90px",
+    "--badge-width": "110px",
     "--surface-tint": "oklch(1 0 0 / 0.7)",
     "--surface-stroke": "oklch(0.86 0 0)",
     "--surface-shadow": "oklch(0.55 0 0 / 0.10)",
@@ -127,7 +127,7 @@ export function GymCard({
       )}
     >
       {isHero && (
-        <span className="absolute -top-3 left-5 inline-flex items-center gap-1 rounded-full squircle bg-cobalt px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-background">
+        <span className="absolute -top-3 left-8 inline-flex items-center gap-1 rounded-full squircle bg-cobalt px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-background">
           today&rsquo;s pick
         </span>
       )}
@@ -142,7 +142,7 @@ export function GymCard({
           >
             {gym.name}
           </h2>
-          <p className="mt-1 text-sm text-muted-foreground">{`${freshSectionIds.size} out of ${sectionsByOrder.length} sectors are fresh since your last visit.`}</p>
+          <p className="mt-2 text-sm text-muted-foreground">{`${freshSectionIds.size} out of ${sectionsByOrder.length} sectors are fresh since your last visit.`}</p>
         </div>
         <FreshnessBadge percent={percent} size={isHero ? "hero" : "compact"} bob={isHero} />
       </header>

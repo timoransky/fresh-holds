@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { CheckIcon, PlusIcon } from "lucide-react";
+import { CalendarIcon, CalendarPlusIcon, CheckIcon, PlusIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Drawer,
@@ -93,17 +93,8 @@ export function VisitedButton({ visitedDates, onChangeVisits }: Props) {
 
   const trigger = (
     <Button type="button" size="sm" variant="default" className="rounded-full">
-      {/* {hasVisits ? (
-        <>
-          <CheckIcon className="size-3.5" />
-          <span>climbed {relativeDay(latestVisit)}</span>
-        </>
-      ) : ( */}
-      <>
-        <PlusIcon className="size-3.5" />
-        <span>track my visit</span>
-      </>
-      {/* )} */}
+      <CalendarPlusIcon className="size-3.5" />
+      <span>log my visit</span>
     </Button>
   );
 
