@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, type CSSProperties } from "react";
+import { useMemo, type CSSProperties } from "react";
 import { AtSignIcon, GlobeIcon, NavigationIcon } from "lucide-react";
 import { useVisits } from "@/hooks/useVisits";
 import { gymFreshness, mostRecentReset } from "@/lib/freshness";
@@ -15,7 +15,6 @@ type Props = {
 
 export function GymList({ gyms }: Props) {
   const { visits, history, setVisits } = useVisits();
-  const [openGymId, setOpenGymId] = useState<string | null>(null);
 
   const computed = useMemo(() => {
     return gyms.map((gym) => {
@@ -74,8 +73,6 @@ export function GymList({ gyms }: Props) {
           label={hero.label}
           lastVisited={hero.lastVisited}
           variant="hero"
-          expanded
-          onToggle={() => {}}
           visitedDates={history[hero.gym.slug] ?? []}
           onChangeVisits={(dates) => setVisits(hero.gym.slug, dates)}
         />
@@ -96,8 +93,6 @@ export function GymList({ gyms }: Props) {
                 label={c.label}
                 lastVisited={c.lastVisited}
                 variant="compact"
-                expanded={c.gym.id === openGymId}
-                onToggle={() => setOpenGymId((prev) => (prev === c.gym.id ? null : c.gym.id))}
                 visitedDates={history[c.gym.slug] ?? []}
                 onChangeVisits={(dates) => setVisits(c.gym.slug, dates)}
               />

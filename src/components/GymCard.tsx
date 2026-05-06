@@ -1,15 +1,11 @@
 "use client";
 
 import type { CSSProperties } from "react";
-import { AtSignIcon, ChevronDownIcon, GlobeIcon, NavigationIcon } from "lucide-react";
+import { AtSignIcon, GlobeIcon, NavigationIcon } from "lucide-react";
 import type { GymWithSections, Reset } from "@/lib/types";
-import {
-  describeFreshness,
-  mostRecentReset,
-  relativeDay,
-  type FreshLabel,
-} from "@/lib/freshness";
+import { describeFreshness, mostRecentReset, relativeDay, type FreshLabel } from "@/lib/freshness";
 import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { VisitedButton } from "@/components/VisitedButton";
 import { FreshnessBadge } from "@/components/FreshnessBadge";
 import type { Tier, TierKey } from "@/lib/tier";
@@ -24,9 +20,7 @@ type Props = {
   label: FreshLabel | null;
   lastVisited: string | null;
   variant: Variant;
-  expanded: boolean;
   visitedDates: string[];
-  onToggle: () => void;
   onChangeVisits: (isoDates: string[]) => void;
 };
 
@@ -76,9 +70,7 @@ export function GymCard({
   label,
   lastVisited,
   variant,
-  expanded,
   visitedDates,
-  onToggle,
   onChangeVisits,
 }: Props) {
   const isCountMode = gym.freshness_mode === "count";
@@ -91,9 +83,7 @@ export function GymCard({
   });
   const recent = mostRecentReset(sectionsByOrder);
   const allResets = isCountMode
-    ? gym.sections
-        .flatMap((s) => s.resets)
-        .sort((a, b) => b.reset_on.localeCompare(a.reset_on))
+    ? gym.sections.flatMap((s) => s.resets).sort((a, b) => b.reset_on.localeCompare(a.reset_on))
     : [];
 
   const instagramUrl = gym.instagram_handle
@@ -103,30 +93,33 @@ export function GymCard({
     [gym.name, gym.neighborhood, "Bratislava"].filter(Boolean).join(" "),
   )}`;
 
-  const detailsId = `gym-details-${gym.id}`;
   const isHero = variant === "hero";
 
   const surfaceStyle = cardSurface[tier.key];
+
+  const chipBaseClass =
+    "inline-flex items-baseline rounded-full px-2 py-1 border bg-transparent cursor-pointer transition-colors hover:bg-foreground/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
+
+  const popoverContentClass =
+    "w-auto py-1 px-2 text-xs font-medium tracking-tight gap-0 rounded-md";
 
   const renderReset = (reset: Reset) => {
     const isFresh = lastVisited === null || reset.reset_on > lastVisited;
     const state: "fresh" | "stale" = isFresh ? "fresh" : "stale";
     const count = reset.boulders_reset ?? 0;
     return (
-      <div
-        key={reset.id}
-        className={cn(
-          "inline-flex items-baseline gap-1 rounded-full squircle px-2 py-1 border bg-transparent",
-          chipStyles[state],
-        )}
-      >
-        <span className="font-medium text-xs">
-          {count} new {count === 1 ? "boulder" : "boulders"}
-        </span>
-        <span className="opacity-70 tracking-tight text-[10px]">
+      <Popover key={reset.id}>
+        <PopoverTrigger asChild>
+          <button type="button" className={cn(chipBaseClass, chipStyles[state])}>
+            <span className="font-medium text-xs">
+              {count} new {count === 1 ? "boulder" : "boulders"}
+            </span>
+          </button>
+        </PopoverTrigger>
+        <PopoverContent side="top" className={popoverContentClass}>
           {relativeDay(reset.reset_on)}
-        </span>
-      </div>
+        </PopoverContent>
+      </Popover>
     );
   };
 
@@ -138,18 +131,16 @@ export function GymCard({
         ? "fresh"
         : "stale";
     return (
-      <div
-        key={section.id}
-        className={cn(
-          "inline-flex items-baseline gap-1 rounded-full squircle px-2 py-1 border bg-transparent",
-          chipStyles[state],
-        )}
-      >
-        <span className="font-medium text-xs">{section.name}</span>
-        <span className="opacity-70 tracking-tight text-[10px]">
-          {sectionMostRecent ? relativeDay(sectionMostRecent.reset_on) : "—"}
-        </span>
-      </div>
+      <Popover key={section.id}>
+        <PopoverTrigger asChild>
+          <button type="button" className={cn(chipBaseClass, chipStyles[state])}>
+            <span className="font-medium text-xs">{section.name}</span>
+          </button>
+        </PopoverTrigger>
+        <PopoverContent side="top" className={popoverContentClass}>
+          {sectionMostRecent ? relativeDay(sectionMostRecent.reset_on) : "no resets logged"}
+        </PopoverContent>
+      </Popover>
     );
   };
 
@@ -176,50 +167,13 @@ export function GymCard({
             {describeFreshness(label, lastVisited)}
           </p>
         </div>
-        <FreshnessBadge
-          tier={tier}
-          label={label}
-          size={isHero ? "hero" : "compact"}
-          bob={isHero}
-        />
+        <FreshnessBadge tier={tier} label={label} size={isHero ? "hero" : "compact"} bob={isHero} />
       </header>
 
       {recent && sectionsByOrder.length > 0 && (
-        <>
-          {/* {isHero ? (
-            <div className="flex flex-wrap gap-1.5">{sectionsByRecent.map(renderSection)}</div>
-          ) : ( */}
-          <div className="overflow-hidden mt-2">
-            {!isHero && (
-              <button
-                onClick={onToggle}
-                aria-expanded={expanded}
-                aria-controls={detailsId}
-                className="flex items-center gap-1 cursor-pointer text-muted-foreground text-sm"
-              >
-                Show details
-                <ChevronDownIcon
-                  className={cn(
-                    "size-3 transition-transform duration-200",
-                    expanded && "rotate-180",
-                  )}
-                />
-              </button>
-            )}
-            <div
-              id={detailsId}
-              className={cn(
-                "[interpolate-size:allow-keywords] overflow-hidden transition-[height] duration-300 ease-out",
-                expanded ? "h-auto" : "h-0",
-              )}
-            >
-              <div className="flex flex-wrap gap-1 pt-1">
-                {isCountMode ? allResets.map(renderReset) : sectionsByRecent.map(renderSection)}
-              </div>
-            </div>
-          </div>
-          {/* )} */}
-        </>
+        <div className="flex flex-wrap items-center gap-1 mt-2">
+          {isCountMode ? allResets.map(renderReset) : sectionsByRecent.map(renderSection)}
+        </div>
       )}
 
       <footer className="flex flex-wrap mt-auto pt-4 items-center justify-between gap-3">
