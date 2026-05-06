@@ -27,6 +27,7 @@ export function GymList({ gyms }: Props) {
         lastVisited,
         freshSectionIds: freshness.freshSectionIds,
         freshResetCount: freshness.freshResetCount,
+        noveltyScore: freshness.noveltyScore,
         mostRecentFreshISO: freshness.mostRecentFreshISO,
         hasResetData: freshness.hasResetData,
         label: freshness.label,
@@ -40,8 +41,8 @@ export function GymList({ gyms }: Props) {
     const withData = computed
       .filter((c) => c.hasResetData)
       .sort((a, b) => {
-        const byCount = b.freshResetCount - a.freshResetCount;
-        if (byCount !== 0) return byCount;
+        const byScore = b.noveltyScore - a.noveltyScore;
+        if (byScore !== 0) return byScore;
         const ar = a.mostRecentFreshISO ?? a.recent?.reset_on ?? "";
         const br = b.mostRecentFreshISO ?? b.recent?.reset_on ?? "";
         return br.localeCompare(ar);
