@@ -48,7 +48,12 @@ export default async function AdminPage() {
                         {r.reset_on}
                       </span>
                     </div>
-                    <div className="mt-0.5 text-muted-foreground">{r.section_name}</div>
+                    <div className="mt-0.5 text-muted-foreground">
+                      {r.section_name}
+                      {r.boulders_reset !== null && (
+                        <span className="ml-1 text-xs">· {r.boulders_reset} boulders</span>
+                      )}
+                    </div>
                     {r.notes && (
                       <div className="mt-1 text-xs text-muted-foreground/70">{r.notes}</div>
                     )}

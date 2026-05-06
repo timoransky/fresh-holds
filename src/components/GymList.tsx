@@ -4,6 +4,7 @@ import { useMemo, useState, type CSSProperties } from "react";
 import { AtSignIcon, GlobeIcon, NavigationIcon } from "lucide-react";
 import { useVisits } from "@/hooks/useVisits";
 import { gymFreshness, mostRecentReset } from "@/lib/freshness";
+import { freshnessTier } from "@/lib/tier";
 import type { GymWithSections } from "@/lib/types";
 import { GymCard } from "@/components/GymCard";
 import { Button } from "@/components/ui/button";
@@ -19,13 +20,17 @@ export function GymList({ gyms }: Props) {
   const computed = useMemo(() => {
     return gyms.map((gym) => {
       const lastVisited = visits[gym.slug] ?? null;
-      const freshness = gymFreshness(gym.sections, lastVisited);
+      const freshness = gymFreshness(gym, lastVisited);
       const recent = mostRecentReset(gym.sections);
       return {
         gym,
         lastVisited,
-        percent: freshness.percent,
         freshSectionIds: freshness.freshSectionIds,
+        freshResetCount: freshness.freshResetCount,
+        mostRecentFreshISO: freshness.mostRecentFreshISO,
+        hasResetData: freshness.hasResetData,
+        label: freshness.label,
+        tier: freshnessTier(freshness),
         recent,
       };
     });
@@ -33,15 +38,15 @@ export function GymList({ gyms }: Props) {
 
   const sorted = useMemo(() => {
     const withData = computed
-      .filter((c) => c.percent !== null)
+      .filter((c) => c.hasResetData)
       .sort((a, b) => {
-        const byPercent = (b.percent ?? 0) - (a.percent ?? 0);
-        if (byPercent !== 0) return byPercent;
-        const ar = a.recent?.reset_on ?? "";
-        const br = b.recent?.reset_on ?? "";
+        const byCount = b.freshResetCount - a.freshResetCount;
+        if (byCount !== 0) return byCount;
+        const ar = a.mostRecentFreshISO ?? a.recent?.reset_on ?? "";
+        const br = b.mostRecentFreshISO ?? b.recent?.reset_on ?? "";
         return br.localeCompare(ar);
       });
-    const withoutData = computed.filter((c) => c.percent === null);
+    const withoutData = computed.filter((c) => !c.hasResetData);
     return { withData, withoutData };
   }, [computed]);
 
@@ -63,8 +68,10 @@ export function GymList({ gyms }: Props) {
         )}
         <GymCard
           gym={hero.gym}
-          percent={hero.percent}
+          tier={hero.tier}
           freshSectionIds={hero.freshSectionIds}
+          label={hero.label}
+          lastVisited={hero.lastVisited}
           variant="hero"
           expanded
           onToggle={() => {}}
@@ -83,8 +90,10 @@ export function GymList({ gyms }: Props) {
               <GymCard
                 key={c.gym.id}
                 gym={c.gym}
-                percent={c.percent}
+                tier={c.tier}
                 freshSectionIds={c.freshSectionIds}
+                label={c.label}
+                lastVisited={c.lastVisited}
                 variant="compact"
                 expanded={c.gym.id === openGymId}
                 onToggle={() => setOpenGymId((prev) => (prev === c.gym.id ? null : c.gym.id))}

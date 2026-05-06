@@ -3,19 +3,26 @@
 import type { CSSProperties } from "react";
 import { AtSignIcon, ChevronDownIcon, GlobeIcon, NavigationIcon } from "lucide-react";
 import type { GymWithSections } from "@/lib/types";
-import { mostRecentReset, relativeDay } from "@/lib/freshness";
+import {
+  describeFreshness,
+  mostRecentReset,
+  relativeDay,
+  type FreshLabel,
+} from "@/lib/freshness";
 import { Button } from "@/components/ui/button";
 import { VisitedButton } from "@/components/VisitedButton";
 import { FreshnessBadge } from "@/components/FreshnessBadge";
-import { percentToTier, type TierKey } from "@/lib/tier";
+import type { Tier, TierKey } from "@/lib/tier";
 import { cn } from "@/lib/utils";
 
 type Variant = "hero" | "compact";
 
 type Props = {
   gym: GymWithSections;
-  percent: number | null;
+  tier: Tier;
   freshSectionIds: Set<string>;
+  label: FreshLabel | null;
+  lastVisited: string | null;
   variant: Variant;
   expanded: boolean;
   visitedDates: string[];
@@ -64,8 +71,10 @@ const chipStyles: Record<"fresh" | "stale" | "none", string> = {
 
 export function GymCard({
   gym,
-  percent,
+  tier,
   freshSectionIds,
+  label,
+  lastVisited,
   variant,
   expanded,
   visitedDates,
@@ -80,7 +89,6 @@ export function GymCard({
     return bLatest.localeCompare(aLatest);
   });
   const recent = mostRecentReset(sectionsByOrder);
-  const tier = percentToTier(percent);
 
   const instagramUrl = gym.instagram_handle
     ? `https://instagram.com/${gym.instagram_handle.replace(/^@/, "")}`
@@ -136,9 +144,16 @@ export function GymCard({
           >
             {gym.name}
           </h2>
-          <p className="mt-2 text-sm text-muted-foreground">{`${freshSectionIds.size} out of ${sectionsByOrder.length} sectors are fresh since your last visit.`}</p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            {describeFreshness(label, lastVisited)}
+          </p>
         </div>
-        <FreshnessBadge percent={percent} size={isHero ? "hero" : "compact"} bob={isHero} />
+        <FreshnessBadge
+          tier={tier}
+          label={label}
+          size={isHero ? "hero" : "compact"}
+          bob={isHero}
+        />
       </header>
 
       {recent && sectionsByOrder.length > 0 && (

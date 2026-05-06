@@ -1,55 +1,31 @@
+import { daysSince, type FreshnessResult } from "@/lib/freshness";
+
 export type TierKey = "hot" | "worth" | "slim" | "stale" | "unknown";
 
 export type Tier = {
   key: TierKey;
   label: string;
-  sub: string;
   emoji: string;
   rotateDeg: number;
 };
 
-export function percentToTier(percent: number | null): Tier {
-  if (percent === null) {
-    return {
-      key: "unknown",
-      label: "no data yet",
-      sub: "no resets logged",
-      emoji: "❓",
-      rotateDeg: -1.5,
-    };
+const HOT_DAYS = 3;
+const WORTH_DAYS = 14;
+
+export function freshnessTier(result: FreshnessResult): Tier {
+  if (!result.hasResetData) {
+    return { key: "unknown", label: "no data yet", emoji: "❓", rotateDeg: -1.5 };
   }
-  if (percent >= 80) {
-    return {
-      key: "hot",
-      label: "sending hot",
-      sub: "freshest pick",
-      emoji: "🔥",
-      rotateDeg: -2,
-    };
+  if (result.freshResetCount === 0 || result.mostRecentFreshISO === null) {
+    return { key: "stale", label: "all stale", emoji: "💤", rotateDeg: 2 };
   }
-  if (percent >= 40) {
-    return {
-      key: "worth",
-      label: "worth a climb",
-      sub: "decent options",
-      emoji: "⚡",
-      rotateDeg: 1.5,
-    };
+
+  const days = Math.max(0, daysSince(result.mostRecentFreshISO));
+  if (days <= HOT_DAYS) {
+    return { key: "hot", label: "sending hot", emoji: "🔥", rotateDeg: -2 };
   }
-  if (percent >= 1) {
-    return {
-      key: "slim",
-      label: "slim pickings",
-      sub: "a few new sectors",
-      emoji: "🌱",
-      rotateDeg: -1,
-    };
+  if (days <= WORTH_DAYS) {
+    return { key: "worth", label: "worth a climb", emoji: "⚡", rotateDeg: 1.5 };
   }
-  return {
-    key: "stale",
-    label: "all stale",
-    sub: "you've climbed it all",
-    emoji: "💤",
-    rotateDeg: 2,
-  };
+  return { key: "slim", label: "slim pickings", emoji: "🌱", rotateDeg: -1 };
 }
