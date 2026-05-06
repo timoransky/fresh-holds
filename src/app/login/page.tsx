@@ -6,11 +6,11 @@ export const metadata: Metadata = {
 };
 
 type Props = {
-  searchParams: Promise<{ next?: string; error?: string }>;
+  searchParams: Promise<{ next?: string }>;
 };
 
 export default async function LoginPage({ searchParams }: Props) {
-  const { next, error } = await searchParams;
+  const { next } = await searchParams;
 
   return (
     <main className="flex min-h-dvh items-center justify-center px-4">
@@ -24,12 +24,6 @@ export default async function LoginPage({ searchParams }: Props) {
             Sync your visits across devices and suggest resets when sectors get refreshed.
           </p>
         </div>
-
-        {error === "auth_callback_failed" && (
-          <div className="mb-4 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-            That sign-in link didn&rsquo;t work. Request a new one below.
-          </div>
-        )}
 
         <SignInForm next={next ?? "/"} />
       </div>
