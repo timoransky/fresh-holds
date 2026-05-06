@@ -19,13 +19,14 @@ export function GymList({ gyms }: Props) {
   const computed = useMemo(() => {
     return gyms.map((gym) => {
       const lastVisited = visits[gym.slug] ?? null;
-      const freshness = gymFreshness(gym.sections, lastVisited);
+      const freshness = gymFreshness(gym, lastVisited);
       const recent = mostRecentReset(gym.sections);
       return {
         gym,
         lastVisited,
         percent: freshness.percent,
         freshSectionIds: freshness.freshSectionIds,
+        label: freshness.label,
         recent,
       };
     });
@@ -59,6 +60,8 @@ export function GymList({ gyms }: Props) {
           gym={hero.gym}
           percent={hero.percent}
           freshSectionIds={hero.freshSectionIds}
+          label={hero.label}
+          lastVisited={hero.lastVisited}
           variant="hero"
           expanded
           onToggle={() => {}}
@@ -79,6 +82,8 @@ export function GymList({ gyms }: Props) {
                 gym={c.gym}
                 percent={c.percent}
                 freshSectionIds={c.freshSectionIds}
+                label={c.label}
+                lastVisited={c.lastVisited}
                 variant="compact"
                 expanded={c.gym.id === openGymId}
                 onToggle={() => setOpenGymId((prev) => (prev === c.gym.id ? null : c.gym.id))}

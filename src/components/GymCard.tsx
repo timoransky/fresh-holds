@@ -3,7 +3,12 @@
 import type { CSSProperties } from "react";
 import { AtSignIcon, ChevronDownIcon, GlobeIcon, NavigationIcon } from "lucide-react";
 import type { GymWithSections } from "@/lib/types";
-import { mostRecentReset, relativeDay } from "@/lib/freshness";
+import {
+  describeFreshness,
+  mostRecentReset,
+  relativeDay,
+  type FreshLabel,
+} from "@/lib/freshness";
 import { Button } from "@/components/ui/button";
 import { VisitedButton } from "@/components/VisitedButton";
 import { FreshnessBadge } from "@/components/FreshnessBadge";
@@ -16,6 +21,8 @@ type Props = {
   gym: GymWithSections;
   percent: number | null;
   freshSectionIds: Set<string>;
+  label: FreshLabel | null;
+  lastVisited: string | null;
   variant: Variant;
   expanded: boolean;
   visitedDates: string[];
@@ -66,6 +73,8 @@ export function GymCard({
   gym,
   percent,
   freshSectionIds,
+  label,
+  lastVisited,
   variant,
   expanded,
   visitedDates,
@@ -142,9 +151,16 @@ export function GymCard({
           >
             {gym.name}
           </h2>
-          <p className="mt-2 text-sm text-muted-foreground">{`${freshSectionIds.size} out of ${sectionsByOrder.length} sectors are fresh since your last visit.`}</p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            {describeFreshness(label, lastVisited)}
+          </p>
         </div>
-        <FreshnessBadge percent={percent} size={isHero ? "hero" : "compact"} bob={isHero} />
+        <FreshnessBadge
+          percent={percent}
+          label={label}
+          size={isHero ? "hero" : "compact"}
+          bob={isHero}
+        />
       </header>
 
       {recent && sectionsByOrder.length > 0 && (

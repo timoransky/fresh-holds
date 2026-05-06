@@ -1,7 +1,10 @@
+export type FreshnessMode = "sections" | "count";
+
 export type Reset = {
   id: string;
   reset_on: string;
   notes: string | null;
+  boulders_reset: number | null;
 };
 
 export type Section = {
@@ -20,6 +23,8 @@ export type Gym = {
   website_url: string | null;
   instagram_handle: string | null;
   city_id: string | null;
+  freshness_mode: FreshnessMode;
+  total_boulders: number | null;
 };
 
 export type GymWithSections = Gym & {
