@@ -31,6 +31,7 @@ export async function submitReset(prevState: ResetState, formData: FormData): Pr
   const sectionIds = formData.getAll("section_ids") as string[];
   const resetOn = formData.get("reset_on") as string;
   const notes = (formData.get("notes") as string) || null;
+  const bouldersResetRaw = formData.get("boulders_reset") as string | null;
 
   if (!sectionIds.length) {
     return { error: "Select at least one section" };
@@ -40,11 +41,21 @@ export async function submitReset(prevState: ResetState, formData: FormData): Pr
     return { error: "Reset date is required" };
   }
 
+  let bouldersReset: number | null = null;
+  if (bouldersResetRaw && bouldersResetRaw.trim() !== "") {
+    const parsed = Number(bouldersResetRaw);
+    if (!Number.isInteger(parsed) || parsed <= 0) {
+      return { error: "Boulders reset must be a positive integer" };
+    }
+    bouldersReset = parsed;
+  }
+
   const inserts = sectionIds.map((section_id) => ({
     section_id,
     reset_on: resetOn,
     notes,
     logged_by: user.email,
+    boulders_reset: bouldersReset,
   }));
 
   const { error } = await supabase.from("resets").insert(inserts);

@@ -2,6 +2,11 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+@theme {
+  --color-cobalt: oklch(0.45 0.18 260);
+  --color-cobalt-shadow: oklch(0.3 0.16 260);
+}
+
 @theme inline {
   --font-sans: "Geist", "Geist Fallback", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "Geist Mono", "Geist Mono Fallback", ui-monospace, monospace;
@@ -53,8 +58,22 @@
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.88 0.015 90);
   --input: oklch(0.88 0.015 90);
-  --ring: oklch(0.55 0.18 30);
+  --ring: oklch(0.45 0.02 270);
   --radius: 0.875rem;
+}
+
+@utility squircle {
+  @supports (corner-shape: squircle) {
+    corner-shape: squircle;
+  }
+}
+
+@utility squircle-* {
+  @supports (corner-shape: squircle) {
+    corner-shape: squircle;
+    border-radius: --value([integer]);
+    border-radius: --value(--radius- *);
+  }
 }
 
 @layer base {
