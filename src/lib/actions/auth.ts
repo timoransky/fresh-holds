@@ -1,17 +1,19 @@
 "use server";
 
 import { createClient } from "@/utils/supabase/server";
-import { cookies, headers } from "next/headers";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-type MagicLinkState = { error: string } | { sent: true } | null;
+export type RequestOtpState =
+  | { error: string }
+  | { sent: true; email: string }
+  | null;
 
-export async function requestMagicLink(
-  prevState: MagicLinkState,
+export async function requestOtpCode(
+  prevState: RequestOtpState,
   formData: FormData,
-): Promise<MagicLinkState> {
+): Promise<RequestOtpState> {
   const email = String(formData.get("email") ?? "").trim();
-  const next = String(formData.get("next") ?? "/");
 
   if (!email) {
     return { error: "Enter your email." };
@@ -20,22 +22,43 @@ export async function requestMagicLink(
   const cookieStore = await cookies();
   const supabase = createClient(cookieStore);
 
-  const headerList = await headers();
-  const host = headerList.get("x-forwarded-host") ?? headerList.get("host");
-  const proto = headerList.get("x-forwarded-proto") ?? "https";
-  const origin = host ? `${proto}://${host}` : "";
-  const redirectTo = `${origin}/auth/callback?next=${encodeURIComponent(next)}`;
+  const { error } = await supabase.auth.signInWithOtp({ email });
 
-  const { error } = await supabase.auth.signInWithOtp({
+  if (error) {
+    return { error: error.message };
+  }
+
+  return { sent: true, email };
+}
+
+export type VerifyOtpState = { error: string } | null;
+
+export async function verifyOtpCode(
+  prevState: VerifyOtpState,
+  formData: FormData,
+): Promise<VerifyOtpState> {
+  const email = String(formData.get("email") ?? "").trim();
+  const token = String(formData.get("token") ?? "").trim();
+  const next = String(formData.get("next") ?? "/");
+
+  if (!email || !token) {
+    return { error: "Enter the 8-digit code from your email." };
+  }
+
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
+
+  const { error } = await supabase.auth.verifyOtp({
     email,
-    options: { emailRedirectTo: redirectTo },
+    token,
+    type: "email",
   });
 
   if (error) {
     return { error: error.message };
   }
 
-  return { sent: true };
+  redirect(next.startsWith("/") ? next : "/");
 }
 
 export async function signOut() {

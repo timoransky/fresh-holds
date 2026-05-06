@@ -6,10 +6,6 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
-  if (pathname.startsWith("/auth/callback")) {
-    return supabaseResponse;
-  }
-
   const isLoginPage = pathname === "/login";
   const isAdminRoute = pathname.startsWith("/admin");
 
@@ -32,5 +28,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/login", "/auth/callback"],
+  matcher: ["/admin/:path*", "/login"],
 };
