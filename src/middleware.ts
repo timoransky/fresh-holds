@@ -16,13 +16,14 @@ export async function middleware(request: NextRequest) {
   if (isAdminRoute && !user) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
-    url.search = "";
+    url.search = `?next=${encodeURIComponent(pathname)}`;
     return NextResponse.redirect(url);
   }
 
   if (isLoginPage && user) {
+    const next = request.nextUrl.searchParams.get("next") ?? "/";
     const url = request.nextUrl.clone();
-    url.pathname = "/admin";
+    url.pathname = next.startsWith("/") ? next : "/";
     url.search = "";
     return NextResponse.redirect(url);
   }
