@@ -2,7 +2,7 @@
 
 import type { CSSProperties } from "react";
 import { AtSignIcon, ChevronDownIcon, GlobeIcon, NavigationIcon } from "lucide-react";
-import type { GymWithSections } from "@/lib/types";
+import type { GymWithSections, Reset } from "@/lib/types";
 import {
   describeFreshness,
   mostRecentReset,
@@ -81,6 +81,7 @@ export function GymCard({
   onToggle,
   onChangeVisits,
 }: Props) {
+  const isCountMode = gym.freshness_mode === "count";
   const sectionsByOrder = [...gym.sections].sort((a, b) => a.display_order - b.display_order);
   const sectionsByRecent = [...gym.sections].sort((a, b) => {
     const aLatest = a.resets[0]?.reset_on ?? "";
@@ -89,6 +90,11 @@ export function GymCard({
     return bLatest.localeCompare(aLatest);
   });
   const recent = mostRecentReset(sectionsByOrder);
+  const allResets = isCountMode
+    ? gym.sections
+        .flatMap((s) => s.resets)
+        .sort((a, b) => b.reset_on.localeCompare(a.reset_on))
+    : [];
 
   const instagramUrl = gym.instagram_handle
     ? `https://instagram.com/${gym.instagram_handle.replace(/^@/, "")}`
@@ -101,6 +107,28 @@ export function GymCard({
   const isHero = variant === "hero";
 
   const surfaceStyle = cardSurface[tier.key];
+
+  const renderReset = (reset: Reset) => {
+    const isFresh = lastVisited === null || reset.reset_on > lastVisited;
+    const state: "fresh" | "stale" = isFresh ? "fresh" : "stale";
+    const count = reset.boulders_reset ?? 0;
+    return (
+      <div
+        key={reset.id}
+        className={cn(
+          "inline-flex items-baseline gap-1 rounded-full squircle px-2 py-1 border bg-transparent",
+          chipStyles[state],
+        )}
+      >
+        <span className="font-medium text-xs">
+          {count} new {count === 1 ? "boulder" : "boulders"}
+        </span>
+        <span className="opacity-70 tracking-tight text-[10px]">
+          {relativeDay(reset.reset_on)}
+        </span>
+      </div>
+    );
+  };
 
   const renderSection = (section: (typeof gym.sections)[number]) => {
     const sectionMostRecent = section.resets[0];
@@ -185,7 +213,9 @@ export function GymCard({
                 expanded ? "h-auto" : "h-0",
               )}
             >
-              <div className="flex flex-wrap gap-1 pt-1">{sectionsByRecent.map(renderSection)}</div>
+              <div className="flex flex-wrap gap-1 pt-1">
+                {isCountMode ? allResets.map(renderReset) : sectionsByRecent.map(renderSection)}
+              </div>
             </div>
           </div>
           {/* )} */}
