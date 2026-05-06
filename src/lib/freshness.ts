@@ -2,6 +2,11 @@ import type { GymWithSections } from "@/lib/types";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
+// Visit-gap denominator for the novelty score's visit factor. A gym you haven't been
+// to in `WEEKLY_VISIT_DAYS`+ days gets full weight on its fresh-reset count; shorter
+// gaps shrink the score linearly. Tune up if you climb less often than weekly.
+export const WEEKLY_VISIT_DAYS = 7;
+
 export type FreshLabel =
   | { kind: "sections"; count: number; total: number }
   | { kind: "boulders"; count: number };
@@ -9,6 +14,8 @@ export type FreshLabel =
 export type FreshnessResult = {
   freshSectionIds: Set<string>;
   freshResetCount: number;
+  noveltyScore: number;
+  daysSinceVisit: number | null;
   mostRecentFreshISO: string | null;
   hasResetData: boolean;
   label: FreshLabel | null;
@@ -21,11 +28,15 @@ export function gymFreshness(
   const freshSectionIds = new Set<string>();
   const sections = gym.sections;
   const hasResetData = sections.some((s) => s.resets.length > 0);
+  const daysSinceVisit =
+    lastVisitedISO === null ? null : Math.max(0, daysSince(lastVisitedISO));
 
   if (sections.length === 0 || !hasResetData) {
     return {
       freshSectionIds,
       freshResetCount: 0,
+      noveltyScore: 0,
+      daysSinceVisit,
       mostRecentFreshISO: null,
       hasResetData: false,
       label: null,
@@ -53,6 +64,10 @@ export function gymFreshness(
     if (sectionHasFresh) freshSectionIds.add(section.id);
   }
 
+  const visitFactor =
+    daysSinceVisit === null ? 1 : Math.min(daysSinceVisit / WEEKLY_VISIT_DAYS, 1);
+  const noveltyScore = freshResetCount * visitFactor;
+
   const label: FreshLabel =
     gym.freshness_mode === "count"
       ? { kind: "boulders", count: freshBoulderSum }
@@ -61,6 +76,8 @@ export function gymFreshness(
   return {
     freshSectionIds,
     freshResetCount,
+    noveltyScore,
+    daysSinceVisit,
     mostRecentFreshISO,
     hasResetData: true,
     label,
