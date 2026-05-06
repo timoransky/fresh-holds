@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo, useState, type CSSProperties } from "react";
+import { useMemo, type CSSProperties } from "react";
 import { AtSignIcon, GlobeIcon, NavigationIcon } from "lucide-react";
 import { useSyncedVisits } from "@/hooks/useSyncedVisits";
 import { gymFreshness, mostRecentReset } from "@/lib/freshness";
+import { freshnessTier } from "@/lib/tier";
 import type { GymWithSections } from "@/lib/types";
 import { GymCard } from "@/components/GymCard";
 import { Button } from "@/components/ui/button";
@@ -15,18 +16,22 @@ type Props = {
 
 export function GymList({ gyms, authed }: Props) {
   const { visits, history, setVisits } = useSyncedVisits(authed);
-  const [openGymId, setOpenGymId] = useState<string | null>(null);
 
   const computed = useMemo(() => {
     return gyms.map((gym) => {
       const lastVisited = visits[gym.slug] ?? null;
-      const freshness = gymFreshness(gym.sections, lastVisited);
+      const freshness = gymFreshness(gym, lastVisited);
       const recent = mostRecentReset(gym.sections);
       return {
         gym,
         lastVisited,
-        percent: freshness.percent,
         freshSectionIds: freshness.freshSectionIds,
+        freshResetCount: freshness.freshResetCount,
+        noveltyScore: freshness.noveltyScore,
+        mostRecentFreshISO: freshness.mostRecentFreshISO,
+        hasResetData: freshness.hasResetData,
+        label: freshness.label,
+        tier: freshnessTier(freshness),
         recent,
       };
     });
@@ -34,19 +39,20 @@ export function GymList({ gyms, authed }: Props) {
 
   const sorted = useMemo(() => {
     const withData = computed
-      .filter((c) => c.percent !== null)
+      .filter((c) => c.hasResetData)
       .sort((a, b) => {
-        const byPercent = (b.percent ?? 0) - (a.percent ?? 0);
-        if (byPercent !== 0) return byPercent;
-        const ar = a.recent?.reset_on ?? "";
-        const br = b.recent?.reset_on ?? "";
+        const byScore = b.noveltyScore - a.noveltyScore;
+        if (byScore !== 0) return byScore;
+        const ar = a.mostRecentFreshISO ?? a.recent?.reset_on ?? "";
+        const br = b.mostRecentFreshISO ?? b.recent?.reset_on ?? "";
         return br.localeCompare(ar);
       });
-    const withoutData = computed.filter((c) => c.percent === null);
+    const withoutData = computed.filter((c) => !c.hasResetData);
     return { withData, withoutData };
   }, [computed]);
 
   const hero = sorted.withData[0] ?? sorted.withoutData[0] ?? null;
+  const heroHasData = sorted.withData[0] != null;
   const runnersUp = sorted.withData[0] ? sorted.withData.slice(1) : sorted.withoutData.slice(1);
   const noDataExtras =
     sorted.withData.length > 0 ? sorted.withoutData : sorted.withoutData.slice(1);
@@ -55,14 +61,19 @@ export function GymList({ gyms, authed }: Props) {
 
   return (
     <div className="flex flex-col gap-10">
-      <section aria-label="Top pick">
+      <section aria-label="Top pick" className="flex flex-col gap-3">
+        {heroHasData && (
+          <h2 className="px-1 text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">
+            freshest for you today
+          </h2>
+        )}
         <GymCard
           gym={hero.gym}
-          percent={hero.percent}
+          tier={hero.tier}
           freshSectionIds={hero.freshSectionIds}
+          label={hero.label}
+          lastVisited={hero.lastVisited}
           variant="hero"
-          expanded
-          onToggle={() => {}}
           visitedDates={history[hero.gym.slug] ?? []}
           onChangeVisits={(dates) => setVisits(hero.gym.slug, dates)}
         />
@@ -73,16 +84,16 @@ export function GymList({ gyms, authed }: Props) {
           <h2 className="px-1 text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">
             also worth a look
           </h2>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 items-start">
             {runnersUp.map((c) => (
               <GymCard
                 key={c.gym.id}
                 gym={c.gym}
-                percent={c.percent}
+                tier={c.tier}
                 freshSectionIds={c.freshSectionIds}
+                label={c.label}
+                lastVisited={c.lastVisited}
                 variant="compact"
-                expanded={c.gym.id === openGymId}
-                onToggle={() => setOpenGymId((prev) => (prev === c.gym.id ? null : c.gym.id))}
                 visitedDates={history[c.gym.slug] ?? []}
                 onChangeVisits={(dates) => setVisits(c.gym.slug, dates)}
               />
@@ -113,7 +124,7 @@ export function GymList({ gyms, authed }: Props) {
                       "--surface-shadow": "oklch(0.55 0.02 270 / 0.15)",
                     } as CSSProperties
                   }
-                  className="flex items-center justify-between gap-3 rounded-2xl border-2 border-(--surface-stroke) bg-background p-4 sm:p-5 shadow-[0_2px_0_0_var(--surface-stroke),0_12px_32px_-12px_var(--surface-shadow)]"
+                  className="squircle-3xl flex items-center justify-between gap-3 rounded-2xl border-2 border-(--surface-stroke) bg-background p-4 sm:px-5 shadow-[0_2px_0_0_var(--surface-stroke),0_12px_32px_-12px_var(--surface-shadow)]"
                 >
                   <div className="min-w-0">
                     <h2 className="font-bold tracking-tight text-foreground truncate text-lg">

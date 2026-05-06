@@ -1,39 +1,91 @@
-import type { Section } from "@/lib/types";
+import type { GymWithSections } from "@/lib/types";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
+// Visit-gap denominator for the novelty score's visit factor. A gym you haven't been
+// to in `WEEKLY_VISIT_DAYS`+ days gets full weight on its fresh-reset count; shorter
+// gaps shrink the score linearly. Tune up if you climb less often than weekly.
+export const WEEKLY_VISIT_DAYS = 7;
+
+export type FreshLabel =
+  | { kind: "sections"; count: number; total: number }
+  | { kind: "boulders"; count: number };
+
 export type FreshnessResult = {
-  percent: number | null;
   freshSectionIds: Set<string>;
+  freshResetCount: number;
+  noveltyScore: number;
+  daysSinceVisit: number | null;
+  mostRecentFreshISO: string | null;
+  hasResetData: boolean;
+  label: FreshLabel | null;
 };
 
-export function gymFreshness(sections: Section[], lastVisitedISO: string | null): FreshnessResult {
+export function gymFreshness(
+  gym: GymWithSections,
+  lastVisitedISO: string | null,
+): FreshnessResult {
   const freshSectionIds = new Set<string>();
-  const hasAnyResets = sections.some((s) => s.resets.length > 0);
+  const sections = gym.sections;
+  const hasResetData = sections.some((s) => s.resets.length > 0);
+  const daysSinceVisit =
+    lastVisitedISO === null ? null : Math.max(0, daysSince(lastVisitedISO));
 
-  if (sections.length === 0 || !hasAnyResets) {
-    return { percent: null, freshSectionIds };
+  if (sections.length === 0 || !hasResetData) {
+    return {
+      freshSectionIds,
+      freshResetCount: 0,
+      noveltyScore: 0,
+      daysSinceVisit,
+      mostRecentFreshISO: null,
+      hasResetData: false,
+      label: null,
+    };
   }
 
-  if (lastVisitedISO === null) {
-    for (const section of sections) {
-      freshSectionIds.add(section.id);
-    }
-    return { percent: 100, freshSectionIds };
-  }
+  const visitedTime = lastVisitedISO === null ? -Infinity : Date.parse(lastVisitedISO);
 
-  const visitedTime = Date.parse(lastVisitedISO);
+  let freshResetCount = 0;
+  let mostRecentFreshISO: string | null = null;
+  let freshBoulderSum = 0;
+
   for (const section of sections) {
-    const isFresh = section.resets.some((r) => Date.parse(r.reset_on) > visitedTime);
-    if (isFresh) freshSectionIds.add(section.id);
+    let sectionHasFresh = false;
+    for (const reset of section.resets) {
+      if (Date.parse(reset.reset_on) > visitedTime) {
+        freshResetCount += 1;
+        freshBoulderSum += reset.boulders_reset ?? 0;
+        if (mostRecentFreshISO === null || reset.reset_on > mostRecentFreshISO) {
+          mostRecentFreshISO = reset.reset_on;
+        }
+        sectionHasFresh = true;
+      }
+    }
+    if (sectionHasFresh) freshSectionIds.add(section.id);
   }
 
-  const percent = Math.round((freshSectionIds.size / sections.length) * 100);
-  return { percent, freshSectionIds };
+  const visitFactor =
+    daysSinceVisit === null ? 1 : Math.min(daysSinceVisit / WEEKLY_VISIT_DAYS, 1);
+  const noveltyScore = freshResetCount * visitFactor;
+
+  const label: FreshLabel =
+    gym.freshness_mode === "count"
+      ? { kind: "boulders", count: freshBoulderSum }
+      : { kind: "sections", count: freshSectionIds.size, total: sections.length };
+
+  return {
+    freshSectionIds,
+    freshResetCount,
+    noveltyScore,
+    daysSinceVisit,
+    mostRecentFreshISO,
+    hasResetData: true,
+    label,
+  };
 }
 
 export function mostRecentReset(
-  sections: Section[],
+  sections: GymWithSections["sections"],
 ): { reset_on: string; section_name: string } | null {
   let best: { reset_on: string; section_name: string } | null = null;
   for (const section of sections) {
@@ -56,8 +108,38 @@ export function relativeDay(isoDate: string): string {
   if (days <= 0) return "today";
   if (days === 1) return "1 day ago";
   if (days <= 30) return `${days} days ago`;
-  if (days <= 60) return "about a month ago";
+  if (days <= 60) return "~1 month ago";
   if (days <= 365) return `~${Math.round(days / 30)} months ago`;
   const years = Math.round(days / 365);
   return years === 1 ? "~1 year ago" : `~${years} years ago`;
+}
+
+export function describeFreshness(
+  label: FreshLabel | null,
+  lastVisitedISO: string | null,
+): string {
+  if (label === null) return "No reset data — check for yourself.";
+
+  if (lastVisitedISO === null) {
+    if (label.kind === "sections") {
+      return `Never visited — all ${label.total} ${pluralize(label.total, "sector")} are new for you.`;
+    }
+    return `Never visited — ${label.count} new ${pluralize(label.count, "boulder")} logged for you.`;
+  }
+
+  if (label.kind === "sections") {
+    return `${label.count} of ${label.total} ${pluralize(label.total, "sector")} are fresh since your last visit.`;
+  }
+  return `${label.count} new ${pluralize(label.count, "boulder")} since your last visit.`;
+}
+
+export function badgeCountLabel(label: FreshLabel): string {
+  if (label.kind === "sections") {
+    return `fresh ${pluralize(label.count, "sector")}`;
+  }
+  return `new ${pluralize(label.count, "boulder")}`;
+}
+
+function pluralize(n: number, word: string): string {
+  return n === 1 ? word : `${word}s`;
 }
