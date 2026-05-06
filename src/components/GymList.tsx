@@ -85,7 +85,7 @@ export function GymList({ gyms }: Props) {
           <h2 className="px-1 text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">
             also worth a look
           </h2>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {runnersUp.map((c) => (
               <GymCard
                 key={c.gym.id}

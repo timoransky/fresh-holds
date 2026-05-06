@@ -25,7 +25,7 @@ export function freshnessTier(result: FreshnessResult): Tier {
     return { key: "hot", label: "sending hot", emoji: "🔥", rotateDeg: -2 };
   }
   if (days <= WORTH_DAYS) {
-    return { key: "worth", label: "worth a climb", emoji: "⚡", rotateDeg: 1.5 };
+    return { key: "worth", label: "worth a climb", emoji: "💪", rotateDeg: 1.5 };
   }
-  return { key: "slim", label: "slim pickings", emoji: "🌱", rotateDeg: -1 };
+  return { key: "slim", label: "slim pickings", emoji: "🥱", rotateDeg: -1 };
 }
