@@ -1,11 +1,10 @@
 "use client";
 
-import type { CSSProperties } from "react";
-import { AtSignIcon, GlobeIcon, NavigationIcon } from "lucide-react";
-import type { GymWithSections, Reset } from "@/lib/types";
+import { useState, type CSSProperties } from "react";
+import { AtSignIcon, CircleHelpIcon, GlobeIcon, NavigationIcon } from "lucide-react";
+import type { GymWithSections } from "@/lib/types";
 import { describeFreshness, mostRecentReset, relativeDay, type FreshLabel } from "@/lib/freshness";
 import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { VisitedButton } from "@/components/VisitedButton";
 import { FreshnessBadge } from "@/components/FreshnessBadge";
 import type { Tier, TierKey } from "@/lib/tier";
@@ -57,11 +56,30 @@ const cardSurface: Record<TierKey, CSSProperties> = {
   } as CSSProperties,
 };
 
-const chipStyles: Record<"fresh" | "stale" | "none", string> = {
-  fresh: "border-muted-foreground/90 text-muted-foreground/90",
-  stale: " border-dashed border-muted-foreground/60 text-muted-foreground/60",
-  none: " border-dotted border-muted-foreground/30 text-muted-foreground/30",
-};
+function StatusDot({ state }: { state: "fresh" | "stale" | "none" }) {
+  if (state === "fresh") {
+    return (
+      <span
+        aria-label="fresh since your last visit"
+        className="inline-block size-1.5 rounded-full bg-emerald-500"
+      />
+    );
+  }
+  if (state === "stale") {
+    return (
+      <span
+        aria-label="already climbed"
+        className="inline-block size-1.5 rounded-full border border-muted-foreground/50"
+      />
+    );
+  }
+  return (
+    <span
+      aria-label="no reset data"
+      className="inline-block size-1 rounded-full bg-muted-foreground/30"
+    />
+  );
+}
 
 export function GymCard({
   gym,
@@ -97,52 +115,9 @@ export function GymCard({
 
   const surfaceStyle = cardSurface[tier.key];
 
-  const chipBaseClass =
-    "inline-flex items-baseline rounded-full px-2 py-1 border bg-transparent cursor-pointer transition-colors hover:bg-foreground/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
-
-  const popoverContentClass =
-    "w-auto py-1 px-2 text-xs font-medium tracking-tight gap-0 rounded-md";
-
-  const renderReset = (reset: Reset) => {
-    const isFresh = lastVisited === null || reset.reset_on > lastVisited;
-    const state: "fresh" | "stale" = isFresh ? "fresh" : "stale";
-    const count = reset.boulders_reset ?? 0;
-    return (
-      <Popover key={reset.id}>
-        <PopoverTrigger asChild>
-          <button type="button" className={cn(chipBaseClass, chipStyles[state])}>
-            <span className="font-medium text-xs">
-              {count} new {count === 1 ? "boulder" : "boulders"}
-            </span>
-          </button>
-        </PopoverTrigger>
-        <PopoverContent side="top" className={popoverContentClass}>
-          {relativeDay(reset.reset_on)}
-        </PopoverContent>
-      </Popover>
-    );
-  };
-
-  const renderSection = (section: (typeof gym.sections)[number]) => {
-    const sectionMostRecent = section.resets[0];
-    const state: "fresh" | "stale" | "none" = !sectionMostRecent
-      ? "none"
-      : freshSectionIds.has(section.id)
-        ? "fresh"
-        : "stale";
-    return (
-      <Popover key={section.id}>
-        <PopoverTrigger asChild>
-          <button type="button" className={cn(chipBaseClass, chipStyles[state])}>
-            <span className="font-medium text-xs">{section.name}</span>
-          </button>
-        </PopoverTrigger>
-        <PopoverContent side="top" className={popoverContentClass}>
-          {sectionMostRecent ? relativeDay(sectionMostRecent.reset_on) : "no resets logged"}
-        </PopoverContent>
-      </Popover>
-    );
-  };
+  const hasDetails = recent !== null && sectionsByOrder.length > 0;
+  const [isOpen, setIsOpen] = useState(false);
+  const detailsId = `gym-details-${gym.id}`;
 
   return (
     <article
@@ -154,26 +129,112 @@ export function GymCard({
       )}
     >
       <header className="flex relative items-start justify-between gap-4">
-        <div className="min-w-0 flex-1 w-full">
-          <h2
-            className={cn(
-              "font-extrabold tracking-tight text-foreground text-balance leading-[1.05] max-w-[calc(100%-var(--badge-width))]",
-              isHero ? "text-3xl sm:text-4xl" : "text-xl sm:text-2xl",
-            )}
-          >
-            {gym.name}
-          </h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            {describeFreshness(label, lastVisited)}
-          </p>
-        </div>
+        <h2
+          className={cn(
+            "font-extrabold tracking-tight text-foreground text-balance leading-[1.05] max-w-[calc(100%-var(--badge-width))] min-w-0 flex-1",
+            isHero ? "text-3xl sm:text-4xl" : "text-xl sm:text-2xl",
+          )}
+        >
+          {gym.name}
+        </h2>
         <FreshnessBadge tier={tier} label={label} size={isHero ? "hero" : "compact"} bob={isHero} />
       </header>
 
-      {recent && sectionsByOrder.length > 0 && (
-        <div className="flex flex-wrap items-center gap-1 mt-2">
-          {isCountMode ? allResets.map(renderReset) : sectionsByRecent.map(renderSection)}
-        </div>
+      {hasDetails ? (
+        <>
+          <button
+            type="button"
+            onClick={() => setIsOpen((prev) => !prev)}
+            aria-expanded={isOpen}
+            aria-controls={detailsId}
+            className="mt-2 inline-flex items-center w-full text-left text-sm text-muted-foreground cursor-pointer hover:text-foreground/80 transition-colors"
+          >
+            {describeFreshness(label, lastVisited)}
+            <CircleHelpIcon
+              className={cn(
+                "inline-block size-3.5 ml-1 align-text-bottom transition-colors opacity-80",
+                isOpen
+                  ? "[&>circle]:fill-foreground [&>circle]:stroke-foreground [&>path]:stroke-background"
+                  : "",
+              )}
+            />
+          </button>
+          <div
+            id={detailsId}
+            className={cn(
+              "[interpolate-size:allow-keywords] overflow-hidden transition-[height] duration-300 ease-out",
+              isOpen ? "h-auto" : "h-0",
+            )}
+          >
+            <div className="pt-3">
+              {isCountMode ? (
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="text-[10px] uppercase tracking-wider text-muted-foreground/60">
+                      <th className="text-left font-medium pb-1.5">Date</th>
+                      <th className="text-left font-medium pb-1.5">Boulders</th>
+                      <th className="w-4 pb-1.5" aria-label="status" />
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {allResets.map((reset) => {
+                      const isFresh = lastVisited === null || reset.reset_on > lastVisited;
+                      const state: "fresh" | "stale" = isFresh ? "fresh" : "stale";
+                      return (
+                        <tr key={reset.id} className="border-t border-foreground/10">
+                          <td className="py-1.5 font-medium text-foreground/90">
+                            {relativeDay(reset.reset_on)}
+                          </td>
+                          <td className="py-1.5 text-muted-foreground">
+                            {reset.boulders_reset ?? 0}
+                          </td>
+                          <td className="py-1.5 align-middle">
+                            <StatusDot state={state} />
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              ) : (
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="text-[10px] uppercase tracking-wider text-muted-foreground/60">
+                      <th className="text-left font-medium pb-1.5">Sector</th>
+                      <th className="text-left font-medium pb-1.5">Last reset</th>
+                      <th className="w-4 pb-1.5" aria-label="status" />
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sectionsByRecent.map((section) => {
+                      const sectionMostRecent = section.resets[0];
+                      const state: "fresh" | "stale" | "none" = !sectionMostRecent
+                        ? "none"
+                        : freshSectionIds.has(section.id)
+                          ? "fresh"
+                          : "stale";
+                      return (
+                        <tr key={section.id} className="border-t border-foreground/10">
+                          <td className="py-1.5 font-medium text-foreground/90">{section.name}</td>
+                          <td className="py-1.5 text-muted-foreground">
+                            {sectionMostRecent ? relativeDay(sectionMostRecent.reset_on) : "—"}
+                          </td>
+                          <td className="py-1.5 align-middle">
+                            <StatusDot state={state} />
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </div>
+        </>
+      ) : (
+        <p className="mt-2 text-sm text-muted-foreground">
+          {describeFreshness(label, lastVisited)}
+        </p>
       )}
 
       <footer className="flex flex-wrap mt-auto pt-4 items-center justify-between gap-3">
