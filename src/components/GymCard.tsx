@@ -7,7 +7,6 @@ import { describeFreshness, mostRecentReset, relativeDay, type FreshLabel } from
 import { Button } from "@/components/ui/button";
 import { VisitedButton } from "@/components/VisitedButton";
 import { FreshnessBadge } from "@/components/FreshnessBadge";
-import { SubmitResetDialog } from "@/components/SubmitResetDialog";
 import type { Tier, TierKey } from "@/lib/tier";
 import { cn } from "@/lib/utils";
 
@@ -21,7 +20,6 @@ type Props = {
   lastVisited: string | null;
   variant: Variant;
   visitedDates: string[];
-  authed: boolean;
   onChangeVisits: (isoDates: string[]) => void;
 };
 
@@ -91,7 +89,6 @@ export function GymCard({
   lastVisited,
   variant,
   visitedDates,
-  authed,
   onChangeVisits,
 }: Props) {
   const isCountMode = gym.freshness_mode === "count";
@@ -277,10 +274,7 @@ export function GymCard({
             </Button>
           )}
         </div>
-        <div className="flex items-center gap-2">
-          <SubmitResetDialog gym={gym} authed={authed} />
-          <VisitedButton visitedDates={visitedDates} onChangeVisits={onChangeVisits} />
-        </div>
+        <VisitedButton visitedDates={visitedDates} onChangeVisits={onChangeVisits} />
       </footer>
     </article>
   );

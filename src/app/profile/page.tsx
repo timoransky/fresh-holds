@@ -63,9 +63,9 @@ export default async function ProfilePage() {
 
         {submissions.length === 0 ? (
           <p className="rounded-xl border border-dashed border-foreground/20 p-5 text-sm text-muted-foreground">
-            You haven&rsquo;t suggested any resets yet. Tap{" "}
-            <span className="font-semibold text-foreground">Suggest reset</span> on a gym card
-            after you spot fresh climbing.
+            You haven&rsquo;t suggested any resets yet. Open the account menu and choose{" "}
+            <span className="font-semibold text-foreground">Suggest a reset</span> after you spot
+            fresh climbing.
           </p>
         ) : (
           <ul className="flex flex-col gap-2">

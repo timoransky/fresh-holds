@@ -7,7 +7,6 @@ import { gymFreshness, mostRecentReset } from "@/lib/freshness";
 import { freshnessTier } from "@/lib/tier";
 import type { GymWithSections } from "@/lib/types";
 import { GymCard } from "@/components/GymCard";
-import { SubmitResetDialog } from "@/components/SubmitResetDialog";
 import { Button } from "@/components/ui/button";
 
 type Props = {
@@ -75,7 +74,6 @@ export function GymList({ gyms, authed }: Props) {
           label={hero.label}
           lastVisited={hero.lastVisited}
           variant="hero"
-          authed={authed}
           visitedDates={history[hero.gym.slug] ?? []}
           onChangeVisits={(dates) => setVisits(hero.gym.slug, dates)}
         />
@@ -96,7 +94,6 @@ export function GymList({ gyms, authed }: Props) {
                 label={c.label}
                 lastVisited={c.lastVisited}
                 variant="compact"
-                authed={authed}
                 visitedDates={history[c.gym.slug] ?? []}
                 onChangeVisits={(dates) => setVisits(c.gym.slug, dates)}
               />
@@ -138,7 +135,7 @@ export function GymList({ gyms, authed }: Props) {
                     </p>
                   </div>
 
-                  <div className="flex shrink-0 items-center gap-2">
+                  <div className="flex shrink-0 gap-2">
                     <Button asChild variant="outline" size="icon-sm" className="rounded-full">
                       <a
                         href={navigateUrl}
@@ -173,7 +170,6 @@ export function GymList({ gyms, authed }: Props) {
                         </a>
                       </Button>
                     )}
-                    <SubmitResetDialog gym={c.gym} authed={authed} />
                   </div>
                 </li>
               );
