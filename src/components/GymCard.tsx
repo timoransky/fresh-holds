@@ -192,7 +192,7 @@ export function GymCard({
         </>
       )}
 
-      <footer className="flex flex-wrap mt-4 items-center justify-between gap-3 pt-1">
+      <footer className="flex flex-wrap mt-auto pt-4 items-center justify-between gap-3">
         <div className="flex gap-2">
           <Button asChild variant="outline" size="icon-sm" className="rounded-full">
             <a
