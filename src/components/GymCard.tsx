@@ -126,12 +126,6 @@ export function GymCard({
         "p-4 sm:p-5",
       )}
     >
-      {isHero && (
-        <span className="absolute -top-3 left-8 inline-flex items-center gap-1 rounded-full squircle bg-cobalt px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-background">
-          today&rsquo;s pick
-        </span>
-      )}
-
       <header className="flex relative items-start justify-between gap-4">
         <div className="min-w-0 flex-1 w-full">
           <h2
