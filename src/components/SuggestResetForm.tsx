@@ -45,6 +45,7 @@ export function SuggestResetForm({ gyms, open, onOpenChange }: Props) {
     [selectedGym],
   );
 
+  const isCountMode = selectedGym?.freshness_mode === "count";
   const error = state && "error" in state ? state.error : null;
   const success = state && "success" in state && state.success;
 
@@ -134,6 +135,28 @@ export function SuggestResetForm({ gyms, open, onOpenChange }: Props) {
           className="h-9 rounded-md border border-input bg-background px-3 text-sm outline-none focus:border-ring focus:ring-3 focus:ring-ring/50"
         />
       </div>
+
+      {isCountMode && (
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="suggest_boulders_reset" className="text-sm font-medium">
+            New boulders
+          </label>
+          <input
+            id="suggest_boulders_reset"
+            name="boulders_reset"
+            type="number"
+            inputMode="numeric"
+            min={1}
+            step={1}
+            required
+            placeholder="e.g. 25"
+            className="h-9 rounded-md border border-input bg-background px-3 text-sm outline-none focus:border-ring focus:ring-3 focus:ring-ring/50"
+          />
+          <p className="text-xs text-muted-foreground">
+            How many new boulders did this reset add?
+          </p>
+        </div>
+      )}
 
       <div className="flex flex-col gap-1.5">
         <label htmlFor="suggest_notes" className="text-sm font-medium">

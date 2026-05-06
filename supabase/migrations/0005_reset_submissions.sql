@@ -5,16 +5,17 @@
 create type submission_status as enum ('pending', 'approved', 'rejected');
 
 create table reset_submissions (
-  id            uuid primary key default gen_random_uuid(),
-  section_id    uuid not null references sections(id) on delete cascade,
-  reset_on      date not null,
-  notes         text,
-  submitted_by  uuid not null references profiles(id) on delete cascade,
-  status        submission_status not null default 'pending',
-  reviewed_by   uuid references profiles(id),
-  reviewed_at   timestamptz,
-  reset_id      uuid references resets(id) on delete set null,
-  created_at    timestamptz not null default now()
+  id              uuid primary key default gen_random_uuid(),
+  section_id      uuid not null references sections(id) on delete cascade,
+  reset_on        date not null,
+  notes           text,
+  boulders_reset  integer check (boulders_reset is null or boulders_reset > 0),
+  submitted_by    uuid not null references profiles(id) on delete cascade,
+  status          submission_status not null default 'pending',
+  reviewed_by     uuid references profiles(id),
+  reviewed_at     timestamptz,
+  reset_id        uuid references resets(id) on delete set null,
+  created_at      timestamptz not null default now()
 );
 
 create index reset_submissions_status_idx on reset_submissions(status, created_at desc);

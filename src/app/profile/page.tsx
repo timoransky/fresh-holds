@@ -89,6 +89,9 @@ export default async function ProfilePage() {
                 </div>
                 <div className="mt-0.5 text-xs text-muted-foreground tabular-nums">
                   Reset on {s.reset_on}
+                  {s.boulders_reset !== null && (
+                    <span className="ml-1 text-foreground/80">· {s.boulders_reset} new boulders</span>
+                  )}
                 </div>
                 {s.notes && (
                   <div className="mt-2 text-xs text-muted-foreground/80">{s.notes}</div>

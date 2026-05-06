@@ -41,6 +41,12 @@ export default async function SubmissionsPage() {
                   Suggested by {s.submitter_email} on{" "}
                   <span className="tabular-nums">{s.created_at.slice(0, 10)}</span>
                 </div>
+                {s.boulders_reset !== null && (
+                  <div className="mt-1 text-xs text-foreground">
+                    <span className="font-mono tabular-nums">{s.boulders_reset}</span>{" "}
+                    new boulders
+                  </div>
+                )}
                 {s.notes && (
                   <div className="mt-2 rounded-md bg-muted px-3 py-2 text-xs text-muted-foreground">
                     {s.notes}
