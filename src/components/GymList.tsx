@@ -46,6 +46,7 @@ export function GymList({ gyms }: Props) {
   }, [computed]);
 
   const hero = sorted.withData[0] ?? sorted.withoutData[0] ?? null;
+  const heroHasData = sorted.withData[0] != null;
   const runnersUp = sorted.withData[0] ? sorted.withData.slice(1) : sorted.withoutData.slice(1);
   const noDataExtras =
     sorted.withData.length > 0 ? sorted.withoutData : sorted.withoutData.slice(1);
@@ -54,7 +55,12 @@ export function GymList({ gyms }: Props) {
 
   return (
     <div className="flex flex-col gap-10">
-      <section aria-label="Top pick">
+      <section aria-label="Top pick" className="flex flex-col gap-3">
+        {heroHasData && (
+          <h2 className="px-1 text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">
+            freshest for you today
+          </h2>
+        )}
         <GymCard
           gym={hero.gym}
           percent={hero.percent}
