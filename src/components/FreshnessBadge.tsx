@@ -1,10 +1,10 @@
 import type { CSSProperties } from "react";
 import { badgeCountLabel, type FreshLabel } from "@/lib/freshness";
-import { percentToTier, type TierKey } from "@/lib/tier";
+import type { Tier, TierKey } from "@/lib/tier";
 import { cn } from "@/lib/utils";
 
 type Props = {
-  percent: number | null;
+  tier: Tier;
   label: FreshLabel | null;
   size?: "hero" | "compact";
   bob?: boolean;
@@ -39,8 +39,7 @@ const tierStyles: Record<TierKey, CSSProperties> = {
   } as CSSProperties,
 };
 
-export function FreshnessBadge({ percent, label, size = "hero", bob = false, className }: Props) {
-  const tier = percentToTier(percent);
+export function FreshnessBadge({ tier, label, size = "hero", bob = false, className }: Props) {
   const isUnknown = tier.key === "unknown";
 
   const baseStyle: CSSProperties = {

@@ -24,7 +24,6 @@ export type Gym = {
   instagram_handle: string | null;
   city_id: string | null;
   freshness_mode: FreshnessMode;
-  total_boulders: number | null;
 };
 
 export type GymWithSections = Gym & {

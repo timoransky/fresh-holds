@@ -107,12 +107,6 @@ export function ResetForm({ gyms }: { gyms: AdminGym[] }) {
           <div className="flex flex-col gap-1.5">
             <label htmlFor="boulders_reset" className="text-sm font-medium">
               Boulders reset
-              {selectedGym?.total_boulders ? (
-                <span className="font-normal text-muted-foreground">
-                  {" "}
-                  (gym has {selectedGym.total_boulders} total)
-                </span>
-              ) : null}
             </label>
             <input
               id="boulders_reset"

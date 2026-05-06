@@ -14,7 +14,7 @@ export async function getActiveGymsWithSections(): Promise<GymWithSections[]> {
     .select(
       `
       id, slug, name, neighborhood, website_url, instagram_handle, city_id,
-      freshness_mode, total_boulders,
+      freshness_mode,
       sections!inner (
         id, name, display_order, is_active,
         resets ( id, reset_on, notes, boulders_reset )

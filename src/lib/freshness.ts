@@ -1,14 +1,16 @@
-import type { GymWithSections, Section } from "@/lib/types";
+import type { GymWithSections } from "@/lib/types";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 export type FreshLabel =
   | { kind: "sections"; count: number; total: number }
-  | { kind: "boulders"; count: number; total: number };
+  | { kind: "boulders"; count: number };
 
 export type FreshnessResult = {
-  percent: number | null;
   freshSectionIds: Set<string>;
+  freshResetCount: number;
+  mostRecentFreshISO: string | null;
+  hasResetData: boolean;
   label: FreshLabel | null;
 };
 
@@ -18,90 +20,55 @@ export function gymFreshness(
 ): FreshnessResult {
   const freshSectionIds = new Set<string>();
   const sections = gym.sections;
-  const hasAnyResets = sections.some((s) => s.resets.length > 0);
+  const hasResetData = sections.some((s) => s.resets.length > 0);
 
-  if (sections.length === 0 || !hasAnyResets) {
-    return { percent: null, freshSectionIds, label: null };
-  }
-
-  if (gym.freshness_mode === "count") {
-    return countFreshness(gym, sections, lastVisitedISO, freshSectionIds);
-  }
-  return sectionFreshness(sections, lastVisitedISO, freshSectionIds);
-}
-
-function sectionFreshness(
-  sections: Section[],
-  lastVisitedISO: string | null,
-  freshSectionIds: Set<string>,
-): FreshnessResult {
-  if (lastVisitedISO === null) {
-    for (const section of sections) freshSectionIds.add(section.id);
+  if (sections.length === 0 || !hasResetData) {
     return {
-      percent: 100,
       freshSectionIds,
-      label: { kind: "sections", count: sections.length, total: sections.length },
+      freshResetCount: 0,
+      mostRecentFreshISO: null,
+      hasResetData: false,
+      label: null,
     };
   }
 
-  const visitedTime = Date.parse(lastVisitedISO);
-  for (const section of sections) {
-    const isFresh = section.resets.some((r) => Date.parse(r.reset_on) > visitedTime);
-    if (isFresh) freshSectionIds.add(section.id);
-  }
-  const percent = Math.round((freshSectionIds.size / sections.length) * 100);
-  return {
-    percent,
-    freshSectionIds,
-    label: { kind: "sections", count: freshSectionIds.size, total: sections.length },
-  };
-}
+  const visitedTime = lastVisitedISO === null ? -Infinity : Date.parse(lastVisitedISO);
 
-function countFreshness(
-  gym: GymWithSections,
-  sections: Section[],
-  lastVisitedISO: string | null,
-  freshSectionIds: Set<string>,
-): FreshnessResult {
-  const total = gym.total_boulders;
-  if (total === null || total <= 0) {
-    return { percent: null, freshSectionIds, label: null };
-  }
+  let freshResetCount = 0;
+  let mostRecentFreshISO: string | null = null;
+  let freshBoulderSum = 0;
 
-  if (lastVisitedISO === null) {
-    for (const section of sections) freshSectionIds.add(section.id);
-    return {
-      percent: 100,
-      freshSectionIds,
-      label: { kind: "boulders", count: total, total },
-    };
-  }
-
-  const visitedTime = Date.parse(lastVisitedISO);
-  let freshBoulders = 0;
   for (const section of sections) {
     let sectionHasFresh = false;
     for (const reset of section.resets) {
       if (Date.parse(reset.reset_on) > visitedTime) {
+        freshResetCount += 1;
+        freshBoulderSum += reset.boulders_reset ?? 0;
+        if (mostRecentFreshISO === null || reset.reset_on > mostRecentFreshISO) {
+          mostRecentFreshISO = reset.reset_on;
+        }
         sectionHasFresh = true;
-        freshBoulders += reset.boulders_reset ?? 0;
       }
     }
     if (sectionHasFresh) freshSectionIds.add(section.id);
   }
 
-  // Multiple resets since last visit can sum past total — cap so percent never exceeds 100.
-  const cappedFresh = Math.min(freshBoulders, total);
-  const percent = Math.round((cappedFresh / total) * 100);
+  const label: FreshLabel =
+    gym.freshness_mode === "count"
+      ? { kind: "boulders", count: freshBoulderSum }
+      : { kind: "sections", count: freshSectionIds.size, total: sections.length };
+
   return {
-    percent,
     freshSectionIds,
-    label: { kind: "boulders", count: cappedFresh, total },
+    freshResetCount,
+    mostRecentFreshISO,
+    hasResetData: true,
+    label,
   };
 }
 
 export function mostRecentReset(
-  sections: Section[],
+  sections: GymWithSections["sections"],
 ): { reset_on: string; section_name: string } | null {
   let best: { reset_on: string; section_name: string } | null = null;
   for (const section of sections) {
@@ -140,7 +107,7 @@ export function describeFreshness(
     if (label.kind === "sections") {
       return `Never visited — all ${label.total} ${pluralize(label.total, "sector")} are new for you.`;
     }
-    return `Never visited — all ${label.total} ${pluralize(label.total, "boulder")} are new for you.`;
+    return `Never visited — ${label.count} new ${pluralize(label.count, "boulder")} logged for you.`;
   }
 
   if (label.kind === "sections") {

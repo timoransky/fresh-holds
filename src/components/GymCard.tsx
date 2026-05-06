@@ -12,14 +12,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { VisitedButton } from "@/components/VisitedButton";
 import { FreshnessBadge } from "@/components/FreshnessBadge";
-import { percentToTier, type TierKey } from "@/lib/tier";
+import type { Tier, TierKey } from "@/lib/tier";
 import { cn } from "@/lib/utils";
 
 type Variant = "hero" | "compact";
 
 type Props = {
   gym: GymWithSections;
-  percent: number | null;
+  tier: Tier;
   freshSectionIds: Set<string>;
   label: FreshLabel | null;
   lastVisited: string | null;
@@ -71,7 +71,7 @@ const chipStyles: Record<"fresh" | "stale" | "none", string> = {
 
 export function GymCard({
   gym,
-  percent,
+  tier,
   freshSectionIds,
   label,
   lastVisited,
@@ -89,7 +89,6 @@ export function GymCard({
     return bLatest.localeCompare(aLatest);
   });
   const recent = mostRecentReset(sectionsByOrder);
-  const tier = percentToTier(percent);
 
   const instagramUrl = gym.instagram_handle
     ? `https://instagram.com/${gym.instagram_handle.replace(/^@/, "")}`
@@ -156,7 +155,7 @@ export function GymCard({
           </p>
         </div>
         <FreshnessBadge
-          percent={percent}
+          tier={tier}
           label={label}
           size={isHero ? "hero" : "compact"}
           bob={isHero}

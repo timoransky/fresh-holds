@@ -14,7 +14,6 @@ export type AdminGym = {
   name: string;
   slug: string;
   freshness_mode: FreshnessMode;
-  total_boulders: number | null;
   sections: AdminSection[];
 };
 
@@ -35,7 +34,7 @@ export async function getGymsForAdmin(): Promise<AdminGym[]> {
   const { data, error } = await supabase
     .from("gyms")
     .select(
-      "id, name, slug, freshness_mode, total_boulders, sections(id, name, display_order, is_active)",
+      "id, name, slug, freshness_mode, sections(id, name, display_order, is_active)",
     )
     .eq("is_active", true)
     .order("display_order", { ascending: true })
