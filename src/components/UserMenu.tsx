@@ -1,16 +1,16 @@
 "use client";
 
-import { UserIcon } from "lucide-react";
+import { LogOutIcon, UserIcon } from "lucide-react";
 import { signOut } from "@/lib/actions/auth";
 import { Button } from "@/components/ui/button";
 import {
-  Popover,
-  PopoverContent,
-  PopoverDescription,
-  PopoverHeader,
-  PopoverTitle,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 type Props = {
   email: string;
@@ -18,8 +18,8 @@ type Props = {
 
 export function UserMenu({ email }: Props) {
   return (
-    <Popover>
-      <PopoverTrigger asChild>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
         <Button
           variant="outline"
           size="sm"
@@ -29,20 +29,18 @@ export function UserMenu({ email }: Props) {
           <UserIcon className="size-3.5" />
           <span className="max-w-[140px] truncate text-xs">{email}</span>
         </Button>
-      </PopoverTrigger>
-      <PopoverContent align="end" className="w-72">
-        <PopoverHeader>
-          <PopoverTitle className="truncate">{email}</PopoverTitle>
-          <PopoverDescription>
-            Your account keeps your gym visits in sync across devices.
-          </PopoverDescription>
-        </PopoverHeader>
-        <form action={signOut}>
-          <Button type="submit" variant="outline" size="sm" className="w-full">
-            Sign out
-          </Button>
-        </form>
-      </PopoverContent>
-    </Popover>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-72">
+        <DropdownMenuLabel className="truncate">{email}</DropdownMenuLabel>
+        <p className="px-2 pb-2 text-xs text-muted-foreground">
+          Your account keeps your gym visits in sync across devices.
+        </p>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onSelect={() => signOut()}>
+          <LogOutIcon />
+          Sign out
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
