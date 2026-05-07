@@ -23,13 +23,15 @@ const baloo = Baloo_2({
 
 export const metadata: Metadata = {
   title: "Fresh Holds",
-  description: "See which Bratislava bouldering gym is freshest since your last visit.",
+  description: "See which Bratislava climbing gym is freshest since your last visit.",
 };
 
 export default function RootLayout({
   children,
+  modal,
 }: Readonly<{
   children: React.ReactNode;
+  modal: React.ReactNode;
 }>) {
   return (
     <html
@@ -38,6 +40,7 @@ export default function RootLayout({
     >
       <body className="min-h-dvh bg-background text-foreground font-sans antialiased">
         {children}
+        {modal}
 
         <Analytics />
         {process.env.NODE_ENV === "development" && <Agentation />}
