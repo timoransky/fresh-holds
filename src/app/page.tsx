@@ -12,7 +12,7 @@ export default async function Home() {
     <main className="mx-auto min-h-dvh w-full max-w-4xl px-4 py-10 sm:py-14 overflow-hidden">
       <header className="mb-10 sm:mb-14">
         <div className="flex justify-end">
-          <HeaderAuth />
+          <HeaderAuth gyms={gyms} />
         </div>
         <h1 className="mt-6 font-heading text-balance text-4xl font-bold leading-[1.02] tracking-tight text-foreground sm:text-6xl">
           where are the <span className=" text-cobalt">fresh holds</span> right now?

@@ -5,12 +5,15 @@ import { LogOutIcon, SparklesIcon } from "lucide-react";
 import { signOut } from "@/lib/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { SuggestResetForm } from "@/components/SuggestResetForm";
 import { useVisits } from "@/hooks/useVisits";
+import type { GymWithSections } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 type Props = {
   email: string;
   createdAt?: string | null;
+  gyms: GymWithSections[];
 };
 
 function getInitial(email: string): string {
@@ -66,8 +69,6 @@ function MembershipCard({
 
   return (
     <div className="relative">
-      {/* <div aria-hidden className="h-3.5 bg-linear-to-r from-cobalt to-cobalt-shadow" /> */}
-
       <div className="flex items-center gap-3 px-5 pt-5">
         <div className="min-w-0 flex-1">
           <div className="truncate text-sm font-medium text-foreground">{email}</div>
@@ -122,27 +123,34 @@ function MembershipCard({
   );
 }
 
-export function UserMenu({ email, createdAt }: Props) {
+export function UserMenu({ email, createdAt, gyms }: Props) {
   const [open, setOpen] = useState(false);
+  const [suggestOpen, setSuggestOpen] = useState(false);
 
   const handleSuggestReset = () => {
     setOpen(false);
-    // TODO: open the suggest-a-reset drawer (separate ticket)
-    console.log("[suggest-a-reset] not yet implemented");
+    setSuggestOpen(true);
   };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <AvatarTrigger email={email} />
-      </PopoverTrigger>
-      <PopoverContent
-        align="end"
-        sideOffset={10}
-        className="w-72 origin-top-right overflow-hidden squircle-4xl rounded-3xl bg-card p-0 ring-1 ring-cobalt/15 shadow-2xl shadow-cobalt-shadow/25"
-      >
-        <MembershipCard email={email} createdAt={createdAt} onSuggestReset={handleSuggestReset} />
-      </PopoverContent>
-    </Popover>
+    <>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <AvatarTrigger email={email} />
+        </PopoverTrigger>
+        <PopoverContent
+          align="end"
+          sideOffset={10}
+          className="w-72 origin-top-right overflow-hidden squircle-4xl rounded-3xl bg-card p-0 ring-1 ring-cobalt/15 shadow-2xl shadow-cobalt-shadow/25"
+        >
+          <MembershipCard
+            email={email}
+            createdAt={createdAt}
+            onSuggestReset={handleSuggestReset}
+          />
+        </PopoverContent>
+      </Popover>
+      <SuggestResetForm gyms={gyms} open={suggestOpen} onOpenChange={setSuggestOpen} />
+    </>
   );
 }

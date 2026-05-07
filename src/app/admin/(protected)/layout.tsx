@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
@@ -53,15 +54,36 @@ export default async function ProtectedAdminLayout({ children }: { children: Rea
     );
   }
 
+  const { count: pendingCount } = await supabase
+    .from("reset_submissions")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "pending");
+
   return (
     <div className="min-h-dvh">
       <header className="border-b border-border bg-background">
-        <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3">
-          <span className="inline-block rounded-full border-2 border-foreground/80 bg-background px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.2em] text-foreground">
-            fresh holds · admin
-          </span>
+        <div className="mx-auto flex max-w-4xl items-center justify-between gap-3 px-4 py-3">
           <div className="flex items-center gap-3">
-            <span className="text-xs text-muted-foreground">{user.email}</span>
+            <Link
+              href="/admin"
+              className="inline-block rounded-full border-2 border-foreground/80 bg-background px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.2em] text-foreground"
+            >
+              fresh holds · admin
+            </Link>
+            <Link
+              href="/admin/submissions"
+              className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground"
+            >
+              Submissions
+              {pendingCount && pendingCount > 0 ? (
+                <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-foreground px-1 text-[10px] font-bold text-background">
+                  {pendingCount}
+                </span>
+              ) : null}
+            </Link>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="hidden text-xs text-muted-foreground sm:inline">{user.email}</span>
             <form action={signOut}>
               <Button type="submit" variant="outline" size="xs">
                 Sign out
