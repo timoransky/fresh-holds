@@ -10,7 +10,7 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-muted-foreground/85 text-background font-semibold border-foreground hover:bg-muted-foreground/90 shadow-[0_2px_0_0_var(--foreground)] hover:shadow-[0_4px_0_0_var(--foreground)] focus-visible:shadow-[0_4px_0_0_var(--foreground)] active:shadow-[0_1px_0_0_var(--foreground)]",
+          "bg-muted-foreground/80 text-background font-semibold border-muted-foreground shadow-[0_2px_0_0_var(--muted-foreground)] hover:shadow-[0_4px_0_0_var(--muted-foreground)] focus-visible:shadow-[0_4px_0_0_var(--muted-foreground)] active:shadow-[0_1px_0_0_var(--muted-foreground)]",
         outline:
           "border-[var(--surface-stroke,var(--muted-foreground))] bg-background shadow-[0_2px_0_0_var(--surface-stroke,var(--muted-foreground))] hover:shadow-[0_4px_0_0_var(--surface-stroke,var(--muted-foreground))] focus-visible:shadow-[0_4px_0_0_var(--surface-stroke,var(--muted-foreground))] active:shadow-[0_1px_0_0_var(--surface-stroke,var(--muted-foreground))] aria-expanded:bg-muted aria-expanded:text-foreground",
         secondary:
