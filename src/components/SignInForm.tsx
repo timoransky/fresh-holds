@@ -58,7 +58,7 @@ export function SignInForm({ next = "/" }: Props) {
           type="email"
           required
           autoComplete="email"
-          className="h-9 rounded-md border border-input bg-background px-3 text-sm outline-none focus:border-ring focus:ring-3 focus:ring-ring/50"
+          className="h-9 rounded-md border border-input bg-background px-3 text-base outline-none focus:border-ring focus:ring-3 focus:ring-ring/50 md:text-sm"
         />
       </div>
 
@@ -139,7 +139,7 @@ function CodeForm({
           maxLength={8}
           autoComplete="one-time-code"
           autoFocus
-          className="h-9 rounded-md border border-input bg-background px-3 font-mono text-sm tracking-[0.4em] outline-none focus:border-ring focus:ring-3 focus:ring-ring/50"
+          className="h-9 rounded-md border border-input bg-background px-3 font-mono text-base tracking-[0.4em] outline-none focus:border-ring focus:ring-3 focus:ring-ring/50 md:text-sm"
         />
       </div>
 
