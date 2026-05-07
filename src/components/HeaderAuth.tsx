@@ -18,5 +18,5 @@ export async function HeaderAuth({ next = "/" }: Props) {
     );
   }
 
-  return <UserMenu email={user.email ?? ""} />;
+  return <UserMenu email={user.email ?? ""} createdAt={user.created_at} />;
 }
