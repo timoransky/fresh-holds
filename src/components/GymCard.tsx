@@ -132,7 +132,7 @@ export function GymCard({
         <h2
           className={cn(
             "font-heading font-bold tracking-tight text-foreground text-balance leading-[1.05] max-w-[calc(100%-var(--badge-width))] min-w-0 flex-1",
-            isHero ? "text-2xl sm:text-4xl" : "text-xl sm:text-2xl",
+            isHero ? "text-3xl sm:text-4xl" : "text-2xl",
           )}
         >
           {gym.name}
