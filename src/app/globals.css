@@ -10,7 +10,7 @@
 @theme inline {
   --font-sans: "Geist", "Geist Fallback", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "Geist Mono", "Geist Mono Fallback", ui-monospace, monospace;
-  --font-heading: var(--font-sans);
+  --font-heading: var(--font-baloo), "Baloo 2", var(--font-sans);
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);

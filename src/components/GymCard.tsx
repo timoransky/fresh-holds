@@ -131,7 +131,7 @@ export function GymCard({
       <header className="flex relative items-start justify-between gap-4">
         <h2
           className={cn(
-            "font-extrabold tracking-tight text-foreground text-balance leading-[1.05] max-w-[calc(100%-var(--badge-width))] min-w-0 flex-1",
+            "font-heading font-bold tracking-tight text-foreground text-balance leading-[1.05] max-w-[calc(100%-var(--badge-width))] min-w-0 flex-1",
             isHero ? "text-2xl sm:text-4xl" : "text-xl sm:text-2xl",
           )}
         >

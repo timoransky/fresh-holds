@@ -65,7 +65,7 @@ export function ResetForm({ gyms }: { gyms: AdminGym[] }) {
           name="gym_id"
           value={selectedGymId}
           onChange={(e) => handleGymChange(e.target.value)}
-          className="h-9 rounded-md border border-input bg-background px-3 text-sm outline-none focus:border-ring focus:ring-3 focus:ring-ring/50"
+          className="h-9 rounded-md border border-input bg-background px-3 text-base outline-none focus:border-ring focus:ring-3 focus:ring-ring/50 md:text-sm"
         >
           <option value="">Select a gym…</option>
           {gyms.map((g) => (
@@ -117,7 +117,7 @@ export function ResetForm({ gyms }: { gyms: AdminGym[] }) {
               value={bouldersReset}
               onChange={(e) => setBouldersReset(e.target.value)}
               placeholder="e.g. 17"
-              className="h-9 rounded-md border border-input bg-background px-3 text-sm outline-none focus:border-ring focus:ring-3 focus:ring-ring/50"
+              className="h-9 rounded-md border border-input bg-background px-3 text-base outline-none focus:border-ring focus:ring-3 focus:ring-ring/50 md:text-sm"
             />
           </div>
         </>
@@ -132,7 +132,7 @@ export function ResetForm({ gyms }: { gyms: AdminGym[] }) {
           name="reset_on"
           type="date"
           defaultValue={today}
-          className="h-9 rounded-md border border-input bg-background px-3 text-sm outline-none focus:border-ring focus:ring-3 focus:ring-ring/50"
+          className="h-9 rounded-md border border-input bg-background px-3 text-base outline-none focus:border-ring focus:ring-3 focus:ring-ring/50 md:text-sm"
         />
       </div>
 
@@ -145,7 +145,7 @@ export function ResetForm({ gyms }: { gyms: AdminGym[] }) {
           name="notes"
           rows={2}
           placeholder="e.g. Full reset, 30 new problems"
-          className="resize-none rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-ring focus:ring-3 focus:ring-ring/50"
+          className="resize-none rounded-md border border-input bg-background px-3 py-2 text-base outline-none focus:border-ring focus:ring-3 focus:ring-ring/50 md:text-sm"
         />
       </div>
 

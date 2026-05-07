@@ -14,7 +14,7 @@ export default async function Home() {
         <div className="flex justify-end">
           <HeaderAuth />
         </div>
-        <h1 className="mt-6 text-balance text-4xl font-extrabold leading-[1.02] tracking-tight text-foreground sm:text-6xl">
+        <h1 className="mt-6 font-heading text-balance text-4xl font-bold leading-[1.02] tracking-tight text-foreground sm:text-6xl">
           where are the <span className=" text-cobalt">fresh holds</span> right now?
         </h1>
         <p className="mt-6 max-w-prose text-base text-balance text-muted-foreground sm:text-lg">
