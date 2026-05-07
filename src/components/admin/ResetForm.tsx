@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useState } from "react";
 import { submitReset } from "@/lib/actions/resets";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import type { AdminGym } from "@/lib/db/admin";
 
 export function ResetForm({ gyms }: { gyms: AdminGym[] }) {
@@ -108,7 +109,7 @@ export function ResetForm({ gyms }: { gyms: AdminGym[] }) {
             <label htmlFor="boulders_reset" className="text-sm font-medium">
               Boulders reset
             </label>
-            <input
+            <Input
               id="boulders_reset"
               name="boulders_reset"
               type="number"
@@ -117,7 +118,6 @@ export function ResetForm({ gyms }: { gyms: AdminGym[] }) {
               value={bouldersReset}
               onChange={(e) => setBouldersReset(e.target.value)}
               placeholder="e.g. 17"
-              className="h-9 rounded-md border border-input bg-background px-3 text-base outline-none focus:border-ring focus:ring-3 focus:ring-ring/50 md:text-sm"
             />
           </div>
         </>
@@ -127,12 +127,11 @@ export function ResetForm({ gyms }: { gyms: AdminGym[] }) {
         <label htmlFor="reset_on" className="text-sm font-medium">
           Reset date
         </label>
-        <input
+        <Input
           id="reset_on"
           name="reset_on"
           type="date"
           defaultValue={today}
-          className="h-9 rounded-md border border-input bg-background px-3 text-base outline-none focus:border-ring focus:ring-3 focus:ring-ring/50 md:text-sm"
         />
       </div>
 

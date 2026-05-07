@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import {
   Drawer,
   DrawerContent,
-  DrawerFooter,
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
@@ -179,10 +178,27 @@ export function VisitedButton({ visitedDates, onChangeVisits }: Props) {
         <DrawerHeader className="sr-only">
           <DrawerTitle>Log a visit</DrawerTitle>
         </DrawerHeader>
-        {pickerContent}
-        <DrawerFooter>
-          <Button onClick={handleConfirm}>Done</Button>
-        </DrawerFooter>
+        <div className="px-6 pt-4 pb-8" onClick={(e) => e.stopPropagation()}>
+          <h2 className="mb-4 font-heading text-3xl text-center font-extrabold tracking-tight">
+            when did you climb?
+          </h2>
+          <div className="flex justify-center">
+            <Calendar
+              mode="multiple"
+              numberOfMonths={1}
+              defaultMonth={defaultMonth}
+              fixedWeeks
+              selected={selectedDates}
+              onSelect={(dates) => setPendingDates((dates ?? []).map(isoFromDate))}
+              disabled={{ after: new Date() }}
+              autoFocus
+              className="p-0 [--cell-size:--spacing(9.5)]"
+            />
+          </div>
+          <Button onClick={handleConfirm} className="mt-6 w-full">
+            Done
+          </Button>
+        </div>
       </DrawerContent>
     </Drawer>
   );

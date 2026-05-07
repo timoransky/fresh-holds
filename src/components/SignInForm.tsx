@@ -1,22 +1,19 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
-import {
-  requestOtpCode,
-  verifyOtpCode,
-  type RequestOtpState,
-} from "@/lib/actions/auth";
+import { startTransition, useActionState, useEffect, useState } from "react";
+import { requestOtpCode, verifyOtpCode, type RequestOtpState } from "@/lib/actions/auth";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 type Props = {
   next?: string;
 };
 
 export function SignInForm({ next = "/" }: Props) {
-  const [emailState, requestAction, requestPending] = useActionState<
-    RequestOtpState,
-    FormData
-  >(requestOtpCode, null);
+  const [emailState, requestAction, requestPending] = useActionState<RequestOtpState, FormData>(
+    requestOtpCode,
+    null,
+  );
 
   const [pendingEmail, setPendingEmail] = useState<string | null>(null);
 
@@ -52,14 +49,7 @@ export function SignInForm({ next = "/" }: Props) {
         <label htmlFor="email" className="text-sm font-medium">
           Email
         </label>
-        <input
-          id="email"
-          name="email"
-          type="email"
-          required
-          autoComplete="email"
-          className="h-9 rounded-md border border-input bg-background px-3 text-base outline-none focus:border-ring focus:ring-3 focus:ring-ring/50 md:text-sm"
-        />
+        <Input id="email" name="email" type="email" required autoComplete="email" />
       </div>
 
       <Button type="submit" disabled={requestPending} className="mt-2 w-full">
@@ -81,23 +71,16 @@ type CodeFormProps = {
   resendPending: boolean;
 };
 
-function CodeForm({
-  email,
-  next,
-  onChangeEmail,
-  resendAction,
-  resendPending,
-}: CodeFormProps) {
-  const [verifyState, verifyAction, verifyPending] = useActionState(
-    verifyOtpCode,
-    null,
-  );
+function CodeForm({ email, next, onChangeEmail, resendAction, resendPending }: CodeFormProps) {
+  const [verifyState, verifyAction, verifyPending] = useActionState(verifyOtpCode, null);
   const error = verifyState?.error ?? null;
 
   const handleResend = () => {
     const formData = new FormData();
     formData.set("email", email);
-    resendAction(formData);
+    startTransition(() => {
+      resendAction(formData);
+    });
   };
 
   return (
@@ -107,8 +90,7 @@ function CodeForm({
 
       <div className="rounded-lg border border-foreground/15 bg-background/60 px-4 py-3 text-sm">
         <p className="text-muted-foreground">
-          We sent a code to{" "}
-          <span className="font-medium text-foreground">{email}</span>.
+          We sent a code to <span className="font-medium text-foreground">{email}</span>.
         </p>
         <button
           type="button"
@@ -126,10 +108,22 @@ function CodeForm({
       )}
 
       <div className="flex flex-col gap-1.5">
-        <label htmlFor="token" className="text-sm font-medium">
-          8-digit code
-        </label>
-        <input
+        <div className="flex justify-between items-baseline">
+          <label htmlFor="token" className="text-sm font-medium">
+            8-digit code
+          </label>
+
+          <button
+            type="button"
+            onClick={handleResend}
+            disabled={resendPending}
+            className="text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground disabled:opacity-50"
+          >
+            {resendPending ? "Sending…" : "Resend code"}
+          </button>
+        </div>
+
+        <Input
           id="token"
           name="token"
           type="text"
@@ -139,22 +133,13 @@ function CodeForm({
           maxLength={8}
           autoComplete="one-time-code"
           autoFocus
-          className="h-9 rounded-md border border-input bg-background px-3 font-mono text-base tracking-[0.4em] outline-none focus:border-ring focus:ring-3 focus:ring-ring/50 md:text-sm"
+          className="font-mono tracking-[0.4em]"
         />
       </div>
 
       <Button type="submit" disabled={verifyPending} className="mt-2 w-full">
         {verifyPending ? "Verifying…" : "Sign in"}
       </Button>
-
-      <button
-        type="button"
-        onClick={handleResend}
-        disabled={resendPending}
-        className="text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground disabled:opacity-50"
-      >
-        {resendPending ? "Sending…" : "Resend code"}
-      </button>
     </form>
   );
 }

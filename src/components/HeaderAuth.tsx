@@ -12,7 +12,7 @@ export async function HeaderAuth({ next = "/" }: Props) {
 
   if (!user) {
     return (
-      <Button asChild variant="outline" size="sm" className="rounded-full">
+      <Button asChild size="sm" className="rounded-full">
         <Link href={`/login?next=${encodeURIComponent(next)}`}>Sign in</Link>
       </Button>
     );
