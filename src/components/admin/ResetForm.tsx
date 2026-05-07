@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useState } from "react";
 import { submitReset } from "@/lib/actions/resets";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import type { AdminGym } from "@/lib/db/admin";
 
 export function ResetForm({ gyms }: { gyms: AdminGym[] }) {
@@ -65,7 +66,7 @@ export function ResetForm({ gyms }: { gyms: AdminGym[] }) {
           name="gym_id"
           value={selectedGymId}
           onChange={(e) => handleGymChange(e.target.value)}
-          className="h-9 rounded-md border border-input bg-background px-3 text-sm outline-none focus:border-ring focus:ring-3 focus:ring-ring/50"
+          className="h-9 rounded-md border border-input bg-background px-3 text-base outline-none focus:border-ring focus:ring-3 focus:ring-ring/50 md:text-sm"
         >
           <option value="">Select a gym…</option>
           {gyms.map((g) => (
@@ -108,7 +109,7 @@ export function ResetForm({ gyms }: { gyms: AdminGym[] }) {
             <label htmlFor="boulders_reset" className="text-sm font-medium">
               Boulders reset
             </label>
-            <input
+            <Input
               id="boulders_reset"
               name="boulders_reset"
               type="number"
@@ -117,7 +118,6 @@ export function ResetForm({ gyms }: { gyms: AdminGym[] }) {
               value={bouldersReset}
               onChange={(e) => setBouldersReset(e.target.value)}
               placeholder="e.g. 17"
-              className="h-9 rounded-md border border-input bg-background px-3 text-sm outline-none focus:border-ring focus:ring-3 focus:ring-ring/50"
             />
           </div>
         </>
@@ -127,12 +127,11 @@ export function ResetForm({ gyms }: { gyms: AdminGym[] }) {
         <label htmlFor="reset_on" className="text-sm font-medium">
           Reset date
         </label>
-        <input
+        <Input
           id="reset_on"
           name="reset_on"
           type="date"
           defaultValue={today}
-          className="h-9 rounded-md border border-input bg-background px-3 text-sm outline-none focus:border-ring focus:ring-3 focus:ring-ring/50"
         />
       </div>
 
@@ -145,7 +144,7 @@ export function ResetForm({ gyms }: { gyms: AdminGym[] }) {
           name="notes"
           rows={2}
           placeholder="e.g. Full reset, 30 new problems"
-          className="resize-none rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-ring focus:ring-3 focus:ring-ring/50"
+          className="resize-none rounded-md border border-input bg-background px-3 py-2 text-base outline-none focus:border-ring focus:ring-3 focus:ring-ring/50 md:text-sm"
         />
       </div>
 

@@ -61,7 +61,7 @@ export function GymList({ gyms, authed }: Props) {
 
   return (
     <div className="flex flex-col gap-10">
-      <section aria-label="Top pick" className="flex flex-col gap-3">
+      <section aria-label="Top pick" className="flex flex-col gap-4">
         {heroHasData && (
           <h2 className="px-1 text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">
             freshest for you today
@@ -80,11 +80,11 @@ export function GymList({ gyms, authed }: Props) {
       </section>
 
       {runnersUp.length > 0 && (
-        <section aria-label="Other gyms" className="flex flex-col gap-3">
+        <section aria-label="Other gyms" className="flex flex-col gap-4">
           <h2 className="px-1 text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">
             also worth a look
           </h2>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 items-start">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 items-start">
             {runnersUp.map((c) => (
               <GymCard
                 key={c.gym.id}
@@ -103,11 +103,11 @@ export function GymList({ gyms, authed }: Props) {
       )}
 
       {noDataExtras.length > 0 && (
-        <section aria-label="Gyms with no reset data" className="flex flex-col gap-3">
+        <section aria-label="Gyms with no reset data" className="flex flex-col gap-4">
           <h2 className="px-1 text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">
             no reset data yet
           </h2>
-          <ul className="flex flex-col gap-3">
+          <ul className="flex flex-col gap-4">
             {noDataExtras.map((c) => {
               const navigateUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
                 [c.gym.name, c.gym.neighborhood, "Bratislava"].filter(Boolean).join(" "),

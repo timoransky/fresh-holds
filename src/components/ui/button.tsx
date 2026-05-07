@@ -10,9 +10,9 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-muted-foreground/85 text-background font-semibold border-foreground hover:bg-muted-foreground/90 shadow-[0_2px_0_0_var(--foreground)] hover:shadow-[0_4px_0_0_var(--foreground)] focus-visible:shadow-[0_4px_0_0_var(--foreground)] active:shadow-[0_1px_0_0_var(--foreground)]",
+          "bg-muted-foreground/80 text-background font-semibold border-foreground shadow-[0_2px_0_0_var(--foreground)] hover:shadow-[0_4px_0_0_var(--foreground)] focus-visible:shadow-[0_4px_0_0_var(--foreground)] active:shadow-[0_1px_0_0_var(--foreground)]",
         outline:
-          "border-[var(--surface-stroke,var(--foreground))] bg-background shadow-[0_2px_0_0_var(--surface-stroke,var(--foreground))] hover:shadow-[0_4px_0_0_var(--surface-stroke,var(--foreground))] focus-visible:shadow-[0_4px_0_0_var(--surface-stroke,var(--foreground))]   active:shadow-[0_1px_0_0_var(--surface-stroke,var(--foreground))] aria-expanded:bg-muted aria-expanded:text-foreground",
+          "border-[var(--surface-stroke,var(--muted-foreground))] bg-background shadow-[0_2px_0_0_var(--surface-stroke,var(--muted-foreground))] hover:shadow-[0_4px_0_0_var(--surface-stroke,var(--muted-foreground))] focus-visible:shadow-[0_4px_0_0_var(--surface-stroke,var(--muted-foreground))] active:shadow-[0_1px_0_0_var(--surface-stroke,var(--muted-foreground))] aria-expanded:bg-muted aria-expanded:text-foreground",
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-secondary/80 aria-expanded:bg-secondary aria-expanded:text-secondary-foreground",
         ghost:
@@ -23,9 +23,9 @@ const buttonVariants = cva(
       },
       size: {
         default:
-          "h-9 gap-1.5 px-2.5 in-data-[slot=button-group]:rounded-md in-data-[slot=button-group]:squircle-lg has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
+          "h-9 gap-2 px-2.5 in-data-[slot=button-group]:rounded-md in-data-[slot=button-group]:squircle-lg has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
         xs: "h-6 gap-1 rounded-[min(var(--radius-md),8px)] squircle-md px-2 text-xs in-data-[slot=button-group]:rounded-md in-data-[slot=button-group]:squircle-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3",
-        sm: "h-8 gap-1 rounded-[min(var(--radius-md),10px)] squircle-md px-2.5 in-data-[slot=button-group]:rounded-md in-data-[slot=button-group]:squircle-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5",
+        sm: "h-8 gap-1.5 rounded-[min(var(--radius-md),10px)] squircle-md px-2.5 in-data-[slot=button-group]:rounded-md in-data-[slot=button-group]:squircle-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5",
         lg: "h-10 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
         icon: "size-9",
         "icon-xs":

@@ -20,5 +20,5 @@ export async function HeaderAuth({ next = "/", gyms }: Props) {
     );
   }
 
-  return <UserMenu email={user.email ?? ""} gyms={gyms} />;
+  return <UserMenu email={user.email ?? ""} createdAt={user.created_at} gyms={gyms} />;
 }
