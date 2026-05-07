@@ -60,8 +60,8 @@ export function FreshnessBadge({ tier, label, size = "hero", bob = false, classN
       style={baseStyle}
       className={cn(
         isCompact
-          ? "inline-flex items-center gap-2 origin-center select-none rounded-xl squircle-2xl border-2 px-3 py-2 shadow-[0_2px_0_0_var(--tier-ring)] absolute -top-7 -right-7 md:-top-8 md:-right-8"
-          : "inline-flex items-center gap-2.5 origin-center select-none rounded-2xl squircle-3xl border-2 px-4 pl-3 py-3 shadow-[0_3px_0_0_var(--tier-ring)] absolute -top-8 -right-8",
+          ? "inline-flex items-center gap-2 origin-center select-none rounded-xl squircle-2xl border-2 px-2.5 py-1.5 shadow-[0_2px_0_0_var(--tier-ring)] absolute -top-7 -right-7 md:-top-8 md:-right-8"
+          : "inline-flex items-center gap-2 sm:gap-2.5 origin-center select-none rounded-2xl squircle-3xl border-2 px-3 pl-2.5 py-2.5 md:px-4 md:pl-3 md:py-3 shadow-[0_3px_0_0_var(--tier-ring)] absolute -top-8 -right-8",
         "bg-(--tier-bg) text-(--tier-fg) border-(--tier-ring)",
         isUnknown && "border-dashed shadow-none",
         !isCompact && bob && "motion-safe:animate-[badge-bob_3.6s_ease-in-out_infinite]",

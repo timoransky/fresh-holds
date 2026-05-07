@@ -132,7 +132,7 @@ export function GymCard({
         <h2
           className={cn(
             "font-extrabold tracking-tight text-foreground text-balance leading-[1.05] max-w-[calc(100%-var(--badge-width))] min-w-0 flex-1",
-            isHero ? "text-3xl sm:text-4xl" : "text-xl sm:text-2xl",
+            isHero ? "text-2xl sm:text-4xl" : "text-xl sm:text-2xl",
           )}
         >
           {gym.name}
@@ -147,7 +147,7 @@ export function GymCard({
             onClick={() => setIsOpen((prev) => !prev)}
             aria-expanded={isOpen}
             aria-controls={detailsId}
-            className="mt-2 inline-flex items-center w-full text-left text-sm text-muted-foreground cursor-pointer hover:text-foreground/80 transition-colors"
+            className="mt-3 inline-flex items-center w-full text-left text-sm text-muted-foreground cursor-pointer hover:text-foreground/80 transition-colors"
           >
             {describeFreshness(label, lastVisited)}
             <CircleHelpIcon
@@ -232,7 +232,7 @@ export function GymCard({
           </div>
         </>
       ) : (
-        <p className="mt-2 text-sm text-muted-foreground">
+        <p className="mt-3 text-sm text-muted-foreground">
           {describeFreshness(label, lastVisited)}
         </p>
       )}
