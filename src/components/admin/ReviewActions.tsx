@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { approveSubmission, rejectSubmission } from "@/lib/actions/submissions";
+import { approveSubmission, rejectSubmission } from "@/lib/actions/admin/submissions";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 
