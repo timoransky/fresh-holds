@@ -5,22 +5,15 @@ import { ImageIcon } from "lucide-react";
 import { suggestReset } from "@/lib/actions/submissions";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Drawer,
-  DrawerContent,
-  DrawerDescription,
-  DrawerHeader,
-  DrawerTitle,
-} from "@/components/ui/drawer";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogDescription,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+} from "@/components/ui/responsive-dialog";
 import {
   Select,
   SelectContent,
@@ -29,7 +22,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { todayISO } from "@/lib/date";
 import type { GymWithSections } from "@/lib/types";
 
@@ -40,7 +32,6 @@ type Props = {
 };
 
 export function SuggestResetForm({ gyms, open, onOpenChange }: Props) {
-  const isDesktop = useMediaQuery("(min-width: 768px)");
   const [state, formAction, isPending] = useActionState(suggestReset, null);
   const [selectedGymId, setSelectedGymId] = useState("");
   const [selectedSectionId, setSelectedSectionId] = useState("");
@@ -197,35 +188,18 @@ export function SuggestResetForm({ gyms, open, onOpenChange }: Props) {
     </form>
   );
 
-  if (isDesktop) {
-    return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="w-[min(92vw,460px)] p-0">
-          <DialogHeader className="px-4 pb-2 pt-4">
-            <DialogTitle>Suggest a reset</DialogTitle>
-            <DialogDescription>
-              Spotted fresh climbing? An admin will review and merge it into the public
-              freshness data.
-            </DialogDescription>
-          </DialogHeader>
-          {formBody}
-        </DialogContent>
-      </Dialog>
-    );
-  }
-
   return (
-    <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent>
-        <DrawerHeader>
-          <DrawerTitle>Suggest a reset</DrawerTitle>
-          <DrawerDescription>
+    <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
+      <ResponsiveDialogContent desktopClassName="w-[min(92vw,460px)] p-0">
+        <ResponsiveDialogHeader desktopClassName="px-4 pb-2 pt-4">
+          <ResponsiveDialogTitle>Suggest a reset</ResponsiveDialogTitle>
+          <ResponsiveDialogDescription>
             Spotted fresh climbing? An admin will review and merge it into the public
             freshness data.
-          </DrawerDescription>
-        </DrawerHeader>
+          </ResponsiveDialogDescription>
+        </ResponsiveDialogHeader>
         {formBody}
-      </DrawerContent>
-    </Drawer>
+      </ResponsiveDialogContent>
+    </ResponsiveDialog>
   );
 }
