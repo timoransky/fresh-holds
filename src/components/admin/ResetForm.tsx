@@ -2,8 +2,19 @@
 
 import { useActionState, useEffect, useState } from "react";
 import { submitReset } from "@/lib/actions/resets";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { todayISO } from "@/lib/date";
 import type { AdminGym } from "@/lib/db/admin";
 
@@ -48,57 +59,56 @@ export function ResetForm({ gyms }: { gyms: AdminGym[] }) {
   return (
     <form action={formAction} className="flex flex-col gap-5">
       {state?.error && (
-        <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-          {state.error}
-        </div>
+        <Alert variant="destructive">
+          <AlertDescription>{state.error}</AlertDescription>
+        </Alert>
       )}
       {state?.success && (
-        <div className="rounded-lg border border-green-600/20 bg-green-50 px-4 py-3 text-sm text-green-700">
-          {state.success}
-        </div>
+        <Alert variant="success">
+          <AlertDescription>{state.success}</AlertDescription>
+        </Alert>
       )}
 
       <div className="flex flex-col gap-1.5">
-        <label htmlFor="gym_id" className="text-sm font-medium">
-          Gym
-        </label>
-        <select
-          id="gym_id"
-          name="gym_id"
-          value={selectedGymId}
-          onChange={(e) => handleGymChange(e.target.value)}
-          className="h-9 rounded-md border border-input bg-background px-3 text-base outline-none focus:border-ring focus:ring-3 focus:ring-ring/50 md:text-sm"
-        >
-          <option value="">Select a gym…</option>
-          {gyms.map((g) => (
-            <option key={g.id} value={g.id}>
-              {g.name}
-              {g.freshness_mode === "count" ? " (count mode)" : ""}
-            </option>
-          ))}
-        </select>
+        <Label htmlFor="gym_id">Gym</Label>
+        <Select value={selectedGymId} onValueChange={handleGymChange}>
+          <SelectTrigger id="gym_id">
+            <SelectValue placeholder="Select a gym…" />
+          </SelectTrigger>
+          <SelectContent>
+            {gyms.map((g) => (
+              <SelectItem key={g.id} value={g.id}>
+                {g.name}
+                {g.freshness_mode === "count" ? " (count mode)" : ""}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <input type="hidden" name="gym_id" value={selectedGymId} />
       </div>
 
       {selectedGym && !isCountMode && (
         <fieldset className="flex flex-col gap-2">
           <legend className="text-sm font-medium">Sections reset</legend>
           <div className="mt-1.5 grid grid-cols-2 gap-2">
-            {selectedGym.sections.map((section) => (
-              <label
-                key={section.id}
-                className="flex cursor-pointer items-center gap-2 rounded-md border border-border px-3 py-2 text-sm transition-colors hover:bg-muted has-[:checked]:border-foreground/50 has-[:checked]:bg-secondary"
-              >
-                <input
-                  type="checkbox"
-                  name="section_ids"
-                  value={section.id}
-                  checked={checkedSections.has(section.id)}
-                  onChange={(e) => toggleSection(section.id, e.target.checked)}
-                  className="accent-foreground"
-                />
-                {section.name}
-              </label>
-            ))}
+            {selectedGym.sections.map((section) => {
+              const checked = checkedSections.has(section.id);
+              return (
+                <Label
+                  key={section.id}
+                  className="cursor-pointer rounded-md border border-border px-3 py-2 text-sm transition-colors hover:bg-muted has-[[data-state=checked]]:border-foreground/50 has-[[data-state=checked]]:bg-secondary"
+                >
+                  <Checkbox
+                    checked={checked}
+                    onCheckedChange={(c) => toggleSection(section.id, c === true)}
+                  />
+                  {checked && (
+                    <input type="hidden" name="section_ids" value={section.id} />
+                  )}
+                  {section.name}
+                </Label>
+              );
+            })}
           </div>
         </fieldset>
       )}
@@ -107,9 +117,7 @@ export function ResetForm({ gyms }: { gyms: AdminGym[] }) {
         <>
           <input type="hidden" name="section_ids" value={countModeSection.id} />
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="boulders_reset" className="text-sm font-medium">
-              Boulders reset
-            </label>
+            <Label htmlFor="boulders_reset">Boulders reset</Label>
             <Input
               id="boulders_reset"
               name="boulders_reset"
@@ -125,27 +133,20 @@ export function ResetForm({ gyms }: { gyms: AdminGym[] }) {
       )}
 
       <div className="flex flex-col gap-1.5">
-        <label htmlFor="reset_on" className="text-sm font-medium">
-          Reset date
-        </label>
-        <Input
-          id="reset_on"
-          name="reset_on"
-          type="date"
-          defaultValue={today}
-        />
+        <Label htmlFor="reset_on">Reset date</Label>
+        <Input id="reset_on" name="reset_on" type="date" defaultValue={today} />
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <label htmlFor="notes" className="text-sm font-medium">
+        <Label htmlFor="notes">
           Notes <span className="font-normal text-muted-foreground">(optional)</span>
-        </label>
-        <textarea
+        </Label>
+        <Textarea
           id="notes"
           name="notes"
           rows={2}
           placeholder="e.g. Full reset, 30 new problems"
-          className="resize-none rounded-md border border-input bg-background px-3 py-2 text-base outline-none focus:border-ring focus:ring-3 focus:ring-ring/50 md:text-sm"
+          className="resize-none"
         />
       </div>
 
