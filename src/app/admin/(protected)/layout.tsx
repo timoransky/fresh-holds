@@ -1,13 +1,11 @@
 import Link from "next/link";
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { createClient } from "@/utils/supabase/server";
+import { getSupabase } from "@/lib/auth";
 import { signOut } from "@/lib/actions/auth";
 import { Button } from "@/components/ui/button";
 
 export default async function ProtectedAdminLayout({ children }: { children: React.ReactNode }) {
-  const cookieStore = await cookies();
-  const supabase = createClient(cookieStore);
+  const supabase = await getSupabase();
 
   const {
     data: { user },

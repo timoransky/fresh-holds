@@ -1,5 +1,4 @@
-import { cookies } from "next/headers";
-import { createClient } from "@/utils/supabase/server";
+import { getSupabase } from "@/lib/auth";
 
 import type { FreshnessMode } from "@/lib/types";
 
@@ -28,8 +27,7 @@ export type RecentReset = {
 };
 
 export async function getGymsForAdmin(): Promise<AdminGym[]> {
-  const cookieStore = await cookies();
-  const supabase = createClient(cookieStore);
+  const supabase = await getSupabase();
 
   const { data, error } = await supabase
     .from("gyms")
@@ -53,8 +51,7 @@ export async function getGymsForAdmin(): Promise<AdminGym[]> {
 }
 
 export async function getRecentResets(limit = 30): Promise<RecentReset[]> {
-  const cookieStore = await cookies();
-  const supabase = createClient(cookieStore);
+  const supabase = await getSupabase();
 
   const { data, error } = await supabase
     .from("resets")

@@ -1,7 +1,6 @@
 import "server-only";
 
-import { cookies } from "next/headers";
-import { createClient } from "@/utils/supabase/server";
+import { getAuthedClient, getSupabase } from "@/lib/auth";
 
 export type SubmissionStatus = "pending" | "approved" | "rejected";
 
@@ -31,8 +30,7 @@ export type MySubmission = {
 };
 
 export async function listPendingSubmissions(): Promise<PendingSubmission[]> {
-  const cookieStore = await cookies();
-  const supabase = createClient(cookieStore);
+  const supabase = await getSupabase();
 
   const { data, error } = await supabase
     .from("reset_submissions")
@@ -60,20 +58,15 @@ export async function listPendingSubmissions(): Promise<PendingSubmission[]> {
 }
 
 export async function listMySubmissions(): Promise<MySubmission[]> {
-  const cookieStore = await cookies();
-  const supabase = createClient(cookieStore);
+  const ctx = await getAuthedClient();
+  if (!ctx) return [];
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return [];
-
-  const { data, error } = await supabase
+  const { data, error } = await ctx.supabase
     .from("reset_submissions")
     .select(
       "id, reset_on, status, created_at, reviewed_at, notes, boulders_reset, sections(name, gyms(name))",
     )
-    .eq("submitted_by", user.id)
+    .eq("submitted_by", ctx.userId)
     .order("created_at", { ascending: false })
     .limit(20);
 

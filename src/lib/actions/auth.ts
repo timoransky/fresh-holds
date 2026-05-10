@@ -1,8 +1,7 @@
 "use server";
 
-import { createClient } from "@/utils/supabase/server";
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { getSupabase } from "@/lib/auth";
 
 export type RequestOtpState =
   | { error: string }
@@ -19,8 +18,7 @@ export async function requestOtpCode(
     return { error: "Enter your email." };
   }
 
-  const cookieStore = await cookies();
-  const supabase = createClient(cookieStore);
+  const supabase = await getSupabase();
 
   const { error } = await supabase.auth.signInWithOtp({ email });
 
@@ -45,8 +43,7 @@ export async function verifyOtpCode(
     return { error: "Enter the 8-digit code from your email." };
   }
 
-  const cookieStore = await cookies();
-  const supabase = createClient(cookieStore);
+  const supabase = await getSupabase();
 
   const { error } = await supabase.auth.verifyOtp({
     email,
@@ -62,8 +59,7 @@ export async function verifyOtpCode(
 }
 
 export async function signOut() {
-  const cookieStore = await cookies();
-  const supabase = createClient(cookieStore);
+  const supabase = await getSupabase();
   await supabase.auth.signOut();
   redirect("/");
 }

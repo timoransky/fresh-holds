@@ -1,10 +1,8 @@
 "use server";
 
-import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/utils/supabase/server";
-
-const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+import { getAuthedClient, requireAdmin } from "@/lib/auth";
+import { ISO_DATE_RE, todayISO } from "@/lib/date";
 
 type SubmitState =
   | { error: string }
@@ -15,13 +13,8 @@ export async function suggestReset(
   prevState: SubmitState,
   formData: FormData,
 ): Promise<SubmitState> {
-  const cookieStore = await cookies();
-  const supabase = createClient(cookieStore);
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "Sign in to suggest a reset." };
+  const ctx = await getAuthedClient();
+  if (!ctx) return { error: "Sign in to suggest a reset." };
 
   const sectionId = String(formData.get("section_id") ?? "");
   const resetOn = String(formData.get("reset_on") ?? "");
@@ -29,10 +22,9 @@ export async function suggestReset(
   const bouldersResetRaw = String(formData.get("boulders_reset") ?? "").trim();
 
   if (!sectionId) return { error: "Pick a sector." };
-  if (!ISO_DATE.test(resetOn)) return { error: "Pick a valid date." };
+  if (!ISO_DATE_RE.test(resetOn)) return { error: "Pick a valid date." };
 
-  const today = new Date().toISOString().slice(0, 10);
-  if (resetOn > today) return { error: "Reset date can't be in the future." };
+  if (resetOn > todayISO()) return { error: "Reset date can't be in the future." };
 
   let bouldersReset: number | null = null;
   if (bouldersResetRaw !== "") {
@@ -43,14 +35,14 @@ export async function suggestReset(
     bouldersReset = parsed;
   }
 
-  const { data, error } = await supabase
+  const { data, error } = await ctx.supabase
     .from("reset_submissions")
     .insert({
       section_id: sectionId,
       reset_on: resetOn,
       notes,
       boulders_reset: bouldersReset,
-      submitted_by: user.id,
+      submitted_by: ctx.userId,
     })
     .select("id")
     .single();
@@ -67,24 +59,6 @@ export async function suggestReset(
 }
 
 type ReviewState = { error?: string; success?: string } | null;
-
-async function requireAdmin() {
-  const cookieStore = await cookies();
-  const supabase = createClient(cookieStore);
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "Not authenticated" as const };
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("is_admin")
-    .eq("id", user.id)
-    .single();
-  if (!profile?.is_admin) return { error: "Access denied" as const };
-
-  return { supabase, user };
-}
 
 export async function approveSubmission(
   prevState: ReviewState,

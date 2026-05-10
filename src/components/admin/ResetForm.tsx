@@ -4,6 +4,7 @@ import { useActionState, useEffect, useState } from "react";
 import { submitReset } from "@/lib/actions/resets";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { todayISO } from "@/lib/date";
 import type { AdminGym } from "@/lib/db/admin";
 
 export function ResetForm({ gyms }: { gyms: AdminGym[] }) {
@@ -14,7 +15,7 @@ export function ResetForm({ gyms }: { gyms: AdminGym[] }) {
 
   const selectedGym = gyms.find((g) => g.id === selectedGymId);
   const isCountMode = selectedGym?.freshness_mode === "count";
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayISO();
 
   useEffect(() => {
     if (state?.success) {

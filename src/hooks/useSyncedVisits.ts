@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef } from "react";
 import { useVisits } from "@/hooks/useVisits";
 import { mergeFromLocal, setVisitsForGym } from "@/lib/actions/visits";
+import { todayISO } from "@/lib/date";
 
 // Wraps useVisits to keep an authed user's visits in sync with the `visits`
 // table. localStorage stays the synchronous read source for the UI, so the
@@ -58,8 +59,7 @@ export function useSyncedVisits(authed: boolean) {
       base.markVisited(gymSlug, isoDate);
       if (authed) {
         const next = base.history[gymSlug] ?? [];
-        const today = new Date().toISOString().slice(0, 10);
-        const merged = [...new Set([...next, isoDate ?? today])].sort();
+        const merged = [...new Set([...next, isoDate ?? todayISO()])].sort();
         setVisitsForGym(gymSlug, merged).catch(() => {});
       }
     },
