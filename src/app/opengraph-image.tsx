@@ -25,41 +25,39 @@ export default async function Image() {
 
   const background = "#fafaf6";
   const foreground = "#181822";
-  const brand = "#1d3fc2";
+  const brand = "#63758E";
 
   return new ImageResponse(
-    (
+    <div
+      style={{
+        display: "flex",
+        width: "100%",
+        height: "100%",
+        backgroundColor: background,
+        backgroundImage: `url(${dotUrl})`,
+        backgroundRepeat: "repeat",
+        backgroundSize: "40px 40px",
+        padding: "80px 96px",
+        fontFamily: "Baloo 2",
+        color: foreground,
+        alignItems: "center",
+      }}
+    >
       <div
         style={{
           display: "flex",
-          width: "100%",
-          height: "100%",
-          backgroundColor: background,
-          backgroundImage: `url(${dotUrl})`,
-          backgroundRepeat: "repeat",
-          backgroundSize: "40px 40px",
-          padding: "80px 96px",
-          fontFamily: "Baloo 2",
-          color: foreground,
-          alignItems: "center",
+          flexDirection: "column",
+          fontSize: 120,
+          lineHeight: 1.02,
+          fontWeight: 800,
+          letterSpacing: "-0.025em",
         }}
       >
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            fontSize: 120,
-            lineHeight: 1.02,
-            fontWeight: 800,
-            letterSpacing: "-0.025em",
-          }}
-        >
-          <div style={{ display: "flex" }}>where are the</div>
-          <div style={{ display: "flex", color: brand }}>fresh holds</div>
-          <div style={{ display: "flex" }}>right now?</div>
-        </div>
+        <div style={{ display: "flex" }}>where are the</div>
+        <div style={{ display: "flex", color: brand }}>fresh holds</div>
+        <div style={{ display: "flex" }}>right now?</div>
       </div>
-    ),
+    </div>,
     {
       ...size,
       fonts: [{ name: "Baloo 2", data: baloo800, weight: 800, style: "normal" }],

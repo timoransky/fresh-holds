@@ -83,6 +83,12 @@ export function GymCard({
         </p>
       )}
 
+      {lastVisited !== null && (
+        <p className="mt-1 text-sm text-muted-foreground">
+          Last visited {relativeDay(lastVisited)}
+        </p>
+      )}
+
       {hasDetails ? (
         <>
           <button
@@ -90,7 +96,7 @@ export function GymCard({
             onClick={() => setIsOpen((prev) => !prev)}
             aria-expanded={isOpen}
             aria-controls={detailsId}
-            className="mt-3 inline-flex items-center w-full text-left text-sm text-muted-foreground cursor-pointer hover:text-foreground/80 transition-colors"
+            className="mt-1 inline-flex items-center w-full text-left text-sm text-muted-foreground cursor-pointer hover:text-foreground/80 transition-colors"
           >
             {describeFreshness(label, lastVisited)}
             <span
