@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Baloo_2 } from "next/font/google";
 import "./globals.css";
 import { Agentation } from "agentation";
@@ -21,9 +21,69 @@ const baloo = Baloo_2({
   weight: ["600", "700", "800"],
 });
 
+const siteUrl = "https://fresh-holds.janci.dev";
+const siteName = "Fresh Holds";
+const siteTitle = "Fresh Holds — where's the fresh climbing in Bratislava?";
+const siteDescription =
+  "See which Bratislava bouldering gym has the freshest holds for you right now. Log your visits and get a personal freshness score for every gym, sorted by what's been reset since you were last there.";
+
 export const metadata: Metadata = {
-  title: "Fresh Holds",
-  description: "See which Bratislava climbing gym is freshest since your last visit.",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: siteTitle,
+    template: "%s · Fresh Holds",
+  },
+  description: siteDescription,
+  applicationName: siteName,
+  keywords: [
+    "bouldering",
+    "climbing",
+    "Bratislava",
+    "climbing gym",
+    "fresh holds",
+    "gym resets",
+    "bouldering Bratislava",
+    "Boulderbar",
+    "The Spot",
+    "K2",
+    "Hangár",
+  ],
+  authors: [{ name: "janci.dev", url: "https://janci.dev" }],
+  creator: "janci.dev",
+  publisher: "janci.dev",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    siteName,
+    title: siteTitle,
+    description: siteDescription,
+    url: siteUrl,
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: siteTitle,
+    description: siteDescription,
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
+  category: "sports",
+};
+
+export const viewport: Viewport = {
+  themeColor: "#fafaf6",
+  colorScheme: "light",
 };
 
 export default function RootLayout({

@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { SignInPanel } from "@/components/SignInPanel";
 
 export const metadata: Metadata = {
-  title: "Sign in · Fresh Holds",
+  title: "Sign in",
+  robots: { index: false, follow: false },
 };
 
 type Props = {
