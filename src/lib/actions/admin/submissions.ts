@@ -2,18 +2,19 @@
 
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
+import { fail, ok, type ActionResult } from "@/lib/actions/result";
 
-type ReviewState = { error?: string; success?: string } | null;
+export type ReviewResult = ActionResult;
 
 export async function approveSubmission(
-  prevState: ReviewState,
+  prevState: ReviewResult,
   formData: FormData,
-): Promise<ReviewState> {
+): Promise<ReviewResult> {
   const ctx = await requireAdmin();
-  if ("error" in ctx) return { error: ctx.error };
+  if ("error" in ctx) return fail(ctx.error);
 
   const submissionId = String(formData.get("submission_id") ?? "");
-  if (!submissionId) return { error: "Missing submission id" };
+  if (!submissionId) return fail("Missing submission id");
 
   const { data: submission, error: readError } = await ctx.supabase
     .from("reset_submissions")
@@ -21,8 +22,8 @@ export async function approveSubmission(
     .eq("id", submissionId)
     .single();
 
-  if (readError || !submission) return { error: "Submission not found" };
-  if (submission.status !== "pending") return { error: "Already reviewed" };
+  if (readError || !submission) return fail("Submission not found");
+  if (submission.status !== "pending") return fail("Already reviewed");
 
   const { data: inserted, error: insertError } = await ctx.supabase
     .from("resets")
@@ -37,7 +38,7 @@ export async function approveSubmission(
     .single();
 
   if (insertError || !inserted) {
-    return { error: insertError?.message ?? "Couldn't create reset" };
+    return fail(insertError?.message ?? "Couldn't create reset");
   }
 
   const { error: updateError } = await ctx.supabase
@@ -50,23 +51,23 @@ export async function approveSubmission(
     })
     .eq("id", submissionId);
 
-  if (updateError) return { error: updateError.message };
+  if (updateError) return fail(updateError.message);
 
   revalidatePath("/admin/submissions");
   revalidatePath("/admin");
   revalidatePath("/");
-  return { success: "Approved" };
+  return ok("Approved");
 }
 
 export async function rejectSubmission(
-  prevState: ReviewState,
+  prevState: ReviewResult,
   formData: FormData,
-): Promise<ReviewState> {
+): Promise<ReviewResult> {
   const ctx = await requireAdmin();
-  if ("error" in ctx) return { error: ctx.error };
+  if ("error" in ctx) return fail(ctx.error);
 
   const submissionId = String(formData.get("submission_id") ?? "");
-  if (!submissionId) return { error: "Missing submission id" };
+  if (!submissionId) return fail("Missing submission id");
 
   const { error } = await ctx.supabase
     .from("reset_submissions")
@@ -78,8 +79,8 @@ export async function rejectSubmission(
     .eq("id", submissionId)
     .eq("status", "pending");
 
-  if (error) return { error: error.message };
+  if (error) return fail(error.message);
 
   revalidatePath("/admin/submissions");
-  return { success: "Rejected" };
+  return ok("Rejected");
 }

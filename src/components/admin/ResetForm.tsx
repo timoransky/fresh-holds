@@ -2,9 +2,9 @@
 
 import { useActionState, useEffect, useState } from "react";
 import { submitReset } from "@/lib/actions/admin/resets";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { FormAlert } from "@/components/ui/form-alert";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -28,12 +28,13 @@ export function ResetForm({ gyms }: { gyms: AdminGym[] }) {
   const isCountMode = selectedGym?.freshness_mode === "count";
   const today = todayISO();
 
+  const wasSuccess = state !== null && "success" in state;
   useEffect(() => {
-    if (state?.success) {
+    if (wasSuccess) {
       setCheckedSections(new Set());
       setBouldersReset("");
     }
-  }, [state?.success]);
+  }, [wasSuccess]);
 
   function handleGymChange(gymId: string) {
     setSelectedGymId(gymId);
@@ -58,16 +59,7 @@ export function ResetForm({ gyms }: { gyms: AdminGym[] }) {
 
   return (
     <form action={formAction} className="flex flex-col gap-5">
-      {state?.error && (
-        <Alert variant="destructive">
-          <AlertDescription>{state.error}</AlertDescription>
-        </Alert>
-      )}
-      {state?.success && (
-        <Alert variant="success">
-          <AlertDescription>{state.success}</AlertDescription>
-        </Alert>
-      )}
+      <FormAlert state={state} />
 
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="gym_id">Gym</Label>

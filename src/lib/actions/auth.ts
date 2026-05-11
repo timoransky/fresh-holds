@@ -2,20 +2,18 @@
 
 import { redirect } from "next/navigation";
 import { getSupabase } from "@/lib/auth";
+import { fail, okWithData, type ActionResult } from "@/lib/actions/result";
 
-export type RequestOtpState =
-  | { error: string }
-  | { sent: true; email: string }
-  | null;
+export type RequestOtpResult = ActionResult<{ email: string }>;
 
 export async function requestOtpCode(
-  prevState: RequestOtpState,
+  prevState: RequestOtpResult,
   formData: FormData,
-): Promise<RequestOtpState> {
+): Promise<RequestOtpResult> {
   const email = String(formData.get("email") ?? "").trim();
 
   if (!email) {
-    return { error: "Enter your email." };
+    return fail("Enter your email.");
   }
 
   const supabase = await getSupabase();
@@ -23,24 +21,24 @@ export async function requestOtpCode(
   const { error } = await supabase.auth.signInWithOtp({ email });
 
   if (error) {
-    return { error: error.message };
+    return fail(error.message);
   }
 
-  return { sent: true, email };
+  return okWithData({ email });
 }
 
-export type VerifyOtpState = { error: string } | null;
+export type VerifyOtpResult = ActionResult;
 
 export async function verifyOtpCode(
-  prevState: VerifyOtpState,
+  prevState: VerifyOtpResult,
   formData: FormData,
-): Promise<VerifyOtpState> {
+): Promise<VerifyOtpResult> {
   const email = String(formData.get("email") ?? "").trim();
   const token = String(formData.get("token") ?? "").trim();
   const next = String(formData.get("next") ?? "/");
 
   if (!email || !token) {
-    return { error: "Enter the 8-digit code from your email." };
+    return fail("Enter the 8-digit code from your email.");
   }
 
   const supabase = await getSupabase();
@@ -52,7 +50,7 @@ export async function verifyOtpCode(
   });
 
   if (error) {
-    return { error: error.message };
+    return fail(error.message);
   }
 
   redirect(next.startsWith("/") ? next : "/");
