@@ -12,13 +12,29 @@ type Props = {
 };
 
 export function GymList({ gyms, authed }: Props) {
-  const { visits, history, setVisits } = useSyncedVisits(authed);
+  const { visits, history, setVisits, writeError } = useSyncedVisits(authed);
   const { hero, heroHasData, runnersUp, noDataExtras } = useGymRanking(gyms, visits);
+  const hasNoVisits = Object.keys(history).length === 0;
 
   if (!hero) return null;
 
   return (
     <div className="flex flex-col gap-10">
+      {writeError && (
+        <p
+          role="alert"
+          className="rounded-2xl border-2 border-red-300 bg-red-50 px-4 py-3 text-sm text-red-800"
+        >
+          Couldn&rsquo;t save your visit — your browser may be blocking storage or out of space.
+        </p>
+      )}
+
+      {hasNoVisits && (
+        <p className="rounded-2xl border-2 border-dashed border-foreground/20 bg-background/60 px-4 py-3 text-sm text-muted-foreground">
+          Tap &ldquo;log my visit&rdquo; on any gym to start ranking by what&rsquo;s freshest for you.
+        </p>
+      )}
+
       <section aria-label="Top pick" className="flex flex-col gap-4">
         {heroHasData && (
           <h2 className="px-1 text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">

@@ -18,7 +18,7 @@ export default async function Home() {
           where are the <span className=" text-cobalt">fresh holds</span> right now?
         </h1>
         <p className="mt-6 max-w-prose text-base text-balance text-muted-foreground sm:text-lg">
-          Log your visits to get the best recommedation for you next climbing session based on the
+          Log your visits to get the best recommendation for your next climbing session based on the
           recent gym resets. Sorted by what&rsquo;s new since you were last there.
         </p>
       </header>

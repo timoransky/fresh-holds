@@ -66,9 +66,14 @@ export function SuggestResetForm({ gyms, open, onOpenChange }: Props) {
     setSelectedSectionId("");
   };
 
-  useEffect(() => {
-    if (open) handleGymChange("");
-  }, [open]);
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
+    if (open) {
+      setSelectedGymId("");
+      setSelectedSectionId("");
+    }
+  }
 
   const formBody = (
     <form action={formAction} className="flex flex-col gap-4 px-4 pb-4 pt-2">

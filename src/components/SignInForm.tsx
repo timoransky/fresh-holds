@@ -1,6 +1,6 @@
 "use client";
 
-import { startTransition, useActionState, useEffect, useState } from "react";
+import { startTransition, useActionState, useState } from "react";
 import { requestOtpCode, verifyOtpCode, type RequestOtpResult } from "@/lib/actions/auth";
 import { Button } from "@/components/ui/button";
 import { FormAlert } from "@/components/ui/form-alert";
@@ -18,12 +18,13 @@ export function SignInForm({ next = "/" }: Props) {
   );
 
   const [pendingEmail, setPendingEmail] = useState<string | null>(null);
-
-  useEffect(() => {
+  const [seenState, setSeenState] = useState(emailState);
+  if (emailState !== seenState) {
+    setSeenState(emailState);
     if (emailState && "success" in emailState && emailState.data) {
       setPendingEmail(emailState.data.email);
     }
-  }, [emailState]);
+  }
 
   if (pendingEmail) {
     return (

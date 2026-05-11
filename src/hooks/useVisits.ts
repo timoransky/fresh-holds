@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useSyncExternalStore } from "react";
+import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
 import { todayISO } from "@/lib/date";
 
 const STORAGE_KEY = "freshholds:visits";
@@ -41,12 +41,8 @@ function parseHistory(raw: string): VisitHistory {
 }
 
 function writeHistory(history: VisitHistory): void {
-  try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
-    window.dispatchEvent(new Event(CHANGE_EVENT));
-  } catch {
-    // storage unavailable — silently ignore
-  }
+  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+  window.dispatchEvent(new Event(CHANGE_EVENT));
 }
 
 function subscribe(callback: () => void): () => void {
@@ -70,6 +66,7 @@ function getServerSnapshot(): string {
 export function useVisits() {
   const raw = useSyncExternalStore(subscribe, readRaw, getServerSnapshot);
   const history = useMemo(() => parseHistory(raw), [raw]);
+  const [writeError, setWriteError] = useState<Error | null>(null);
 
   const visits = useMemo<Visits>(() => {
     const latest: Visits = {};
@@ -81,22 +78,32 @@ export function useVisits() {
   }, [history]);
 
   const markVisited = useCallback((gymSlug: string, isoDate?: string) => {
-    const current = parseHistory(readRaw());
-    const dates = new Set(current[gymSlug] ?? []);
-    dates.add(isoDate ?? todayISO());
-    writeHistory({ ...current, [gymSlug]: [...dates].sort() });
+    try {
+      const current = parseHistory(readRaw());
+      const dates = new Set(current[gymSlug] ?? []);
+      dates.add(isoDate ?? todayISO());
+      writeHistory({ ...current, [gymSlug]: [...dates].sort() });
+      setWriteError(null);
+    } catch (e) {
+      setWriteError(e instanceof Error ? e : new Error(String(e)));
+    }
   }, []);
 
   const setVisits = useCallback((gymSlug: string, isoDates: string[]) => {
-    const current = parseHistory(readRaw());
-    const deduped = [...new Set(isoDates)].sort();
-    if (deduped.length === 0) {
-      const { [gymSlug]: _, ...rest } = current;
-      writeHistory(rest);
-      return;
+    try {
+      const current = parseHistory(readRaw());
+      const deduped = [...new Set(isoDates)].sort();
+      if (deduped.length === 0) {
+        const { [gymSlug]: _, ...rest } = current;
+        writeHistory(rest);
+      } else {
+        writeHistory({ ...current, [gymSlug]: deduped });
+      }
+      setWriteError(null);
+    } catch (e) {
+      setWriteError(e instanceof Error ? e : new Error(String(e)));
     }
-    writeHistory({ ...current, [gymSlug]: deduped });
   }, []);
 
-  return { visits, history, markVisited, setVisits };
+  return { visits, history, markVisited, setVisits, writeError };
 }

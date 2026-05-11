@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { CircleHelpIcon } from "lucide-react";
 import type { GymWithSections } from "@/lib/types";
-import { describeFreshness, mostRecentReset, type FreshLabel } from "@/lib/freshness";
+import { describeFreshness, mostRecentReset, relativeDay, type FreshLabel } from "@/lib/freshness";
 import { VisitedButton } from "@/components/VisitedButton";
 import { FreshnessBadge } from "@/components/FreshnessBadge";
 import { GymExternalLinks } from "@/components/gym/GymExternalLinks";
@@ -75,6 +75,12 @@ export function GymCard({
         </h2>
         <FreshnessBadge tier={tier} label={label} size={isHero ? "hero" : "compact"} bob={isHero} />
       </header>
+
+      {recent !== null && (
+        <p className="mt-2 text-sm text-muted-foreground">
+          Last reset {relativeDay(recent.reset_on)}
+        </p>
+      )}
 
       {hasDetails ? (
         <>

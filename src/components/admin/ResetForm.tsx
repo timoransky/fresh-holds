@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useState } from "react";
 import { submitReset } from "@/lib/actions/admin/resets";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -29,12 +29,14 @@ export function ResetForm({ gyms }: { gyms: AdminGym[] }) {
   const today = todayISO();
 
   const wasSuccess = state !== null && "success" in state;
-  useEffect(() => {
+  const [prevSuccess, setPrevSuccess] = useState(wasSuccess);
+  if (wasSuccess !== prevSuccess) {
+    setPrevSuccess(wasSuccess);
     if (wasSuccess) {
       setCheckedSections(new Set());
       setBouldersReset("");
     }
-  }, [wasSuccess]);
+  }
 
   function handleGymChange(gymId: string) {
     setSelectedGymId(gymId);
