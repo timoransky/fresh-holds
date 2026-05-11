@@ -1,19 +1,8 @@
 "use server";
 
-import { cookies } from "next/headers";
-import { createClient } from "@/utils/supabase/server";
+import { getAuthedClient } from "@/lib/auth";
+import { ISO_DATE_RE } from "@/lib/date";
 import type { VisitHistory } from "@/lib/types";
-
-const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
-
-async function getAuthedClient() {
-  const cookieStore = await cookies();
-  const supabase = createClient(cookieStore);
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  return user ? { supabase, userId: user.id } : null;
-}
 
 export async function pullMyVisits(): Promise<VisitHistory> {
   const ctx = await getAuthedClient();
@@ -46,7 +35,7 @@ export async function mergeFromLocal(local: VisitHistory): Promise<VisitHistory>
   for (const [slug, dates] of Object.entries(local)) {
     if (typeof slug !== "string" || !slug) continue;
     for (const date of dates) {
-      if (typeof date !== "string" || !ISO_DATE.test(date)) continue;
+      if (typeof date !== "string" || !ISO_DATE_RE.test(date)) continue;
       rows.push({ user_id: ctx.userId, gym_slug: slug, visited_on: date });
     }
   }
@@ -63,7 +52,7 @@ export async function setVisitsForGym(gymSlug: string, dates: string[]): Promise
   if (!ctx) return;
   if (!gymSlug) return;
 
-  const clean = [...new Set(dates.filter((d) => ISO_DATE.test(d)))];
+  const clean = [...new Set(dates.filter((d) => ISO_DATE_RE.test(d)))];
 
   await ctx.supabase
     .from("visits")

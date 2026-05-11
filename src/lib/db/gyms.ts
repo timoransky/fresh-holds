@@ -1,13 +1,12 @@
-import { cookies } from "next/headers";
-import { createClient } from "@/utils/supabase/server";
+import { getSupabase } from "@/lib/auth";
+import { isoFromDate, todayISO } from "@/lib/date";
 import type { GymWithSections } from "@/lib/types";
 
 export async function getActiveGymsWithSections(): Promise<GymWithSections[]> {
-  const cookieStore = await cookies();
-  const supabase = createClient(cookieStore);
+  const supabase = await getSupabase();
 
-  const cutoffISO = new Date(Date.now() - 240 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
-  const todayISO = new Date().toISOString().slice(0, 10);
+  const cutoffISO = isoFromDate(new Date(Date.now() - 240 * 24 * 60 * 60 * 1000));
+  const todayStr = todayISO();
 
   const { data, error } = await supabase
     .from("gyms")
@@ -24,7 +23,7 @@ export async function getActiveGymsWithSections(): Promise<GymWithSections[]> {
     .eq("is_active", true)
     .eq("sections.is_active", true)
     .gte("sections.resets.reset_on", cutoffISO)
-    .lte("sections.resets.reset_on", todayISO)
+    .lte("sections.resets.reset_on", todayStr)
     .order("display_order", { ascending: true })
     .order("display_order", { referencedTable: "sections", ascending: true })
     .order("reset_on", {

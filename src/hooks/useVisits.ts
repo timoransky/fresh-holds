@@ -1,16 +1,13 @@
 "use client";
 
 import { useCallback, useMemo, useSyncExternalStore } from "react";
+import { todayISO } from "@/lib/date";
 
 const STORAGE_KEY = "freshholds:visits";
 const CHANGE_EVENT = "freshholds:visits-change";
 
 export type VisitHistory = Record<string, string[]>;
 export type Visits = Record<string, string>;
-
-function todayISO(): string {
-  return new Date().toISOString().slice(0, 10);
-}
 
 function readRaw(): string {
   try {

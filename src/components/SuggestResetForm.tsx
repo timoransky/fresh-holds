@@ -19,6 +19,7 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { todayISO } from "@/lib/date";
 import type { GymWithSections } from "@/lib/types";
 
 type Props = {
@@ -31,7 +32,7 @@ export function SuggestResetForm({ gyms, open, onOpenChange }: Props) {
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const [state, formAction, isPending] = useActionState(suggestReset, null);
   const [selectedGymId, setSelectedGymId] = useState("");
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayISO();
 
   const selectedGym = useMemo(
     () => gyms.find((g) => g.id === selectedGymId),
