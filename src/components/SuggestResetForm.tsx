@@ -3,8 +3,8 @@
 import { useActionState, useEffect, useMemo, useState } from "react";
 import { ImageIcon } from "lucide-react";
 import { suggestReset } from "@/lib/actions/submissions";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { FormAlert } from "@/components/ui/form-alert";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -50,17 +50,16 @@ export function SuggestResetForm({ gyms, open, onOpenChange }: Props) {
   );
 
   const isCountMode = selectedGym?.freshness_mode === "count";
-  const error = state && "error" in state ? state.error : null;
-  const success = state && "success" in state && state.success;
+  const wasSuccess = state !== null && "success" in state;
 
   useEffect(() => {
-    if (success) {
+    if (wasSuccess) {
       const t = setTimeout(() => {
         onOpenChange(false);
       }, 1200);
       return () => clearTimeout(t);
     }
-  }, [success, onOpenChange]);
+  }, [wasSuccess, onOpenChange]);
 
   const handleGymChange = (id: string) => {
     setSelectedGymId(id);
@@ -73,16 +72,7 @@ export function SuggestResetForm({ gyms, open, onOpenChange }: Props) {
 
   const formBody = (
     <form action={formAction} className="flex flex-col gap-4 px-4 pb-4 pt-2">
-      {error && (
-        <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-      {success && (
-        <Alert variant="success">
-          <AlertDescription>Thanks — your suggestion is in the review queue.</AlertDescription>
-        </Alert>
-      )}
+      <FormAlert state={state} successMessage="Thanks — your suggestion is in the review queue." />
 
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="suggest_gym_id">Gym</Label>
@@ -181,7 +171,7 @@ export function SuggestResetForm({ gyms, open, onOpenChange }: Props) {
         >
           Cancel
         </Button>
-        <Button type="submit" size="sm" disabled={isPending || !!success}>
+        <Button type="submit" size="sm" disabled={isPending || wasSuccess}>
           {isPending ? "Sending…" : "Send suggestion"}
         </Button>
       </div>

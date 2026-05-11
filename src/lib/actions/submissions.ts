@@ -2,35 +2,33 @@
 
 import { revalidatePath } from "next/cache";
 import { getAuthedClient } from "@/lib/auth";
+import { fail, okWithData, type ActionResult } from "@/lib/actions/result";
 import { ISO_DATE_RE, todayISO } from "@/lib/date";
 
-type SubmitState =
-  | { error: string }
-  | { success: true; submissionId: string }
-  | null;
+export type SuggestResetResult = ActionResult<{ submissionId: string }>;
 
 export async function suggestReset(
-  prevState: SubmitState,
+  prevState: SuggestResetResult,
   formData: FormData,
-): Promise<SubmitState> {
+): Promise<SuggestResetResult> {
   const ctx = await getAuthedClient();
-  if (!ctx) return { error: "Sign in to suggest a reset." };
+  if (!ctx) return fail("Sign in to suggest a reset.");
 
   const sectionId = String(formData.get("section_id") ?? "");
   const resetOn = String(formData.get("reset_on") ?? "");
   const notes = String(formData.get("notes") ?? "").trim() || null;
   const bouldersResetRaw = String(formData.get("boulders_reset") ?? "").trim();
 
-  if (!sectionId) return { error: "Pick a sector." };
-  if (!ISO_DATE_RE.test(resetOn)) return { error: "Pick a valid date." };
+  if (!sectionId) return fail("Pick a sector.");
+  if (!ISO_DATE_RE.test(resetOn)) return fail("Pick a valid date.");
 
-  if (resetOn > todayISO()) return { error: "Reset date can't be in the future." };
+  if (resetOn > todayISO()) return fail("Reset date can't be in the future.");
 
   let bouldersReset: number | null = null;
   if (bouldersResetRaw !== "") {
     const parsed = Number(bouldersResetRaw);
     if (!Number.isInteger(parsed) || parsed <= 0) {
-      return { error: "Number of boulders must be a positive whole number." };
+      return fail("Number of boulders must be a positive whole number.");
     }
     bouldersReset = parsed;
   }
@@ -49,11 +47,11 @@ export async function suggestReset(
 
   if (error || !data) {
     if (error?.code === "42501" || error?.message?.includes("policy")) {
-      return { error: "You already have 5 pending suggestions. Wait for admin review." };
+      return fail("You already have 5 pending suggestions. Wait for admin review.");
     }
-    return { error: error?.message ?? "Couldn't submit." };
+    return fail(error?.message ?? "Couldn't submit.");
   }
 
   revalidatePath("/profile");
-  return { success: true, submissionId: data.id };
+  return okWithData({ submissionId: data.id });
 }
