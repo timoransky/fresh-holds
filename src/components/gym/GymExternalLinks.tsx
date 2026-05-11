@@ -1,4 +1,5 @@
-import { AtSignIcon, GlobeIcon, NavigationIcon } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Globe02Icon, InstagramIcon, MapingIcon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import { instagramUrl, mapsUrl } from "@/lib/gymLinks";
 import type { Gym } from "@/lib/types";
@@ -19,7 +20,7 @@ export function GymExternalLinks({ gym }: Props) {
           rel="noreferrer"
           aria-label={`Open ${gym.name} in Google Maps`}
         >
-          <NavigationIcon />
+          <HugeiconsIcon icon={MapingIcon} strokeWidth={2} />
         </a>
       </Button>
       {gym.website_url && (
@@ -30,7 +31,7 @@ export function GymExternalLinks({ gym }: Props) {
             rel="noreferrer"
             aria-label={`Open ${gym.name} website`}
           >
-            <GlobeIcon />
+            <HugeiconsIcon icon={Globe02Icon} strokeWidth={2} />
           </a>
         </Button>
       )}
@@ -42,7 +43,7 @@ export function GymExternalLinks({ gym }: Props) {
             rel="noreferrer"
             aria-label={`Open ${gym.name} on Instagram`}
           >
-            <AtSignIcon />
+            <HugeiconsIcon icon={InstagramIcon} strokeWidth={2} />
           </a>
         </Button>
       )}

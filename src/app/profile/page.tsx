@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowLeftIcon } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
 import { getCurrentUser } from "@/lib/auth";
 import { signOut } from "@/lib/actions/auth";
 import { listMySubmissions } from "@/lib/db/submissions";
@@ -44,7 +45,7 @@ export default async function ProfilePage() {
         href="/"
         className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground hover:text-foreground"
       >
-        <ArrowLeftIcon className="size-3" />
+        <HugeiconsIcon icon={ArrowLeft01Icon} className="size-3" />
         Back to gyms
       </Link>
 

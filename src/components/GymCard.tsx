@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { CircleHelpIcon } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { HelpCircleIcon } from "@hugeicons/core-free-icons";
 import type { GymWithSections } from "@/lib/types";
 import { describeFreshness, mostRecentReset, relativeDay, type FreshLabel } from "@/lib/freshness";
 import { VisitedButton } from "@/components/VisitedButton";
@@ -92,14 +93,14 @@ export function GymCard({
             className="mt-3 inline-flex items-center w-full text-left text-sm text-muted-foreground cursor-pointer hover:text-foreground/80 transition-colors"
           >
             {describeFreshness(label, lastVisited)}
-            <CircleHelpIcon
+            <span
               className={cn(
-                "inline-block size-3.5 ml-1 align-text-bottom transition-colors opacity-80",
-                isOpen
-                  ? "[&>circle]:fill-foreground [&>circle]:stroke-foreground [&>path]:stroke-background"
-                  : "",
+                "inline-flex items-center justify-center size-4 ml-1 rounded-full align-text-bottom transition-colors",
+                isOpen ? "bg-foreground/80 text-background" : "text-foreground/80",
               )}
-            />
+            >
+              <HugeiconsIcon icon={HelpCircleIcon} strokeWidth={2} />
+            </span>
           </button>
           <div
             id={detailsId}

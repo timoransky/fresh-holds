@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { LogOutIcon, ShieldIcon, SparklesIcon } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Logout02Icon, Shield01Icon, SparklesIcon } from "@hugeicons/core-free-icons";
 import { signOut } from "@/lib/actions/auth";
 import { Button } from "@/components/ui/button";
 import { useVisits } from "@/hooks/useVisits";
@@ -42,7 +43,7 @@ export function MembershipCard({ email, createdAt, onSuggestReset, isAdmin }: Pr
             variant="outline"
             className="rounded-full squircle"
           >
-            <LogOutIcon className="" />
+            <HugeiconsIcon icon={Logout02Icon} className="size-3.5" strokeWidth={2} />
           </Button>
         </div>
       </div>
@@ -74,13 +75,13 @@ export function MembershipCard({ email, createdAt, onSuggestReset, isAdmin }: Pr
           className="w-full"
           onClick={onSuggestReset}
         >
-          <SparklesIcon />
+          <HugeiconsIcon icon={SparklesIcon} strokeWidth={2} />
           Suggest a reset
         </Button>
         {isAdmin && (
           <Button asChild variant="outline" size="sm" className="w-full">
             <Link href="/admin">
-              <ShieldIcon />
+              <HugeiconsIcon icon={Shield01Icon} strokeWidth={2} />
               Open admin
             </Link>
           </Button>

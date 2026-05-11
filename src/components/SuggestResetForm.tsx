@@ -1,7 +1,8 @@
 "use client";
 
 import { useActionState, useEffect, useMemo, useState } from "react";
-import { ImageIcon } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Image01Icon } from "@hugeicons/core-free-icons";
 import { suggestReset } from "@/lib/actions/submissions";
 import { Button } from "@/components/ui/button";
 import { FormAlert } from "@/components/ui/form-alert";
@@ -163,7 +164,7 @@ export function SuggestResetForm({ gyms, open, onOpenChange }: Props) {
       </div>
 
       <div className="flex items-center gap-2 rounded-md border border-dashed border-foreground/15 bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
-        <ImageIcon className="size-3.5" />
+        <HugeiconsIcon icon={Image01Icon} className="size-3.5" />
         <span>Photo upload coming soon.</span>
       </div>
 
