@@ -5,8 +5,10 @@ import { ArrowLeftIcon } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth";
 import { signOut } from "@/lib/actions/auth";
 import { listMySubmissions } from "@/lib/db/submissions";
+import { Badge } from "@/components/ui/badge";
+import { BrandBadge } from "@/components/ui/brand-badge";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import type { SubmissionStatus } from "@/lib/db/submissions";
 
 export const dynamic = "force-dynamic";
 
@@ -20,11 +22,11 @@ const statusLabel = {
   rejected: "Rejected",
 } as const;
 
-const statusStyle = {
-  pending: "bg-muted text-muted-foreground",
-  approved: "bg-green-50 text-green-700 border border-green-600/20",
-  rejected: "bg-destructive/10 text-destructive border border-destructive/20",
-} as const;
+const statusVariant = {
+  pending: "secondary",
+  approved: "success",
+  rejected: "destructive",
+} as const satisfies Record<SubmissionStatus, "secondary" | "success" | "destructive">;
 
 export default async function ProfilePage() {
   const user = await getCurrentUser();
@@ -46,9 +48,7 @@ export default async function ProfilePage() {
       </Link>
 
       <header className="mt-6">
-        <span className="inline-block rounded-full border-2 border-foreground/80 bg-background px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-foreground">
-          fresh holds
-        </span>
+        <BrandBadge>fresh holds</BrandBadge>
         <h1 className="mt-4 text-3xl font-extrabold tracking-tight">Your profile</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Signed in as <strong className="text-foreground">{user.email}</strong>. Visits sync to
@@ -78,14 +78,12 @@ export default async function ProfilePage() {
                   <span className="font-medium text-foreground">
                     {s.gym_name} — {s.section_name}
                   </span>
-                  <span
-                    className={cn(
-                      "rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider",
-                      statusStyle[s.status],
-                    )}
+                  <Badge
+                    variant={statusVariant[s.status]}
+                    className="uppercase tracking-wider text-[10px] font-semibold"
                   >
                     {statusLabel[s.status]}
-                  </span>
+                  </Badge>
                 </div>
                 <div className="mt-0.5 text-xs text-muted-foreground tabular-nums">
                   Reset on {s.reset_on}
