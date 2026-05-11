@@ -2,6 +2,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSupabase } from "@/lib/auth";
 import { signOut } from "@/lib/actions/auth";
+import { Badge } from "@/components/ui/badge";
+import { BrandBadge } from "@/components/ui/brand-badge";
 import { Button } from "@/components/ui/button";
 
 export default async function ProtectedAdminLayout({ children }: { children: React.ReactNode }) {
@@ -25,9 +27,7 @@ export default async function ProtectedAdminLayout({ children }: { children: Rea
     return (
       <main className="flex min-h-dvh items-center justify-center px-4">
         <div className="w-full max-w-sm text-center">
-          <span className="inline-block rounded-full border-2 border-foreground/80 bg-background px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-foreground">
-            fresh holds · admin
-          </span>
+          <BrandBadge>fresh holds · admin</BrandBadge>
           <h1 className="mt-6 text-2xl font-extrabold tracking-tight">Access restricted</h1>
           <p className="mt-3 text-sm text-muted-foreground">
             Signed in as <strong className="text-foreground">{user.email}</strong>. Your account
@@ -62,21 +62,16 @@ export default async function ProtectedAdminLayout({ children }: { children: Rea
       <header className="border-b border-border bg-background">
         <div className="mx-auto flex max-w-4xl items-center justify-between gap-3 px-4 py-3">
           <div className="flex items-center gap-3">
-            <Link
-              href="/admin"
-              className="inline-block rounded-full border-2 border-foreground/80 bg-background px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.2em] text-foreground"
-            >
-              fresh holds · admin
-            </Link>
+            <BrandBadge asChild className="px-2.5 py-0.5">
+              <Link href="/admin">fresh holds · admin</Link>
+            </BrandBadge>
             <Link
               href="/admin/submissions"
               className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground"
             >
               Submissions
               {pendingCount && pendingCount > 0 ? (
-                <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-foreground px-1 text-[10px] font-bold text-background">
-                  {pendingCount}
-                </span>
+                <Badge className="h-4 min-w-4 px-1 text-[10px] font-bold">{pendingCount}</Badge>
               ) : null}
             </Link>
           </div>
