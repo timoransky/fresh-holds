@@ -13,7 +13,8 @@ import type { SubmissionStatus } from "@/lib/db/submissions";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Profile · Fresh Holds",
+  title: "Profile",
+  robots: { index: false, follow: false },
 };
 
 const statusLabel = {
