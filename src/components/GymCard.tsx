@@ -95,8 +95,8 @@ export function GymCard({
             {describeFreshness(label, lastVisited)}
             <span
               className={cn(
-                "inline-flex items-center justify-center size-4 ml-1 rounded-full align-text-bottom transition-colors",
-                isOpen ? "bg-foreground/80 text-background" : "text-foreground/80",
+                "inline-flex items-center relative justify-center size-4 ml-1 rounded-full align-text-bottom transition-colors",
+                isOpen ? "text-foreground" : "text-muted-foreground",
               )}
             >
               <HugeiconsIcon icon={HelpCircleIcon} strokeWidth={2} />
