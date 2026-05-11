@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, type CSSProperties } from "react";
-import { AtSignIcon, CircleHelpIcon, GlobeIcon, NavigationIcon } from "lucide-react";
+import { CircleHelpIcon } from "lucide-react";
 import type { GymWithSections } from "@/lib/types";
-import { describeFreshness, mostRecentReset, relativeDay, type FreshLabel } from "@/lib/freshness";
-import { Button } from "@/components/ui/button";
+import { describeFreshness, mostRecentReset, type FreshLabel } from "@/lib/freshness";
 import { VisitedButton } from "@/components/VisitedButton";
 import { FreshnessBadge } from "@/components/FreshnessBadge";
+import { GymExternalLinks } from "@/components/gym/GymExternalLinks";
+import { GymResetTable } from "@/components/gym/GymResetTable";
 import type { Tier, TierKey } from "@/lib/tier";
 import { cn } from "@/lib/utils";
 
@@ -56,31 +57,6 @@ const cardSurface: Record<TierKey, CSSProperties> = {
   } as CSSProperties,
 };
 
-function StatusDot({ state }: { state: "fresh" | "stale" | "none" }) {
-  if (state === "fresh") {
-    return (
-      <span
-        aria-label="fresh since your last visit"
-        className="inline-block size-1.5 rounded-full bg-emerald-500"
-      />
-    );
-  }
-  if (state === "stale") {
-    return (
-      <span
-        aria-label="already climbed"
-        className="inline-block size-1.5 rounded-full border border-muted-foreground/50"
-      />
-    );
-  }
-  return (
-    <span
-      aria-label="no reset data"
-      className="inline-block size-1 rounded-full bg-muted-foreground/30"
-    />
-  );
-}
-
 export function GymCard({
   gym,
   tier,
@@ -103,13 +79,6 @@ export function GymCard({
   const allResets = isCountMode
     ? gym.sections.flatMap((s) => s.resets).sort((a, b) => b.reset_on.localeCompare(a.reset_on))
     : [];
-
-  const instagramUrl = gym.instagram_handle
-    ? `https://instagram.com/${gym.instagram_handle.replace(/^@/, "")}`
-    : null;
-  const navigateUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-    [gym.name, gym.neighborhood, "Bratislava"].filter(Boolean).join(" "),
-  )}`;
 
   const isHero = variant === "hero";
 
@@ -168,65 +137,13 @@ export function GymCard({
           >
             <div className="pt-3">
               {isCountMode ? (
-                <table className="w-full text-xs">
-                  <thead>
-                    <tr className="text-[10px] uppercase tracking-wider text-muted-foreground/60">
-                      <th className="text-left font-medium pb-1.5">Date</th>
-                      <th className="text-left font-medium pb-1.5">Boulders</th>
-                      <th className="w-4 pb-1.5" aria-label="status" />
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {allResets.map((reset) => {
-                      const isFresh = lastVisited === null || reset.reset_on > lastVisited;
-                      const state: "fresh" | "stale" = isFresh ? "fresh" : "stale";
-                      return (
-                        <tr key={reset.id} className="border-t border-foreground/10">
-                          <td className="py-1.5 font-medium text-foreground/90">
-                            {relativeDay(reset.reset_on)}
-                          </td>
-                          <td className="py-1.5 text-muted-foreground">
-                            {reset.boulders_reset ?? 0}
-                          </td>
-                          <td className="py-1.5 align-middle">
-                            <StatusDot state={state} />
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                <GymResetTable mode="count" resets={allResets} lastVisited={lastVisited} />
               ) : (
-                <table className="w-full text-xs">
-                  <thead>
-                    <tr className="text-[10px] uppercase tracking-wider text-muted-foreground/60">
-                      <th className="text-left font-medium pb-1.5">Sector</th>
-                      <th className="text-left font-medium pb-1.5">Last reset</th>
-                      <th className="w-4 pb-1.5" aria-label="status" />
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {sectionsByRecent.map((section) => {
-                      const sectionMostRecent = section.resets[0];
-                      const state: "fresh" | "stale" | "none" = !sectionMostRecent
-                        ? "none"
-                        : freshSectionIds.has(section.id)
-                          ? "fresh"
-                          : "stale";
-                      return (
-                        <tr key={section.id} className="border-t border-foreground/10">
-                          <td className="py-1.5 font-medium text-foreground/90">{section.name}</td>
-                          <td className="py-1.5 text-muted-foreground">
-                            {sectionMostRecent ? relativeDay(sectionMostRecent.reset_on) : "—"}
-                          </td>
-                          <td className="py-1.5 align-middle">
-                            <StatusDot state={state} />
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                <GymResetTable
+                  mode="sections"
+                  sections={sectionsByRecent}
+                  freshSectionIds={freshSectionIds}
+                />
               )}
             </div>
           </div>
@@ -238,42 +155,7 @@ export function GymCard({
       )}
 
       <footer className="flex flex-wrap mt-auto pt-4 items-center justify-between gap-3">
-        <div className="flex gap-2">
-          <Button asChild variant="outline" size="icon-sm" className="rounded-full">
-            <a
-              href={navigateUrl}
-              target="_blank"
-              rel="noreferrer"
-              aria-label={`Open ${gym.name} in Google Maps`}
-            >
-              <NavigationIcon />
-            </a>
-          </Button>
-          {gym.website_url && (
-            <Button asChild variant="outline" size="icon-sm" className="rounded-full">
-              <a
-                href={gym.website_url}
-                target="_blank"
-                rel="noreferrer"
-                aria-label={`Open ${gym.name} website`}
-              >
-                <GlobeIcon />
-              </a>
-            </Button>
-          )}
-          {instagramUrl && (
-            <Button asChild variant="outline" size="icon-sm" className="rounded-full">
-              <a
-                href={instagramUrl}
-                target="_blank"
-                rel="noreferrer"
-                aria-label={`Open ${gym.name} on Instagram`}
-              >
-                <AtSignIcon />
-              </a>
-            </Button>
-          )}
-        </div>
+        <GymExternalLinks gym={gym} />
         <VisitedButton visitedDates={visitedDates} onChangeVisits={onChangeVisits} />
       </footer>
     </article>

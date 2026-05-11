@@ -1,13 +1,12 @@
 "use client";
 
-import { useMemo, type CSSProperties } from "react";
-import { AtSignIcon, GlobeIcon, NavigationIcon } from "lucide-react";
+import { useMemo } from "react";
 import { useSyncedVisits } from "@/hooks/useSyncedVisits";
 import { gymFreshness, mostRecentReset } from "@/lib/freshness";
 import { freshnessTier } from "@/lib/tier";
 import type { GymWithSections } from "@/lib/types";
 import { GymCard } from "@/components/GymCard";
-import { Button } from "@/components/ui/button";
+import { GymNoDataCard } from "@/components/gym/GymNoDataCard";
 
 type Props = {
   gyms: GymWithSections[];
@@ -108,72 +107,9 @@ export function GymList({ gyms, authed }: Props) {
             no reset data yet
           </h2>
           <ul className="flex flex-col gap-4">
-            {noDataExtras.map((c) => {
-              const navigateUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                [c.gym.name, c.gym.neighborhood, "Bratislava"].filter(Boolean).join(" "),
-              )}`;
-              const instagramUrl = c.gym.instagram_handle
-                ? `https://instagram.com/${c.gym.instagram_handle.replace(/^@/, "")}`
-                : null;
-              return (
-                <li
-                  key={c.gym.id}
-                  style={
-                    {
-                      "--surface-stroke": "oklch(0.85 0.015 270)",
-                      "--surface-shadow": "oklch(0.55 0.02 270 / 0.15)",
-                    } as CSSProperties
-                  }
-                  className="squircle-3xl flex items-center justify-between gap-3 rounded-2xl border-2 border-(--surface-stroke) bg-background p-4 sm:px-5 shadow-[0_2px_0_0_var(--surface-stroke),0_12px_32px_-12px_var(--surface-shadow)]"
-                >
-                  <div className="min-w-0">
-                    <h2 className="font-bold tracking-tight text-foreground truncate text-lg">
-                      {c.gym.name}
-                    </h2>
-                    <p className="text-xs text-muted-foreground">
-                      No reset data — check for yourself
-                    </p>
-                  </div>
-
-                  <div className="flex shrink-0 gap-2">
-                    <Button asChild variant="outline" size="icon-sm" className="rounded-full">
-                      <a
-                        href={navigateUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        aria-label={`Open ${c.gym.name} in Google Maps`}
-                      >
-                        <NavigationIcon />
-                      </a>
-                    </Button>
-                    {c.gym.website_url && (
-                      <Button asChild variant="outline" size="icon-sm" className="rounded-full">
-                        <a
-                          href={c.gym.website_url}
-                          target="_blank"
-                          rel="noreferrer"
-                          aria-label={`Open ${c.gym.name} website`}
-                        >
-                          <GlobeIcon />
-                        </a>
-                      </Button>
-                    )}
-                    {instagramUrl && (
-                      <Button asChild variant="outline" size="icon-sm" className="rounded-full">
-                        <a
-                          href={instagramUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          aria-label={`Open ${c.gym.name} on Instagram`}
-                        >
-                          <AtSignIcon />
-                        </a>
-                      </Button>
-                    )}
-                  </div>
-                </li>
-              );
-            })}
+            {noDataExtras.map((c) => (
+              <GymNoDataCard key={c.gym.id} gym={c.gym} />
+            ))}
           </ul>
         </section>
       )}
