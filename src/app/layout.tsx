@@ -53,6 +53,9 @@ export const metadata: Metadata = {
   publisher: "janci.dev",
   alternates: {
     canonical: "/",
+    types: {
+      "text/markdown": "/index.md",
+    },
   },
   openGraph: {
     type: "website",
