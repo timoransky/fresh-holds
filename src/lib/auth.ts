@@ -22,6 +22,17 @@ export async function getAuthedClient() {
   return user ? { supabase, user, userId: user.id } : null;
 }
 
+export async function isAdmin(): Promise<boolean> {
+  const ctx = await getAuthedClient();
+  if (!ctx) return false;
+  const { data: profile } = await ctx.supabase
+    .from("profiles")
+    .select("is_admin")
+    .eq("id", ctx.userId)
+    .single();
+  return !!profile?.is_admin;
+}
+
 export type AuthedContext = NonNullable<Awaited<ReturnType<typeof getAuthedClient>>>;
 export type AdminError = { error: "Not authenticated" | "Access denied" };
 
