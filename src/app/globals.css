@@ -3,8 +3,19 @@
 @import "shadcn/tailwind.css";
 
 @theme {
-  --color-cobalt: oklch(0.45 0.18 260);
-  --color-cobalt-shadow: oklch(0.3 0.16 260);
+  /*
+  --color-brand: oklch(0.45 0.18 260);
+  --color-brand-shadow: oklch(0.3 0.16 260);
+
+  --color-brand: oklch(0.42 0.12 35);
+  --color-brand-shadow: oklch(0.28 0.1 35);
+  */
+
+  --color-brand: oklch(0.45 0.08 245);
+  --color-brand-shadow: oklch(0.32 0.07 245);
+
+  --color-brand: oklch(55.4% 0.046 257.417);
+  --color-brand-shadow: oklch(37.2% 0.044 257.287);
 }
 
 @theme inline {

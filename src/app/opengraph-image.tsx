@@ -25,7 +25,7 @@ export default async function Image() {
 
   const background = "#fafaf6";
   const foreground = "#181822";
-  const cobalt = "#1d3fc2";
+  const brand = "#1d3fc2";
 
   return new ImageResponse(
     (
@@ -55,7 +55,7 @@ export default async function Image() {
           }}
         >
           <div style={{ display: "flex" }}>where are the</div>
-          <div style={{ display: "flex", color: cobalt }}>fresh holds</div>
+          <div style={{ display: "flex", color: brand }}>fresh holds</div>
           <div style={{ display: "flex" }}>right now?</div>
         </div>
       </div>

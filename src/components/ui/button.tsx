@@ -10,9 +10,9 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-muted-foreground/80 text-background font-semibold border-foreground shadow-[0_2px_0_0_var(--foreground)] hover:shadow-[0_4px_0_0_var(--foreground)] focus-visible:shadow-[0_4px_0_0_var(--foreground)] active:shadow-[0_1px_0_0_var(--foreground)]",
+          "bg-brand text-background font-semibold border-brand-shadow shadow-[0_2px_0_0_var(--color-brand-shadow)] hover:shadow-[0_4px_0_0_var(--color-brand-shadow)] focus-visible:shadow-[0_4px_0_0_var(--color-brand-shadow)] active:shadow-[0_1px_0_0_var(--color-brand-shadow)]",
         outline:
-          "border-[var(--surface-stroke,var(--muted-foreground))] bg-background shadow-[0_2px_0_0_var(--surface-stroke,var(--muted-foreground))] hover:shadow-[0_4px_0_0_var(--surface-stroke,var(--muted-foreground))] focus-visible:shadow-[0_4px_0_0_var(--surface-stroke,var(--muted-foreground))] active:shadow-[0_1px_0_0_var(--surface-stroke,var(--muted-foreground))] aria-expanded:bg-muted aria-expanded:text-foreground",
+          "border-[var(--surface-stroke,var(--color-brand-shadow))] text-slate-700 bg-background shadow-[0_2px_0_0_var(--surface-stroke,var(--color-brand-shadow))] hover:shadow-[0_4px_0_0_var(--surface-stroke,var(--color-brand-shadow))] focus-visible:shadow-[0_4px_0_0_var(--surface-stroke,var(--color-brand-shadow))] active:shadow-[0_1px_0_0_var(--surface-stroke,var(--color-brand-shadow))] aria-expanded:bg-muted aria-expanded:text-foreground",
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-secondary/80 aria-expanded:bg-secondary aria-expanded:text-secondary-foreground",
         ghost:

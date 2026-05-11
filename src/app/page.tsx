@@ -15,7 +15,7 @@ export default async function Home() {
           <HeaderAuth gyms={gyms} />
         </div>
         <h1 className="mt-6 font-heading text-balance text-4xl font-bold leading-[1.02] tracking-tight text-foreground sm:text-6xl">
-          where are the <span className=" text-cobalt">fresh holds</span> right now?
+          where are the <span className=" text-brand">fresh holds</span> right now?
         </h1>
         <p className="mt-6 max-w-prose text-base text-balance text-muted-foreground sm:text-lg">
           Log your visits to get the best recommendation for your next climbing session based on the
@@ -36,7 +36,7 @@ export default async function Home() {
         <span> - </span>
         <span>
           created with 🫀 by{" "}
-          <a href="https://janci.dev" className="text-cobalt hover:text-cobalt-shadow">
+          <a href="https://janci.dev" className="text-brand hover:text-brand-shadow">
             janci.dev
           </a>
         </span>

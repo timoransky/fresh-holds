@@ -45,7 +45,7 @@ export function VisitedButton({ visitedDates, onChangeVisits }: Props) {
   }, [isDesktop]);
 
   const trigger = (
-    <Button type="button" size="sm" variant="default" className="rounded-full">
+    <Button type="button" size="sm" className="rounded-full">
       <CalendarPlusIcon className="size-3.5" />
       <span>log my visit</span>
     </Button>
