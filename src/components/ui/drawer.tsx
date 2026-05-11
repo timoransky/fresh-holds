@@ -6,12 +6,14 @@ import { cn } from "@/lib/utils";
 
 function Drawer({
   shouldScaleBackground = true,
+  repositionInputs = false,
   ...props
 }: React.ComponentProps<typeof DrawerPrimitive.Root>) {
   return (
     <DrawerPrimitive.Root
       data-slot="drawer"
       shouldScaleBackground={shouldScaleBackground}
+      repositionInputs={repositionInputs}
       {...props}
     />
   );
