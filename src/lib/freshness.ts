@@ -21,15 +21,11 @@ export type FreshnessResult = {
   label: FreshLabel | null;
 };
 
-export function gymFreshness(
-  gym: GymWithSections,
-  lastVisitedISO: string | null,
-): FreshnessResult {
+export function gymFreshness(gym: GymWithSections, lastVisitedISO: string | null): FreshnessResult {
   const freshSectionIds = new Set<string>();
   const sections = gym.sections;
   const hasResetData = sections.some((s) => s.resets.length > 0);
-  const daysSinceVisit =
-    lastVisitedISO === null ? null : Math.max(0, daysSince(lastVisitedISO));
+  const daysSinceVisit = lastVisitedISO === null ? null : Math.max(0, daysSince(lastVisitedISO));
 
   if (sections.length === 0 || !hasResetData) {
     return {
@@ -64,8 +60,7 @@ export function gymFreshness(
     if (sectionHasFresh) freshSectionIds.add(section.id);
   }
 
-  const visitFactor =
-    daysSinceVisit === null ? 1 : Math.min(daysSinceVisit / WEEKLY_VISIT_DAYS, 1);
+  const visitFactor = daysSinceVisit === null ? 1 : Math.min(daysSinceVisit / WEEKLY_VISIT_DAYS, 1);
   const noveltyScore = freshResetCount * visitFactor;
 
   const label: FreshLabel =
@@ -117,20 +112,36 @@ export function relativeDay(isoDate: string): string {
 export function describeFreshness(
   label: FreshLabel | null,
   lastVisitedISO: string | null,
+  mostRecentFreshISO: string | null,
 ): string {
-  if (label === null) return "No reset data — check for yourself.";
+  if (label === null) return "No reset data — you have to check for yourself.";
+
+  if (label.count === 0) {
+    if (lastVisitedISO === null) {
+      return "Resets logged, but no boulder counts yet.";
+    }
+    if (daysSince(lastVisitedISO) <= 0) {
+      return "Nothing new since you visited today.";
+    }
+    return `Nothing new since your last visit ${relativeDay(lastVisitedISO)}.`;
+  }
 
   if (lastVisitedISO === null) {
+    const recent = relativeDay(mostRecentFreshISO!);
     if (label.kind === "sections") {
-      return `Never visited — all ${label.total} ${pluralize(label.total, "sector")} are new for you.`;
+      if (label.total === 1) {
+        return `Never visited — one sector is fresh, last reset ${recent}.`;
+      }
+      return `Never visited — all ${label.total} sectors fresh, last reset ${recent}.`;
     }
-    return `Never visited — ${label.count} new ${pluralize(label.count, "boulder")} logged for you.`;
+    return `Never visited — ${label.count} fresh ${pluralize(label.count, "boulder")}, last reset ${recent}.`;
   }
 
+  const recent = relativeDay(mostRecentFreshISO!);
   if (label.kind === "sections") {
-    return `${label.count} of ${label.total} ${pluralize(label.total, "sector")} are fresh since your last visit.`;
+    return `${label.count} of ${label.total} ${pluralize(label.total, "sector")} fresh, last reset ${recent}.`;
   }
-  return `${label.count} new ${pluralize(label.count, "boulder")} since your last visit.`;
+  return `${label.count} fresh ${pluralize(label.count, "boulder")}, last reset ${recent}.`;
 }
 
 export function badgeCountLabel(label: FreshLabel): string {

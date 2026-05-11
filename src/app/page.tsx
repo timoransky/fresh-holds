@@ -9,13 +9,13 @@ export default async function Home() {
   const [gyms, user] = await Promise.all([getActiveGymsWithSections(), getCurrentUser()]);
 
   return (
-    <main className="mx-auto min-h-dvh w-full max-w-4xl px-4 py-10 sm:py-14 overflow-hidden">
+    <main className="mx-auto min-h-dvh w-full max-w-4xl px-4 py-6 sm:pt-10 sm:pb-14 overflow-hidden">
       <header className="mb-10 sm:mb-14">
         <div className="flex justify-end">
           <HeaderAuth gyms={gyms} />
         </div>
-        <h1 className="mt-6 font-heading text-balance text-4xl font-bold leading-[1.02] tracking-tight text-foreground sm:text-6xl">
-          where are the <span className=" text-brand">fresh holds</span> right now?
+        <h1 className="mt-6 sm:mt-10 font-heading text-balance text-4xl font-bold leading-[1.02] tracking-tight text-foreground sm:text-6xl">
+          where are the <span className="text-brand">fresh holds</span> right now?
         </h1>
         <p className="mt-6 max-w-prose text-base text-balance text-muted-foreground sm:text-lg">
           Log your visits to get the best recommendation for your next climbing session based on the

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { HelpCircleIcon } from "@hugeicons/core-free-icons";
 import type { GymWithSections } from "@/lib/types";
-import { describeFreshness, mostRecentReset, relativeDay, type FreshLabel } from "@/lib/freshness";
+import { describeFreshness, mostRecentReset, type FreshLabel } from "@/lib/freshness";
 import { VisitedButton } from "@/components/VisitedButton";
 import { FreshnessBadge } from "@/components/FreshnessBadge";
 import { GymExternalLinks } from "@/components/gym/GymExternalLinks";
@@ -20,6 +20,7 @@ type Props = {
   freshSectionIds: Set<string>;
   label: FreshLabel | null;
   lastVisited: string | null;
+  mostRecentFreshISO: string | null;
   variant: Variant;
   visitedDates: string[];
   onChangeVisits: (isoDates: string[]) => void;
@@ -31,6 +32,7 @@ export function GymCard({
   freshSectionIds,
   label,
   lastVisited,
+  mostRecentFreshISO,
   variant,
   visitedDates,
   onChangeVisits,
@@ -77,18 +79,6 @@ export function GymCard({
         <FreshnessBadge tier={tier} label={label} size={isHero ? "hero" : "compact"} bob={isHero} />
       </header>
 
-      {recent !== null && (
-        <p className="mt-2 text-sm text-muted-foreground">
-          Last reset {relativeDay(recent.reset_on)}
-        </p>
-      )}
-
-      {lastVisited !== null && (
-        <p className="mt-1 text-sm text-muted-foreground">
-          Last visited {relativeDay(lastVisited)}
-        </p>
-      )}
-
       {hasDetails ? (
         <>
           <button
@@ -96,9 +86,9 @@ export function GymCard({
             onClick={() => setIsOpen((prev) => !prev)}
             aria-expanded={isOpen}
             aria-controls={detailsId}
-            className="mt-1 inline-flex items-center w-full text-left text-sm text-muted-foreground cursor-pointer hover:text-foreground/80 transition-colors"
+            className="mt-1 w-full text-left text-sm text-muted-foreground outline-none! cursor-pointer hover:text-foreground/80 transition-colors"
           >
-            {describeFreshness(label, lastVisited)}
+            <span>{describeFreshness(label, lastVisited, mostRecentFreshISO)}</span>
             <span
               className={cn(
                 "inline-flex items-center relative justify-center size-4 ml-1 rounded-full align-text-bottom transition-colors",
@@ -130,7 +120,7 @@ export function GymCard({
         </>
       ) : (
         <p className="mt-3 text-sm text-muted-foreground">
-          {describeFreshness(label, lastVisited)}
+          {describeFreshness(label, lastVisited, mostRecentFreshISO)}
         </p>
       )}
 

@@ -32,7 +32,7 @@ export function UserMenu({ email, createdAt, gyms, isAdmin }: Props) {
         <PopoverContent
           align="end"
           sideOffset={10}
-          className="w-72 origin-top-right overflow-hidden squircle-4xl rounded-3xl bg-card p-0 ring-1 ring-brand/15 shadow-2xl shadow-brand-shadow/25"
+          className="w-72 origin-top-right overflow-hidden squircle-3xl rounded-2xl bg-card p-0 ring-1 ring-brand/15 shadow-2xl shadow-brand-shadow/25"
         >
           <MembershipCard
             email={email}

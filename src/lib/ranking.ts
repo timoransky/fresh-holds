@@ -10,6 +10,7 @@ export type RankedGym = {
   label: FreshLabel | null;
   tier: Tier;
   hasResetData: boolean;
+  mostRecentFreshISO: string | null;
 };
 
 export type GymRanking = {

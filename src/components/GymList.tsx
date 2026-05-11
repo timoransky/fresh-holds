@@ -47,6 +47,7 @@ export function GymList({ gyms, authed }: Props) {
           freshSectionIds={hero.freshSectionIds}
           label={hero.label}
           lastVisited={hero.lastVisited}
+          mostRecentFreshISO={hero.mostRecentFreshISO}
           variant="hero"
           visitedDates={history[hero.gym.slug] ?? []}
           onChangeVisits={(dates) => setVisits(hero.gym.slug, dates)}
@@ -67,6 +68,7 @@ export function GymList({ gyms, authed }: Props) {
                 freshSectionIds={c.freshSectionIds}
                 label={c.label}
                 lastVisited={c.lastVisited}
+                mostRecentFreshISO={c.mostRecentFreshISO}
                 variant="compact"
                 visitedDates={history[c.gym.slug] ?? []}
                 onChangeVisits={(dates) => setVisits(c.gym.slug, dates)}

@@ -11,8 +11,8 @@
   --color-brand-shadow: oklch(0.28 0.1 35);
   */
 
-  --color-brand: oklch(0.45 0.08 245);
-  --color-brand-shadow: oklch(0.32 0.07 245);
+  /* --color-brand: oklch(0.45 0.08 245);
+  --color-brand-shadow: oklch(0.32 0.07 245); */
 
   --color-brand: oklch(55.4% 0.046 257.417);
   --color-brand-shadow: oklch(37.2% 0.044 257.287);
