@@ -11,9 +11,10 @@ type Props = {
   email: string;
   createdAt?: string | null;
   gyms: GymWithSections[];
+  isAdmin?: boolean;
 };
 
-export function UserMenu({ email, createdAt, gyms }: Props) {
+export function UserMenu({ email, createdAt, gyms, isAdmin }: Props) {
   const [open, setOpen] = useState(false);
   const [suggestOpen, setSuggestOpen] = useState(false);
 
@@ -37,6 +38,7 @@ export function UserMenu({ email, createdAt, gyms }: Props) {
             email={email}
             createdAt={createdAt}
             onSuggestReset={handleSuggestReset}
+            isAdmin={isAdmin}
           />
         </PopoverContent>
       </Popover>

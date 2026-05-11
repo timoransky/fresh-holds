@@ -1,6 +1,7 @@
 "use client";
 
-import { LogOutIcon, SparklesIcon } from "lucide-react";
+import Link from "next/link";
+import { LogOutIcon, ShieldIcon, SparklesIcon } from "lucide-react";
 import { signOut } from "@/lib/actions/auth";
 import { Button } from "@/components/ui/button";
 import { useVisits } from "@/hooks/useVisits";
@@ -16,9 +17,10 @@ type Props = {
   email: string;
   createdAt?: string | null;
   onSuggestReset: () => void;
+  isAdmin?: boolean;
 };
 
-export function MembershipCard({ email, createdAt, onSuggestReset }: Props) {
+export function MembershipCard({ email, createdAt, onSuggestReset, isAdmin }: Props) {
   const { history } = useVisits();
   const visitCount = Object.values(history).reduce((sum, dates) => sum + dates.length, 0);
   const gymCount = Object.keys(history).length;
@@ -64,7 +66,7 @@ export function MembershipCard({ email, createdAt, onSuggestReset }: Props) {
         </div>
       </div>
 
-      <div className="px-5 pt-4 pb-5">
+      <div className="px-5 pt-4 pb-5 space-y-2">
         <Button
           type="button"
           variant="default"
@@ -75,6 +77,14 @@ export function MembershipCard({ email, createdAt, onSuggestReset }: Props) {
           <SparklesIcon />
           Suggest a reset
         </Button>
+        {isAdmin && (
+          <Button asChild variant="outline" size="sm" className="w-full">
+            <Link href="/admin">
+              <ShieldIcon />
+              Open admin
+            </Link>
+          </Button>
+        )}
       </div>
     </div>
   );
