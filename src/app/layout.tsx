@@ -24,6 +24,11 @@ const baloo = Baloo_2({
 export const metadata: Metadata = {
   title: "Fresh Holds",
   description: "See which Bratislava climbing gym is freshest since your last visit.",
+  alternates: {
+    types: {
+      "text/markdown": "/index.md",
+    },
+  },
 };
 
 export default function RootLayout({
