@@ -25,7 +25,7 @@ export default async function Home() {
 
       {gyms.length === 0 ? (
         <p className="rounded-2xl border-2 border-dashed border-foreground/20 bg-background/60 p-6 text-sm text-muted-foreground">
-          No gyms yet. Run the migration and seed in Supabase to get started.
+          No gyms yet.
         </p>
       ) : (
         <GymList gyms={gyms} authed={Boolean(user)} />
@@ -33,7 +33,7 @@ export default async function Home() {
 
       <footer className="mt-16 flex flex-row justify-center flex-wrap items-center gap-2 text-center text-xs text-muted-foreground">
         <span>resets logged manually</span>
-        <span>·&nbsp;&nbsp;visits saved on this device only&nbsp;&nbsp;·</span>
+        <span> - </span>
         <span>
           created with 🫀 by{" "}
           <a href="https://janci.dev" className="text-cobalt hover:text-cobalt-shadow">
