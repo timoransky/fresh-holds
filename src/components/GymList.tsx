@@ -1,9 +1,7 @@
 "use client";
 
-import { useMemo } from "react";
 import { useSyncedVisits } from "@/hooks/useSyncedVisits";
-import { gymFreshness, mostRecentReset } from "@/lib/freshness";
-import { freshnessTier } from "@/lib/tier";
+import { useGymRanking } from "@/hooks/useGymRanking";
 import type { GymWithSections } from "@/lib/types";
 import { GymCard } from "@/components/GymCard";
 import { GymNoDataCard } from "@/components/gym/GymNoDataCard";
@@ -15,46 +13,7 @@ type Props = {
 
 export function GymList({ gyms, authed }: Props) {
   const { visits, history, setVisits } = useSyncedVisits(authed);
-
-  const computed = useMemo(() => {
-    return gyms.map((gym) => {
-      const lastVisited = visits[gym.slug] ?? null;
-      const freshness = gymFreshness(gym, lastVisited);
-      const recent = mostRecentReset(gym.sections);
-      return {
-        gym,
-        lastVisited,
-        freshSectionIds: freshness.freshSectionIds,
-        freshResetCount: freshness.freshResetCount,
-        noveltyScore: freshness.noveltyScore,
-        mostRecentFreshISO: freshness.mostRecentFreshISO,
-        hasResetData: freshness.hasResetData,
-        label: freshness.label,
-        tier: freshnessTier(freshness),
-        recent,
-      };
-    });
-  }, [gyms, visits]);
-
-  const sorted = useMemo(() => {
-    const withData = computed
-      .filter((c) => c.hasResetData)
-      .sort((a, b) => {
-        const byScore = b.noveltyScore - a.noveltyScore;
-        if (byScore !== 0) return byScore;
-        const ar = a.mostRecentFreshISO ?? a.recent?.reset_on ?? "";
-        const br = b.mostRecentFreshISO ?? b.recent?.reset_on ?? "";
-        return br.localeCompare(ar);
-      });
-    const withoutData = computed.filter((c) => !c.hasResetData);
-    return { withData, withoutData };
-  }, [computed]);
-
-  const hero = sorted.withData[0] ?? sorted.withoutData[0] ?? null;
-  const heroHasData = sorted.withData[0] != null;
-  const runnersUp = sorted.withData[0] ? sorted.withData.slice(1) : sorted.withoutData.slice(1);
-  const noDataExtras =
-    sorted.withData.length > 0 ? sorted.withoutData : sorted.withoutData.slice(1);
+  const { hero, heroHasData, runnersUp, noDataExtras } = useGymRanking(gyms, visits);
 
   if (!hero) return null;
 
