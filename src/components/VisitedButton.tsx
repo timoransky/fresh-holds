@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { CalendarIcon, CalendarPlusIcon, CheckIcon, PlusIcon } from "lucide-react";
+import { CalendarPlusIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   ResponsiveDialog,
@@ -11,8 +11,7 @@ import {
   ResponsiveDialogTrigger,
 } from "@/components/ui/responsive-dialog";
 import { Calendar } from "@/components/ui/calendar";
-import { dateFromISO, isoFromDate, todayISO } from "@/lib/date";
-import { cn } from "@/lib/utils";
+import { dateFromISO, isoFromDate } from "@/lib/date";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 
 type Props = {
@@ -20,26 +19,10 @@ type Props = {
   onChangeVisits: (isoDates: string[]) => void;
 };
 
-function yesterdayISO(): string {
-  const d = new Date();
-  d.setDate(d.getDate() - 1);
-  return isoFromDate(d);
-}
-
 export function VisitedButton({ visitedDates, onChangeVisits }: Props) {
   const [open, setOpen] = useState(false);
   const [pendingDates, setPendingDates] = useState<string[]>([]);
   const isDesktop = useMediaQuery("(min-width: 768px)");
-
-  const today = todayISO();
-  const yesterday = yesterdayISO();
-
-  const latestVisit = useMemo(() => {
-    if (visitedDates.length === 0) return null;
-    return visitedDates.reduce((max, d) => (d > max ? d : max));
-  }, [visitedDates]);
-
-  const hasVisits = latestVisit !== null;
 
   const handleOpenChange = (nextOpen: boolean) => {
     if (nextOpen) setPendingDates(visitedDates);
@@ -51,13 +34,7 @@ export function VisitedButton({ visitedDates, onChangeVisits }: Props) {
     setOpen(false);
   };
 
-  const togglePreset = (iso: string) => {
-    setPendingDates((prev) => (prev.length === 1 && prev[0] === iso ? [] : [iso]));
-  };
-
   const selectedDates = useMemo(() => pendingDates.map(dateFromISO), [pendingDates]);
-  const pendingToday = pendingDates.includes(today);
-  const pendingYesterday = pendingDates.includes(yesterday);
 
   const defaultMonth = useMemo(() => {
     if (!isDesktop) return undefined;
@@ -80,35 +57,6 @@ export function VisitedButton({ visitedDates, onChangeVisits }: Props) {
     </div>
   );
 
-  const presets = (
-    <div className="flex justify-center gap-1.5 px-4 pb-4 pt-2">
-      <button
-        type="button"
-        onClick={() => togglePreset(today)}
-        className={cn(
-          "rounded-full border px-3 py-1 text-xs font-medium transition-colors cursor-pointer",
-          pendingToday
-            ? "border-foreground bg-foreground text-background"
-            : "border-border bg-transparent text-foreground hover:bg-muted",
-        )}
-      >
-        today
-      </button>
-      <button
-        type="button"
-        onClick={() => togglePreset(yesterday)}
-        className={cn(
-          "rounded-full border px-3 py-1 text-xs font-medium transition-colors cursor-pointer",
-          pendingYesterday
-            ? "border-foreground bg-foreground text-background"
-            : "border-border bg-transparent text-foreground hover:bg-muted",
-        )}
-      >
-        yesterday
-      </button>
-    </div>
-  );
-
   const pickerContent = (
     <div onClick={(e) => e.stopPropagation()}>
       {header}
@@ -125,7 +73,6 @@ export function VisitedButton({ visitedDates, onChangeVisits }: Props) {
           className="p-0 [--cell-size:--spacing(9.5)]"
         />
       </div>
-      {/* {presets} */}
     </div>
   );
 
