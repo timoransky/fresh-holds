@@ -2,8 +2,10 @@
 
 import { startTransition, useActionState, useEffect, useState } from "react";
 import { requestOtpCode, verifyOtpCode, type RequestOtpState } from "@/lib/actions/auth";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 type Props = {
   next?: string;
@@ -40,15 +42,13 @@ export function SignInForm({ next = "/" }: Props) {
   return (
     <form action={requestAction} className="flex flex-col gap-4">
       {error && (
-        <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-          {error}
-        </div>
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       )}
 
       <div className="flex flex-col gap-1.5">
-        <label htmlFor="email" className="text-sm font-medium">
-          Email
-        </label>
+        <Label htmlFor="email">Email</Label>
         <Input id="email" name="email" type="email" required autoComplete="email" />
       </div>
 
@@ -102,16 +102,14 @@ function CodeForm({ email, next, onChangeEmail, resendAction, resendPending }: C
       </div>
 
       {error && (
-        <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-          {error}
-        </div>
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       )}
 
       <div className="flex flex-col gap-1.5">
         <div className="flex justify-between items-baseline">
-          <label htmlFor="token" className="text-sm font-medium">
-            8-digit code
-          </label>
+          <Label htmlFor="token">8-digit code</Label>
 
           <button
             type="button"
