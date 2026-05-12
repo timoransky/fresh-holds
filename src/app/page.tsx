@@ -10,14 +10,31 @@ export default async function Home() {
 
   return (
     <main className="mx-auto min-h-dvh w-full max-w-4xl px-4 py-6 sm:pt-10 sm:pb-14 overflow-hidden">
-      <header className="mb-10 sm:mb-14">
-        <div className="flex justify-end">
+      <header className="relative mb-10 sm:mb-14">
+        <div className="relative z-10 flex justify-end">
           <HeaderAuth gyms={gyms} />
         </div>
-        <h1 className="mt-6 sm:mt-10 font-heading text-balance text-4xl font-bold leading-[1.02] tracking-tight text-foreground sm:text-6xl">
+        <div aria-hidden className="pointer-events-none absolute inset-0">
+          <img
+            src="/images/blue-hold.svg"
+            alt=""
+            className="absolute top-0.5 left-0.5 w-8 -rotate-30 opacity-80 sm:bottom-auto sm:left-auto sm:right-36 sm:top-8 sm:w-14"
+          />
+          <img
+            src="/images/yellow-hold.svg"
+            alt=""
+            className="absolute top-24 right-2 hidden w-14 rotate-12 opacity-80 sm:block"
+          />
+          <img
+            src="/images/red-hold.svg"
+            alt=""
+            className="absolute bottom-4 right-22 hidden w-16 -rotate-9 opacity-80 sm:block"
+          />
+        </div>
+        <h1 className="relative z-10 mt-6 sm:mt-10 font-heading text-balance text-4xl font-bold leading-[1.02] tracking-tight text-foreground sm:text-6xl">
           where are the <span className="text-brand">fresh holds</span> right now?
         </h1>
-        <p className="mt-6 max-w-prose text-base text-balance text-muted-foreground sm:text-lg">
+        <p className="relative z-10 mt-6 max-w-prose text-base text-balance text-muted-foreground sm:text-lg">
           Log your visits to get the best recommendation for your next climbing session based on the
           recent gym resets. Sorted by what&rsquo;s new since you were last there.
         </p>
