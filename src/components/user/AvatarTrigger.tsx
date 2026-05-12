@@ -16,7 +16,7 @@ export function AvatarTrigger({
       type="button"
       aria-label={`Account menu (${email})`}
       className={cn(
-        "relative inline-flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-full",
+        "relative inline-flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full",
         "bg-brand text-background font-heading text-base font-bold leading-none",
         "border border-brand-shadow shadow-[0_2px_0_0_var(--color-brand-shadow)]",
         "transition-all hover:-translate-y-0.5 hover:shadow-[0_4px_0_0_var(--color-brand-shadow)]",

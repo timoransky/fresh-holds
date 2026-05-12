@@ -1,4 +1,5 @@
-import { getSupabase } from "@/lib/auth";
+import { cacheLife, cacheTag } from "next/cache";
+import { createAnonClient } from "@/utils/supabase/server";
 import { isoFromDate, todayISO } from "@/lib/date";
 import type { GymWithSections } from "@/lib/types";
 
@@ -8,7 +9,11 @@ const RESET_HISTORY_DAYS = 240;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 export async function getActiveGymsWithSections(): Promise<GymWithSections[]> {
-  const supabase = await getSupabase();
+  "use cache";
+  cacheTag("gyms");
+  cacheLife("days");
+
+  const supabase = createAnonClient();
 
   const cutoffISO = isoFromDate(new Date(Date.now() - RESET_HISTORY_DAYS * DAY_MS));
   const todayStr = todayISO();

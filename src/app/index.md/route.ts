@@ -1,8 +1,6 @@
 import { getActiveGymsWithSections } from "@/lib/db/gyms";
 import { renderGymsMarkdown } from "@/lib/agentDigest";
 
-export const dynamic = "force-dynamic";
-
 export async function GET() {
   const gyms = await getActiveGymsWithSections();
   return new Response(renderGymsMarkdown(gyms), {

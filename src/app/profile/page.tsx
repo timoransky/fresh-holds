@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -10,8 +11,6 @@ import { Badge } from "@/components/ui/badge";
 import { BrandBadge } from "@/components/ui/brand-badge";
 import { Button } from "@/components/ui/button";
 import type { SubmissionStatus } from "@/lib/db/submissions";
-
-export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Profile",
@@ -30,15 +29,7 @@ const statusVariant = {
   rejected: "destructive",
 } as const satisfies Record<SubmissionStatus, "secondary" | "success" | "destructive">;
 
-export default async function ProfilePage() {
-  const user = await getCurrentUser();
-
-  if (!user) {
-    redirect("/login?next=/profile");
-  }
-
-  const submissions = await listMySubmissions();
-
+export default function ProfilePage() {
   return (
     <main className="mx-auto min-h-dvh w-full max-w-xl px-4 py-10 sm:py-14">
       <Link
@@ -52,11 +43,27 @@ export default async function ProfilePage() {
       <header className="mt-6">
         <BrandBadge>fresh holds</BrandBadge>
         <h1 className="mt-4 text-3xl font-extrabold tracking-tight">Your profile</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Signed in as <strong className="text-foreground">{user.email}</strong>. Visits sync to
-          this account across devices.
-        </p>
       </header>
+
+      <Suspense fallback={<ProfileContentFallback />}>
+        <ProfileContent />
+      </Suspense>
+    </main>
+  );
+}
+
+async function ProfileContent() {
+  const user = await getCurrentUser();
+  if (!user) redirect("/login?next=/profile");
+
+  const submissions = await listMySubmissions();
+
+  return (
+    <>
+      <p className="mt-2 text-sm text-muted-foreground">
+        Signed in as <strong className="text-foreground">{user.email}</strong>. Visits sync to this
+        account across devices.
+      </p>
 
       <section className="mt-10 flex flex-col gap-3">
         <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
@@ -109,6 +116,18 @@ export default async function ProfilePage() {
           </Button>
         </form>
       </section>
-    </main>
+    </>
+  );
+}
+
+function ProfileContentFallback() {
+  return (
+    <div aria-hidden className="mt-4 space-y-6">
+      <div className="h-4 w-2/3 rounded bg-foreground/5" />
+      <div className="space-y-2">
+        <div className="h-3 w-32 rounded bg-foreground/5" />
+        <div className="h-20 rounded-xl bg-foreground/5" />
+      </div>
+    </div>
   );
 }

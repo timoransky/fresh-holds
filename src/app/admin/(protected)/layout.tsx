@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSupabase } from "@/lib/auth";
@@ -6,7 +7,15 @@ import { Badge } from "@/components/ui/badge";
 import { BrandBadge } from "@/components/ui/brand-badge";
 import { Button } from "@/components/ui/button";
 
-export default async function ProtectedAdminLayout({ children }: { children: React.ReactNode }) {
+export default function ProtectedAdminLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <Suspense fallback={<AdminLayoutFallback />}>
+      <AdminLayoutContent>{children}</AdminLayoutContent>
+    </Suspense>
+  );
+}
+
+async function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   const supabase = await getSupabase();
 
   const {
@@ -86,6 +95,19 @@ export default async function ProtectedAdminLayout({ children }: { children: Rea
         </div>
       </header>
       {children}
+    </div>
+  );
+}
+
+function AdminLayoutFallback() {
+  return (
+    <div aria-hidden className="min-h-dvh">
+      <div className="border-b border-border bg-background">
+        <div className="mx-auto flex max-w-4xl items-center justify-between gap-3 px-4 py-3">
+          <div className="h-6 w-40 rounded bg-foreground/5" />
+          <div className="h-6 w-20 rounded bg-foreground/5" />
+        </div>
+      </div>
     </div>
   );
 }

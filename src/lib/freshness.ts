@@ -114,7 +114,7 @@ export function describeFreshness(
   lastVisitedISO: string | null,
   mostRecentFreshISO: string | null,
 ): string {
-  if (label === null) return "No reset data — you have to check for yourself.";
+  if (label === null) return "No reset data - you have to check for yourself.";
 
   if (label.count === 0) {
     if (lastVisitedISO === null) {
@@ -130,11 +130,11 @@ export function describeFreshness(
     const recent = relativeDay(mostRecentFreshISO!);
     if (label.kind === "sections") {
       if (label.total === 1) {
-        return `Never visited — one sector is fresh, last reset ${recent}.`;
+        return `Never visited - one sector is fresh, last reset ${recent}.`;
       }
-      return `Never visited — all ${label.total} sectors fresh, last reset ${recent}.`;
+      return `Never visited - all ${label.total} sectors fresh, last reset ${recent}.`;
     }
-    return `Never visited — ${label.count} fresh ${pluralize(label.count, "boulder")}, last reset ${recent}.`;
+    return `Never visited - ${label.count} fresh ${pluralize(label.count, "boulder")}, last reset ${recent}.`;
   }
 
   const recent = relativeDay(mostRecentFreshISO!);

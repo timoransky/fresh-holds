@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { SignInPanel } from "@/components/SignInPanel";
 
@@ -10,14 +11,23 @@ type Props = {
   searchParams: Promise<{ next?: string }>;
 };
 
-export default async function LoginPage({ searchParams }: Props) {
-  const { next } = await searchParams;
-
+export default function LoginPage({ searchParams }: Props) {
   return (
     <main className="flex min-h-dvh items-center justify-center px-4">
       <div className="w-full max-w-sm">
-        <SignInPanel next={next ?? "/"} />
+        <Suspense fallback={<SignInPanelFallback />}>
+          <LoginContent searchParams={searchParams} />
+        </Suspense>
       </div>
     </main>
   );
+}
+
+async function LoginContent({ searchParams }: Props) {
+  const { next } = await searchParams;
+  return <SignInPanel next={next ?? "/"} />;
+}
+
+function SignInPanelFallback() {
+  return <div aria-hidden className="h-64 rounded-2xl bg-foreground/5" />;
 }

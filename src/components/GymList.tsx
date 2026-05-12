@@ -1,9 +1,11 @@
 "use client";
 
+import { useSyncExternalStore } from "react";
 import { useSyncedVisits } from "@/hooks/useSyncedVisits";
 import { useGymRanking } from "@/hooks/useGymRanking";
 import type { GymWithSections } from "@/lib/types";
 import { GymCard } from "@/components/GymCard";
+import { GymListSkeleton } from "@/components/GymListSkeleton";
 import { GymNoDataCard } from "@/components/gym/GymNoDataCard";
 
 type Props = {
@@ -11,11 +13,21 @@ type Props = {
   authed: boolean;
 };
 
+const subscribeHydration = () => () => {};
+const getHydrationSnapshot = () => true;
+const getHydrationServerSnapshot = () => false;
+
 export function GymList({ gyms, authed }: Props) {
+  const isHydrated = useSyncExternalStore(
+    subscribeHydration,
+    getHydrationSnapshot,
+    getHydrationServerSnapshot,
+  );
+
   const { visits, history, setVisits, writeError } = useSyncedVisits(authed);
   const { hero, heroHasData, runnersUp, noDataExtras } = useGymRanking(gyms, visits);
 
-  if (!hero) return null;
+  if (!isHydrated || !hero) return <GymListSkeleton />;
 
   return (
     <div className="flex flex-col gap-10">

@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
 import { fail, ok, type ActionResult } from "@/lib/actions/result";
 
@@ -55,7 +55,7 @@ export async function approveSubmission(
 
   revalidatePath("/admin/submissions");
   revalidatePath("/admin");
-  revalidatePath("/");
+  updateTag("gyms");
   return ok("Approved");
 }
 
