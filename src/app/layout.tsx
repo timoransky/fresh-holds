@@ -21,7 +21,7 @@ const baloo = Baloo_2({
   weight: ["600", "700", "800"],
 });
 
-const siteUrl = "https://fresh-holds.janci.dev";
+const siteUrl = "https://freshholds.janci.dev";
 const siteName = "Fresh Holds";
 const siteTitle = "Fresh Holds — where's the fresh climbing in Bratislava?";
 const siteDescription =

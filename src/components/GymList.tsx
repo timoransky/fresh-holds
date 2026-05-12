@@ -14,7 +14,6 @@ type Props = {
 export function GymList({ gyms, authed }: Props) {
   const { visits, history, setVisits, writeError } = useSyncedVisits(authed);
   const { hero, heroHasData, runnersUp, noDataExtras } = useGymRanking(gyms, visits);
-  const hasNoVisits = Object.keys(history).length === 0;
 
   if (!hero) return null;
 
@@ -26,12 +25,6 @@ export function GymList({ gyms, authed }: Props) {
           className="rounded-2xl border-2 border-red-300 bg-red-50 px-4 py-3 text-sm text-red-800"
         >
           Couldn&rsquo;t save your visit — your browser may be blocking storage or out of space.
-        </p>
-      )}
-
-      {hasNoVisits && (
-        <p className="rounded-2xl border-2 border-dashed border-foreground/20 bg-background/60 px-4 py-3 text-sm text-muted-foreground">
-          Tap &ldquo;log my visit&rdquo; on any gym to start ranking by what&rsquo;s freshest for you.
         </p>
       )}
 
