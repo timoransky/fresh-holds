@@ -1,8 +1,17 @@
 "use server";
 
-import { getAuthedClient } from "@/lib/auth";
+import { getAuthedClient, getCurrentUser } from "@/lib/auth";
 import { ISO_DATE_RE } from "@/lib/date";
 import type { VisitHistory } from "@/lib/types";
+
+// SSR entry point: returns the user's full visit history when authed, or null
+// for anonymous (signals to the client to fall back to localStorage). Runs in
+// parallel with the page's other queries.
+export async function getInitialVisits(): Promise<VisitHistory | null> {
+  const user = await getCurrentUser();
+  if (!user) return null;
+  return pullMyVisits();
+}
 
 export async function pullMyVisits(): Promise<VisitHistory> {
   const ctx = await getAuthedClient();

@@ -101,7 +101,7 @@ export function daysSince(isoDate: string): number {
 export function relativeDay(isoDate: string): string {
   const days = daysSince(isoDate);
   if (days <= 0) return "today";
-  if (days === 1) return "1 day ago";
+  if (days === 1) return "yesterday";
   if (days <= 30) return `${days} days ago`;
   if (days <= 60) return "~1 month ago";
   if (days <= 365) return `~${Math.round(days / 30)} months ago`;
@@ -132,7 +132,7 @@ export function describeFreshness(
       if (label.total === 1) {
         return `Never visited - one sector is fresh, last reset ${recent}.`;
       }
-      return `Never visited - all ${label.total} sectors fresh, last reset ${recent}.`;
+      return `Never visited - all ${label.total} sectors are fresh, last reset ${recent}.`;
     }
     return `Never visited - ${label.count} fresh ${pluralize(label.count, "boulder")}, last reset ${recent}.`;
   }

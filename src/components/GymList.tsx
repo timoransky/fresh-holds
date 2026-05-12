@@ -3,7 +3,7 @@
 import { useSyncExternalStore } from "react";
 import { useSyncedVisits } from "@/hooks/useSyncedVisits";
 import { useGymRanking } from "@/hooks/useGymRanking";
-import type { GymWithSections } from "@/lib/types";
+import type { GymWithSections, VisitHistory } from "@/lib/types";
 import { GymCard } from "@/components/GymCard";
 import { GymListSkeleton } from "@/components/GymListSkeleton";
 import { GymNoDataCard } from "@/components/gym/GymNoDataCard";
@@ -11,20 +11,21 @@ import { GymNoDataCard } from "@/components/gym/GymNoDataCard";
 type Props = {
   gyms: GymWithSections[];
   authed: boolean;
+  initialVisits: VisitHistory | null;
 };
 
 const subscribeHydration = () => () => {};
 const getHydrationSnapshot = () => true;
 const getHydrationServerSnapshot = () => false;
 
-export function GymList({ gyms, authed }: Props) {
+export function GymList({ gyms, authed, initialVisits }: Props) {
   const isHydrated = useSyncExternalStore(
     subscribeHydration,
     getHydrationSnapshot,
     getHydrationServerSnapshot,
   );
 
-  const { visits, history, setVisits, writeError } = useSyncedVisits(authed);
+  const { visits, history, setVisits, writeError } = useSyncedVisits(authed, initialVisits);
   const { hero, heroHasData, runnersUp, noDataExtras } = useGymRanking(gyms, visits);
 
   if (!isHydrated || !hero) return <GymListSkeleton />;

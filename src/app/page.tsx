@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { getActiveGymsWithSections } from "@/lib/db/gyms";
 import { getCurrentUser } from "@/lib/auth";
+import { getInitialVisits } from "@/lib/actions/visits";
 import { GymList } from "@/components/GymList";
 import { GymListSkeleton } from "@/components/GymListSkeleton";
 import { HeaderAuth } from "@/components/HeaderAuth";
@@ -48,7 +49,11 @@ async function HeaderAuthSection() {
 }
 
 async function GymsSection() {
-  const [gyms, user] = await Promise.all([getActiveGymsWithSections(), getCurrentUser()]);
+  const [gyms, user, initialVisits] = await Promise.all([
+    getActiveGymsWithSections(),
+    getCurrentUser(),
+    getInitialVisits(),
+  ]);
 
   if (gyms.length === 0) {
     return (
@@ -58,7 +63,7 @@ async function GymsSection() {
     );
   }
 
-  return <GymList gyms={gyms} authed={Boolean(user)} />;
+  return <GymList gyms={gyms} authed={Boolean(user)} initialVisits={initialVisits} />;
 }
 
 function HeaderAuthFallback() {
