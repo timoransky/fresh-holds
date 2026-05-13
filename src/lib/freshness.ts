@@ -1,6 +1,5 @@
 import type { GymWithSections } from "@/lib/types";
-
-const DAY_MS = 24 * 60 * 60 * 1000;
+import { daysSince, relativeDay } from "@/lib/date";
 
 // Visit-gap denominator for the novelty score's visit factor. A gym you haven't been
 // to in `WEEKLY_VISIT_DAYS`+ days gets full weight on its fresh-reset count; shorter
@@ -91,22 +90,6 @@ export function mostRecentReset(
     }
   }
   return best;
-}
-
-export function daysSince(isoDate: string): number {
-  const diff = Date.now() - Date.parse(isoDate);
-  return Math.floor(diff / DAY_MS);
-}
-
-export function relativeDay(isoDate: string): string {
-  const days = daysSince(isoDate);
-  if (days <= 0) return "today";
-  if (days === 1) return "1 day ago";
-  if (days <= 30) return `${days} days ago`;
-  if (days <= 60) return "~1 month ago";
-  if (days <= 365) return `~${Math.round(days / 30)} months ago`;
-  const years = Math.round(days / 365);
-  return years === 1 ? "~1 year ago" : `~${years} years ago`;
 }
 
 export function describeFreshness(

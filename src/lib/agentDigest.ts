@@ -1,4 +1,5 @@
-import { mostRecentReset, relativeDay } from "@/lib/freshness";
+import { mostRecentReset } from "@/lib/freshness";
+import { relativeDay } from "@/lib/date";
 import { todayISO } from "@/lib/date";
 import type { GymWithSections } from "@/lib/types";
 

@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 import { badgeCountLabel, type FreshLabel } from "@/lib/freshness";
-import { tierBadgeStyle, type Tier } from "@/lib/tier";
+import type { Tier } from "@/lib/tier";
+import { tierBadgeStyle } from "@/lib/tier-style";
 import { cn } from "@/lib/utils";
 
 type Props = {
