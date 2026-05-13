@@ -48,9 +48,11 @@ async function HeaderAuthSection() {
 }
 
 async function GymsSection() {
+  // Awaiting request data (cookies via getCurrentUser) first marks this render
+  // dynamic so Cache Components allows the Date.now() read below.
+  const [gyms, user] = await Promise.all([getActiveGymsWithSections(), getCurrentUser()]);
   // eslint-disable-next-line react-hooks/purity -- Capture wall-clock once per request so SSR and first client render agree on relative-date strings.
   const now = Date.now();
-  const [gyms, user] = await Promise.all([getActiveGymsWithSections(), getCurrentUser()]);
 
   if (gyms.length === 0) {
     return (
