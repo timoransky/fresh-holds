@@ -9,7 +9,8 @@ import { VisitedButton } from "@/components/VisitedButton";
 import { FreshnessBadge } from "@/components/FreshnessBadge";
 import { GymExternalLinks } from "@/components/gym/GymExternalLinks";
 import { GymResetTable } from "@/components/gym/GymResetTable";
-import { tierCardStyle, type Tier } from "@/lib/tier";
+import type { Tier } from "@/lib/tier";
+import { tierCardStyle } from "@/lib/tier-style";
 import { cn } from "@/lib/utils";
 
 type Variant = "hero" | "compact";

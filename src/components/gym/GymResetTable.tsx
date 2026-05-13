@@ -1,4 +1,4 @@
-import { relativeDay } from "@/lib/freshness";
+import { relativeDay } from "@/lib/date";
 import type { GymWithSections, Reset, Section } from "@/lib/types";
 import { StatusDot } from "@/components/gym/StatusDot";
 
