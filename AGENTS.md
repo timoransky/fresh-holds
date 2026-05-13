@@ -30,3 +30,17 @@ The reset query window lives in `src/lib/db/gyms.ts` as `cutoffISO`. Resets olde
 2. **Gyms with no reset data** at the bottom (we can't help the user pick).
 
 Visit state does _not_ segregate the list — a 100% never-visited gym beats a 0% visited one, because the user's question is "where is the freshest climbing _for me right now_", and a never-visited gym is maximally novel. Don't reintroduce a visited-first split without a reason.
+
+## Agent skills
+
+### Issue tracker
+
+Issues live in GitHub Issues at timoransky/fresh-holds. Use the `gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Canonical role names used as-is (no custom mapping). See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context layout — `CONTEXT.md` and `docs/adr/` at the repo root (created lazily by `/grill-with-docs`). See `docs/agents/domain.md`.
