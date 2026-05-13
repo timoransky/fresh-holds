@@ -6,12 +6,14 @@ type CountModeProps = {
   mode: "count";
   resets: Reset[];
   lastVisited: string | null;
+  now: number;
 };
 
 type SectionModeProps = {
   mode: "sections";
   sections: GymWithSections["sections"];
   freshSectionIds: Set<string>;
+  now: number;
 };
 
 type Props = CountModeProps | SectionModeProps;
@@ -32,13 +34,19 @@ export function GymResetTable(props: Props) {
       <tbody>
         {props.mode === "count"
           ? props.resets.map((reset) => (
-              <CountRow key={reset.id} reset={reset} lastVisited={props.lastVisited} />
+              <CountRow
+                key={reset.id}
+                reset={reset}
+                lastVisited={props.lastVisited}
+                now={props.now}
+              />
             ))
           : props.sections.map((section) => (
               <SectionRow
                 key={section.id}
                 section={section}
                 isFresh={props.freshSectionIds.has(section.id)}
+                now={props.now}
               />
             ))}
       </tbody>
@@ -46,11 +54,19 @@ export function GymResetTable(props: Props) {
   );
 }
 
-function CountRow({ reset, lastVisited }: { reset: Reset; lastVisited: string | null }) {
+function CountRow({
+  reset,
+  lastVisited,
+  now,
+}: {
+  reset: Reset;
+  lastVisited: string | null;
+  now: number;
+}) {
   const isFresh = lastVisited === null || reset.reset_on > lastVisited;
   return (
     <tr className="border-t border-foreground/10">
-      <td className="py-1.5 font-medium text-foreground/90">{relativeDay(reset.reset_on)}</td>
+      <td className="py-1.5 font-medium text-foreground/90">{relativeDay(reset.reset_on, now)}</td>
       <td className="py-1.5 text-muted-foreground">{reset.boulders_reset ?? 0}</td>
       <td className="py-1.5 align-middle">
         <StatusDot state={isFresh ? "fresh" : "stale"} />
@@ -59,14 +75,22 @@ function CountRow({ reset, lastVisited }: { reset: Reset; lastVisited: string | 
   );
 }
 
-function SectionRow({ section, isFresh }: { section: Section; isFresh: boolean }) {
+function SectionRow({
+  section,
+  isFresh,
+  now,
+}: {
+  section: Section;
+  isFresh: boolean;
+  now: number;
+}) {
   const mostRecent = section.resets[0];
   const state: "fresh" | "stale" | "none" = !mostRecent ? "none" : isFresh ? "fresh" : "stale";
   return (
     <tr className="border-t border-foreground/10">
       <td className="py-1.5 font-medium text-foreground/90">{section.name}</td>
       <td className="py-1.5 text-muted-foreground">
-        {mostRecent ? relativeDay(mostRecent.reset_on) : "—"}
+        {mostRecent ? relativeDay(mostRecent.reset_on, now) : "—"}
       </td>
       <td className="py-1.5 align-middle">
         <StatusDot state={state} />

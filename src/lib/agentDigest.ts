@@ -4,6 +4,7 @@ import { todayISO } from "@/lib/date";
 import type { GymWithSections } from "@/lib/types";
 
 export function renderGymsMarkdown(gyms: GymWithSections[]): string {
+  const now = Date.now();
   const intro = [
     "# Fresh Holds — Bratislava bouldering gym resets",
     "",
@@ -22,10 +23,10 @@ export function renderGymsMarkdown(gyms: GymWithSections[]): string {
     return rb.localeCompare(ra);
   });
 
-  return `${intro}\n\n${sorted.map(gymBlock).join("\n")}`;
+  return `${intro}\n\n${sorted.map((gym) => gymBlock(gym, now)).join("\n")}`;
 }
 
-function gymBlock(gym: GymWithSections): string {
+function gymBlock(gym: GymWithSections, now: number): string {
   const heading = gym.neighborhood ? `## ${gym.name} — ${gym.neighborhood}` : `## ${gym.name}`;
   const links: string[] = [];
   if (gym.website_url) links.push(`- Website: ${gym.website_url}`);
@@ -36,7 +37,7 @@ function gymBlock(gym: GymWithSections): string {
     return [heading, "", ...links, "", "_No recent reset data logged._", ""].join("\n");
   }
 
-  const recentLine = `- Most recent reset: ${recent.reset_on} (${recent.section_name}, ${relativeDay(recent.reset_on)})`;
+  const recentLine = `- Most recent reset: ${recent.reset_on} (${recent.section_name}, ${relativeDay(recent.reset_on, now)})`;
   const allResets = gym.sections
     .flatMap((s) =>
       s.resets.map((r) => ({

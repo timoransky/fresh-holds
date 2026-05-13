@@ -25,10 +25,10 @@ export type GymRanking = {
 // bottom list of gyms with no reset data. Sort key is the novelty score
 // (`freshResetCount * min(daysSinceVisit / 7, 1)`); ties are broken by the
 // most recent fresh reset date.
-export function rankGyms(gyms: GymWithSections[], visits: Visits): GymRanking {
+export function rankGyms(gyms: GymWithSections[], visits: Visits, now: number): GymRanking {
   const computed = gyms.map((gym) => {
     const lastVisited = visits[gym.slug] ?? null;
-    const freshness = gymFreshness(gym, lastVisited);
+    const freshness = gymFreshness(gym, lastVisited, now);
     const recent = mostRecentReset(gym.sections);
     return {
       gym,

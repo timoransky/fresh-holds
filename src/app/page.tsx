@@ -48,6 +48,8 @@ async function HeaderAuthSection() {
 }
 
 async function GymsSection() {
+  // eslint-disable-next-line react-hooks/purity -- Capture wall-clock once per request so SSR and first client render agree on relative-date strings.
+  const now = Date.now();
   const [gyms, user] = await Promise.all([getActiveGymsWithSections(), getCurrentUser()]);
 
   if (gyms.length === 0) {
@@ -58,7 +60,7 @@ async function GymsSection() {
     );
   }
 
-  return <GymList gyms={gyms} authed={Boolean(user)} />;
+  return <GymList gyms={gyms} authed={Boolean(user)} now={now} />;
 }
 
 function HeaderAuthFallback() {

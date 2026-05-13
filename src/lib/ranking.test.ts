@@ -1,19 +1,13 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { rankGyms } from "@/lib/ranking";
 import type { FreshnessMode, GymWithSections, Reset, Section } from "@/lib/types";
 
-// All scenarios pin "now" to this date. Dates in the fixtures are relative to it
+// All scenarios pin "now" to this instant. Dates in the fixtures are relative to it
 // (e.g. "today minus 3 days" = 2026-05-08).
-const NOW = new Date("2026-05-11T12:00:00Z");
-
-beforeEach(() => {
-  vi.useFakeTimers();
-  vi.setSystemTime(NOW);
-});
-afterEach(() => vi.useRealTimers());
+const NOW_MS = Date.UTC(2026, 4, 11, 12, 0, 0);
 
 function daysAgo(n: number): string {
-  const d = new Date(NOW);
+  const d = new Date(NOW_MS);
   d.setUTCDate(d.getUTCDate() - n);
   return d.toISOString().slice(0, 10);
 }
@@ -86,7 +80,7 @@ describe("rankGyms — no visits", () => {
     const b = makeGym({ slug: "b", sections: { Slab: [daysAgo(2)] } });
     const c = makeGym({ slug: "c", sections: { Slab: [daysAgo(4), daysAgo(6)] } });
 
-    const r = rankGyms([b, a, c], {});
+    const r = rankGyms([b, a, c], {}, NOW_MS);
 
     expect(r.hero?.gym.slug).toBe("a"); // 3 fresh resets
     expect(r.heroHasData).toBe(true);
@@ -100,7 +94,7 @@ describe("rankGyms — no visits", () => {
       sections: { Slab: [daysAgo(1)], Overhang: [daysAgo(2)] },
     });
 
-    const r = rankGyms([a], {});
+    const r = rankGyms([a], {}, NOW_MS);
 
     expect(r.hero?.label).toEqual({ kind: "sections", count: 2, total: 2 });
     expect(r.hero?.lastVisited).toBeNull();
@@ -117,7 +111,7 @@ describe("rankGyms — with a recent visit", () => {
     });
     const b = makeGym({ slug: "b", sections: { Slab: [daysAgo(3)] } });
 
-    const r = rankGyms([a, b], { a: daysAgo(1) });
+    const r = rankGyms([a, b], { a: daysAgo(1) }, NOW_MS);
 
     expect(r.hero?.gym.slug).toBe("b");
     expect(r.runnersUp.map((g) => g.gym.slug)).toEqual(["a"]);
@@ -130,7 +124,7 @@ describe("rankGyms — with a recent visit", () => {
       sections: { Slab: [daysAgo(2), daysAgo(5)] },
     });
 
-    const r = rankGyms([a], { a: daysAgo(4) });
+    const r = rankGyms([a], { a: daysAgo(4) }, NOW_MS);
 
     expect(r.hero?.label).toEqual({ kind: "sections", count: 1, total: 1 });
   });
@@ -139,7 +133,7 @@ describe("rankGyms — with a recent visit", () => {
     // visited yesterday, one fresh reset today
     const a = makeGym({ slug: "a", sections: { Slab: [daysAgo(0)] } });
 
-    const r = rankGyms([a], { a: daysAgo(1) });
+    const r = rankGyms([a], { a: daysAgo(1) }, NOW_MS);
 
     expect(r.hero?.tier.key).toBe("stale");
   });
@@ -151,7 +145,7 @@ describe("rankGyms — with a recent visit", () => {
     });
     const b = makeGym({ slug: "b", sections: { Slab: [daysAgo(1)] } });
 
-    const r = rankGyms([a, b], { a: daysAgo(8), b: daysAgo(8) });
+    const r = rankGyms([a, b], { a: daysAgo(8), b: daysAgo(8) }, NOW_MS);
 
     // a has 2 fresh, b has 1 → a first
     expect(r.hero?.gym.slug).toBe("a");
@@ -165,7 +159,7 @@ describe("rankGyms — tiebreakers", () => {
     const a = makeGym({ slug: "a", sections: { Slab: [daysAgo(5)] } });
     const b = makeGym({ slug: "b", sections: { Slab: [daysAgo(1)] } });
 
-    const r = rankGyms([a, b], {});
+    const r = rankGyms([a, b], {}, NOW_MS);
 
     expect(r.hero?.gym.slug).toBe("b");
     expect(r.runnersUp.map((g) => g.gym.slug)).toEqual(["a"]);
@@ -177,7 +171,7 @@ describe("rankGyms — mixed reset data", () => {
     const a = makeGym({ slug: "a", sections: { Slab: [daysAgo(1)] } });
     const empty = makeGym({ slug: "empty", sections: { Slab: [] } });
 
-    const r = rankGyms([empty, a], {});
+    const r = rankGyms([empty, a], {}, NOW_MS);
 
     expect(r.hero?.gym.slug).toBe("a");
     expect(r.runnersUp).toEqual([]);
@@ -188,7 +182,7 @@ describe("rankGyms — mixed reset data", () => {
     const a = makeGym({ slug: "a", sections: { Slab: [] } });
     const b = makeGym({ slug: "b", sections: { Slab: [] } });
 
-    const r = rankGyms([a, b], {});
+    const r = rankGyms([a, b], {}, NOW_MS);
 
     expect(r.hero?.gym.slug).toBe("a");
     expect(r.heroHasData).toBe(false);
@@ -214,7 +208,7 @@ describe("rankGyms — count mode", () => {
       sections: { Slab: [daysAgo(2)], Overhang: [daysAgo(4)] },
     });
 
-    const r = rankGyms([sections, count], {});
+    const r = rankGyms([sections, count], {}, NOW_MS);
 
     expect(r.hero?.gym.slug).toBe("count");
     expect(r.hero?.label).toEqual({ kind: "boulders", count: 23 });
@@ -232,7 +226,7 @@ describe("rankGyms — count mode", () => {
     });
 
     // visited 6 days ago → only resets from days 1 and 5 count
-    const r = rankGyms([count], { count: daysAgo(6) });
+    const r = rankGyms([count], { count: daysAgo(6) }, NOW_MS);
 
     expect(r.hero?.label).toEqual({ kind: "boulders", count: 17 });
   });
@@ -240,7 +234,7 @@ describe("rankGyms — count mode", () => {
 
 describe("rankGyms — edge cases", () => {
   it("empty gyms list returns hero=null", () => {
-    const r = rankGyms([], {});
+    const r = rankGyms([], {}, NOW_MS);
     expect(r.hero).toBeNull();
     expect(r.runnersUp).toEqual([]);
     expect(r.noDataExtras).toEqual([]);
@@ -248,7 +242,7 @@ describe("rankGyms — edge cases", () => {
 
   it("a single gym with data becomes hero with no runners-up", () => {
     const a = makeGym({ slug: "a", sections: { Slab: [daysAgo(2)] } });
-    const r = rankGyms([a], {});
+    const r = rankGyms([a], {}, NOW_MS);
 
     expect(r.hero?.gym.slug).toBe("a");
     expect(r.runnersUp).toEqual([]);

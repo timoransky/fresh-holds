@@ -11,13 +11,14 @@ import { GymNoDataCard } from "@/components/gym/GymNoDataCard";
 type Props = {
   gyms: GymWithSections[];
   authed: boolean;
+  now: number;
 };
 
 const subscribeHydration = () => () => {};
 const getHydrationSnapshot = () => true;
 const getHydrationServerSnapshot = () => false;
 
-export function GymList({ gyms, authed }: Props) {
+export function GymList({ gyms, authed, now }: Props) {
   const isHydrated = useSyncExternalStore(
     subscribeHydration,
     getHydrationSnapshot,
@@ -25,7 +26,7 @@ export function GymList({ gyms, authed }: Props) {
   );
 
   const { visits, history, setVisits, writeError } = useSyncedVisits(authed);
-  const { hero, heroHasData, runnersUp, noDataExtras } = useGymRanking(gyms, visits);
+  const { hero, heroHasData, runnersUp, noDataExtras } = useGymRanking(gyms, visits, now);
 
   if (!isHydrated || !hero) return <GymListSkeleton />;
 
@@ -56,6 +57,7 @@ export function GymList({ gyms, authed }: Props) {
           variant="hero"
           visitedDates={history[hero.gym.slug] ?? []}
           onChangeVisits={(dates) => setVisits(hero.gym.slug, dates)}
+          now={now}
         />
       </section>
 
@@ -77,6 +79,7 @@ export function GymList({ gyms, authed }: Props) {
                 variant="compact"
                 visitedDates={history[c.gym.slug] ?? []}
                 onChangeVisits={(dates) => setVisits(c.gym.slug, dates)}
+                now={now}
               />
             ))}
           </div>

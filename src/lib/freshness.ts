@@ -20,11 +20,15 @@ export type FreshnessResult = {
   label: FreshLabel | null;
 };
 
-export function gymFreshness(gym: GymWithSections, lastVisitedISO: string | null): FreshnessResult {
+export function gymFreshness(
+  gym: GymWithSections,
+  lastVisitedISO: string | null,
+  now: number,
+): FreshnessResult {
   const freshSectionIds = new Set<string>();
   const sections = gym.sections;
   const hasResetData = sections.some((s) => s.resets.length > 0);
-  const daysSinceVisit = lastVisitedISO === null ? null : Math.max(0, daysSince(lastVisitedISO));
+  const daysSinceVisit = lastVisitedISO === null ? null : Math.max(0, daysSince(lastVisitedISO, now));
 
   if (sections.length === 0 || !hasResetData) {
     return {
@@ -96,6 +100,7 @@ export function describeFreshness(
   label: FreshLabel | null,
   lastVisitedISO: string | null,
   mostRecentFreshISO: string | null,
+  now: number,
 ): string {
   if (label === null) return "No reset data - you have to check for yourself.";
 
@@ -103,14 +108,14 @@ export function describeFreshness(
     if (lastVisitedISO === null) {
       return "Resets logged, but no boulder counts yet.";
     }
-    if (daysSince(lastVisitedISO) <= 0) {
+    if (daysSince(lastVisitedISO, now) <= 0) {
       return "Nothing new since you visited today.";
     }
-    return `Nothing new since your last visit ${relativeDay(lastVisitedISO)}.`;
+    return `Nothing new since your last visit ${relativeDay(lastVisitedISO, now)}.`;
   }
 
   if (lastVisitedISO === null) {
-    const recent = relativeDay(mostRecentFreshISO!);
+    const recent = relativeDay(mostRecentFreshISO!, now);
     if (label.kind === "sections") {
       if (label.total === 1) {
         return `Never visited - one sector is fresh, last reset ${recent}.`;
@@ -120,7 +125,7 @@ export function describeFreshness(
     return `Never visited - ${label.count} fresh ${pluralize(label.count, "boulder")}, last reset ${recent}.`;
   }
 
-  const recent = relativeDay(mostRecentFreshISO!);
+  const recent = relativeDay(mostRecentFreshISO!, now);
   if (label.kind === "sections") {
     return `${label.count} of ${label.total} ${pluralize(label.total, "sector")} fresh, last reset ${recent}.`;
   }

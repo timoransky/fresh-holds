@@ -25,6 +25,7 @@ type Props = {
   variant: Variant;
   visitedDates: string[];
   onChangeVisits: (isoDates: string[]) => void;
+  now: number;
 };
 
 export function GymCard({
@@ -37,6 +38,7 @@ export function GymCard({
   variant,
   visitedDates,
   onChangeVisits,
+  now,
 }: Props) {
   const isCountMode = gym.freshness_mode === "count";
   const sectionsByOrder = [...gym.sections].sort((a, b) => a.display_order - b.display_order);
@@ -89,7 +91,7 @@ export function GymCard({
             aria-controls={detailsId}
             className="mt-1 w-full text-left text-sm text-muted-foreground outline-none! cursor-pointer hover:text-foreground/80 transition-colors"
           >
-            <span>{describeFreshness(label, lastVisited, mostRecentFreshISO)}</span>
+            <span>{describeFreshness(label, lastVisited, mostRecentFreshISO, now)}</span>
             <span
               className={cn(
                 "inline-flex items-center relative justify-center size-4 ml-1 rounded-full align-text-bottom transition-colors",
@@ -108,12 +110,18 @@ export function GymCard({
           >
             <div className="pt-3">
               {isCountMode ? (
-                <GymResetTable mode="count" resets={allResets} lastVisited={lastVisited} />
+                <GymResetTable
+                  mode="count"
+                  resets={allResets}
+                  lastVisited={lastVisited}
+                  now={now}
+                />
               ) : (
                 <GymResetTable
                   mode="sections"
                   sections={sectionsByRecent}
                   freshSectionIds={freshSectionIds}
+                  now={now}
                 />
               )}
             </div>
@@ -121,7 +129,7 @@ export function GymCard({
         </>
       ) : (
         <p className="mt-3 text-sm text-muted-foreground">
-          {describeFreshness(label, lastVisited, mostRecentFreshISO)}
+          {describeFreshness(label, lastVisited, mostRecentFreshISO, now)}
         </p>
       )}
 

@@ -18,13 +18,13 @@ export function dateFromISO(iso: string): Date {
   return new Date(y, m - 1, d);
 }
 
-export function daysSince(isoDate: string): number {
-  const diff = Date.now() - Date.parse(isoDate);
+export function daysSince(isoDate: string, now: number): number {
+  const diff = now - Date.parse(isoDate);
   return Math.floor(diff / DAY_MS);
 }
 
-export function relativeDay(isoDate: string): string {
-  const days = daysSince(isoDate);
+export function relativeDay(isoDate: string, now: number): string {
+  const days = daysSince(isoDate, now);
   if (days <= 0) return "today";
   if (days === 1) return "1 day ago";
   if (days <= 30) return `${days} days ago`;
