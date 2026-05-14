@@ -26,17 +26,20 @@ export async function getAuthedClient() {
 // Same shape as getAuthedClient, but if no session exists yet, mints an
 // anonymous Supabase user. Use this for write actions that should "just
 // work" without an explicit sign-in (e.g. logging a visit). Requires
-// Anonymous Sign-Ins enabled in the Supabase project; returns null if it
-// can't get a session.
+// Anonymous Sign-Ins enabled in the Supabase project; throws (with the
+// underlying message) if it can't get a session, so the failure surfaces
+// to the caller instead of silently dropping a write.
 export async function ensureAuthedClient() {
   const ctx = await getAuthedClient();
   if (ctx) return ctx;
 
   const supabase = await getSupabase();
   const { data, error } = await supabase.auth.signInAnonymously();
-  if (error || !data.user) {
-    console.warn("[auth] anonymous sign-in failed:", error?.message);
-    return null;
+  if (error) {
+    throw new Error(`Anonymous sign-in failed: ${error.message}`);
+  }
+  if (!data.user) {
+    throw new Error("Anonymous sign-in returned no user.");
   }
   return { supabase, user: data.user, userId: data.user.id };
 }

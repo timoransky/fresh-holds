@@ -23,7 +23,7 @@ export function GymList({ gyms }: Props) {
           role="alert"
           className="rounded-2xl border-2 border-red-300 bg-red-50 px-4 py-3 text-sm text-red-800"
         >
-          Couldn&rsquo;t save your visit — please try again.
+          Couldn&rsquo;t save your visit: {writeError.message}
         </p>
       )}
 
