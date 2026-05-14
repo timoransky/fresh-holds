@@ -4,7 +4,8 @@ import { getCurrentUser } from "@/lib/auth";
 import { GymList } from "@/components/GymList";
 import { GymListSkeleton } from "@/components/GymListSkeleton";
 import { HeaderAuth } from "@/components/HeaderAuth";
-import { Button } from "@/components/ui/button";
+import { AdminMenuLink } from "@/components/user/AdminMenuLink";
+import { SuggestResetMenuDialogSlot } from "@/components/user/SuggestResetMenuDialogSlot";
 
 export default function Home() {
   return (
@@ -43,8 +44,20 @@ export default function Home() {
 }
 
 async function HeaderAuthSection() {
-  const gyms = await getActiveGymsWithSections();
-  return <HeaderAuth gyms={gyms} />;
+  return (
+    <HeaderAuth
+      suggestResetDialogSlot={
+        <Suspense fallback={null}>
+          <SuggestResetMenuDialogSlot />
+        </Suspense>
+      }
+      adminLinkSlot={
+        <Suspense fallback={null}>
+          <AdminMenuLink />
+        </Suspense>
+      }
+    />
+  );
 }
 
 async function GymsSection() {
@@ -64,4 +77,3 @@ async function GymsSection() {
 function HeaderAuthFallback() {
   return <div className="h-8"></div>;
 }
-

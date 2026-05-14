@@ -1,10 +1,11 @@
 "use client";
 
-import Link from "next/link";
+import type { ReactNode } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Logout02Icon, Shield01Icon, SparklesIcon } from "@hugeicons/core-free-icons";
+import { Logout02Icon } from "@hugeicons/core-free-icons";
 import { signOut } from "@/lib/actions/auth";
 import { Button } from "@/components/ui/button";
+import { SuggestResetMenuButton } from "@/components/SuggestResetMenuButton";
 import { useVisits } from "@/hooks/useVisits";
 
 function formatMemberSince(iso?: string | null): string | null {
@@ -17,11 +18,10 @@ function formatMemberSince(iso?: string | null): string | null {
 type Props = {
   email: string;
   createdAt?: string | null;
-  onSuggestReset: () => void;
-  isAdmin?: boolean;
+  adminLinkSlot: ReactNode;
 };
 
-export function MembershipCard({ email, createdAt, onSuggestReset, isAdmin }: Props) {
+export function MembershipCard({ email, createdAt, adminLinkSlot }: Props) {
   const { history } = useVisits();
   const visitCount = Object.values(history).reduce((sum, dates) => sum + dates.length, 0);
   const gymCount = Object.keys(history).length;
@@ -68,24 +68,8 @@ export function MembershipCard({ email, createdAt, onSuggestReset, isAdmin }: Pr
       </div>
 
       <div className="px-5 pt-4 pb-5 space-y-2">
-        <Button
-          type="button"
-          variant="default"
-          size="sm"
-          className="w-full"
-          onClick={onSuggestReset}
-        >
-          <HugeiconsIcon icon={SparklesIcon} strokeWidth={2} />
-          Suggest a reset
-        </Button>
-        {isAdmin && (
-          <Button asChild variant="outline" size="sm" className="w-full">
-            <Link href="/admin">
-              <HugeiconsIcon icon={Shield01Icon} strokeWidth={2} />
-              Open admin
-            </Link>
-          </Button>
-        )}
+        <SuggestResetMenuButton />
+        {adminLinkSlot}
       </div>
     </div>
   );

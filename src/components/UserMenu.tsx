@@ -1,30 +1,36 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import type { ReactNode } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { SuggestResetForm } from "@/components/SuggestResetForm";
 import { AvatarTrigger } from "@/components/user/AvatarTrigger";
 import { MembershipCard } from "@/components/user/MembershipCard";
-import type { GymWithSections } from "@/lib/types";
+import { SuggestResetContext } from "@/components/user/SuggestResetContext";
 
 type Props = {
   email: string;
   createdAt?: string | null;
-  gyms: GymWithSections[];
-  isAdmin?: boolean;
+  suggestResetDialogSlot: ReactNode;
+  adminLinkSlot: ReactNode;
 };
 
-export function UserMenu({ email, createdAt, gyms, isAdmin }: Props) {
+export function UserMenu({
+  email,
+  createdAt,
+  suggestResetDialogSlot,
+  adminLinkSlot,
+}: Props) {
   const [open, setOpen] = useState(false);
   const [suggestOpen, setSuggestOpen] = useState(false);
+  const closePopover = useCallback(() => setOpen(false), []);
 
-  const handleSuggestReset = () => {
-    setOpen(false);
-    setSuggestOpen(true);
-  };
+  const suggestCtx = useMemo(
+    () => ({ open: suggestOpen, setOpen: setSuggestOpen, closePopover }),
+    [suggestOpen, closePopover],
+  );
 
   return (
-    <>
+    <SuggestResetContext value={suggestCtx}>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <AvatarTrigger email={email} />
@@ -37,12 +43,11 @@ export function UserMenu({ email, createdAt, gyms, isAdmin }: Props) {
           <MembershipCard
             email={email}
             createdAt={createdAt}
-            onSuggestReset={handleSuggestReset}
-            isAdmin={isAdmin}
+            adminLinkSlot={adminLinkSlot}
           />
         </PopoverContent>
       </Popover>
-      <SuggestResetForm gyms={gyms} open={suggestOpen} onOpenChange={setSuggestOpen} />
-    </>
+      {suggestResetDialogSlot}
+    </SuggestResetContext>
   );
 }
