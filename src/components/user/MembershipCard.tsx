@@ -5,7 +5,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { Logout02Icon, Shield01Icon, SparklesIcon } from "@hugeicons/core-free-icons";
 import { signOut } from "@/lib/actions/auth";
 import { Button } from "@/components/ui/button";
-import { useVisits } from "@/hooks/useVisits";
+import type { VisitHistory } from "@/lib/types";
 
 function formatMemberSince(iso?: string | null): string | null {
   if (!iso) return null;
@@ -19,12 +19,18 @@ type Props = {
   createdAt?: string | null;
   onSuggestReset: () => void;
   isAdmin?: boolean;
+  visitHistory: VisitHistory;
 };
 
-export function MembershipCard({ email, createdAt, onSuggestReset, isAdmin }: Props) {
-  const { history } = useVisits();
-  const visitCount = Object.values(history).reduce((sum, dates) => sum + dates.length, 0);
-  const gymCount = Object.keys(history).length;
+export function MembershipCard({
+  email,
+  createdAt,
+  onSuggestReset,
+  isAdmin,
+  visitHistory,
+}: Props) {
+  const visitCount = Object.values(visitHistory).reduce((sum, dates) => sum + dates.length, 0);
+  const gymCount = Object.keys(visitHistory).length;
   const memberSince = formatMemberSince(createdAt);
 
   return (

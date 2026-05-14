@@ -18,7 +18,16 @@ export async function requestOtpCode(
 
   const supabase = await getSupabase();
 
-  const { error } = await supabase.auth.signInWithOtp({ email });
+  // If the visitor is already signed in anonymously, attach the email to
+  // the existing user instead of minting a new one. That preserves the
+  // anon visits the user has logged so far.
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const { error } = user?.is_anonymous
+    ? await supabase.auth.updateUser({ email })
+    : await supabase.auth.signInWithOtp({ email });
 
   if (error) {
     return fail(error.message);
@@ -43,11 +52,17 @@ export async function verifyOtpCode(
 
   const supabase = await getSupabase();
 
-  const { error } = await supabase.auth.verifyOtp({
-    email,
-    token,
-    type: "email",
-  });
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  // Anonymous users verify an email_change (issued via updateUser); fully-
+  // unauthenticated callers verify a regular email sign-in OTP.
+  const { error } = await supabase.auth.verifyOtp(
+    user?.is_anonymous
+      ? { email, token, type: "email_change" }
+      : { email, token, type: "email" },
+  );
 
   if (error) {
     return fail(error.message);

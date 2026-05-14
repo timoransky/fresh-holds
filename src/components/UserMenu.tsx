@@ -5,16 +5,17 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { SuggestResetForm } from "@/components/SuggestResetForm";
 import { AvatarTrigger } from "@/components/user/AvatarTrigger";
 import { MembershipCard } from "@/components/user/MembershipCard";
-import type { GymWithSections } from "@/lib/types";
+import type { GymWithSections, VisitHistory } from "@/lib/types";
 
 type Props = {
   email: string;
   createdAt?: string | null;
   gyms: GymWithSections[];
   isAdmin?: boolean;
+  visitHistory: VisitHistory;
 };
 
-export function UserMenu({ email, createdAt, gyms, isAdmin }: Props) {
+export function UserMenu({ email, createdAt, gyms, isAdmin, visitHistory }: Props) {
   const [open, setOpen] = useState(false);
   const [suggestOpen, setSuggestOpen] = useState(false);
 
@@ -39,6 +40,7 @@ export function UserMenu({ email, createdAt, gyms, isAdmin }: Props) {
             createdAt={createdAt}
             onSuggestReset={handleSuggestReset}
             isAdmin={isAdmin}
+            visitHistory={visitHistory}
           />
         </PopoverContent>
       </Popover>

@@ -1,33 +1,20 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
-import { useSyncedVisits } from "@/hooks/useSyncedVisits";
+import { useVisits } from "@/hooks/useVisits";
 import { useGymRanking } from "@/hooks/useGymRanking";
 import type { GymWithSections } from "@/lib/types";
 import { GymCard } from "@/components/GymCard";
-import { GymListSkeleton } from "@/components/GymListSkeleton";
 import { GymNoDataCard } from "@/components/gym/GymNoDataCard";
 
 type Props = {
   gyms: GymWithSections[];
-  authed: boolean;
 };
 
-const subscribeHydration = () => () => {};
-const getHydrationSnapshot = () => true;
-const getHydrationServerSnapshot = () => false;
-
-export function GymList({ gyms, authed }: Props) {
-  const isHydrated = useSyncExternalStore(
-    subscribeHydration,
-    getHydrationSnapshot,
-    getHydrationServerSnapshot,
-  );
-
-  const { visits, history, setVisits, writeError } = useSyncedVisits(authed);
+export function GymList({ gyms }: Props) {
+  const { visits, history, setVisits, writeError } = useVisits();
   const { hero, heroHasData, runnersUp, noDataExtras } = useGymRanking(gyms, visits);
 
-  if (!isHydrated || !hero) return <GymListSkeleton />;
+  if (!hero) return null;
 
   return (
     <div className="flex flex-col gap-10">
@@ -36,7 +23,7 @@ export function GymList({ gyms, authed }: Props) {
           role="alert"
           className="rounded-2xl border-2 border-red-300 bg-red-50 px-4 py-3 text-sm text-red-800"
         >
-          Couldn&rsquo;t save your visit — your browser may be blocking storage or out of space.
+          Couldn&rsquo;t save your visit — please try again.
         </p>
       )}
 

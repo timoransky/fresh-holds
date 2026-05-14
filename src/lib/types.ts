@@ -31,3 +31,4 @@ export type GymWithSections = Gym & {
 };
 
 export type VisitHistory = Record<string, string[]>;
+export type Visits = Record<string, string>;

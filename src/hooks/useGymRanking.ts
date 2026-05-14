@@ -2,8 +2,7 @@
 
 import { useMemo } from "react";
 import { rankGyms, type GymRanking, type RankedGym } from "@/lib/freshness";
-import type { GymWithSections } from "@/lib/types";
-import type { Visits } from "@/hooks/useVisits";
+import type { GymWithSections, Visits } from "@/lib/types";
 
 export type { GymRanking, RankedGym };
 

@@ -12,7 +12,7 @@ export async function suggestReset(
   formData: FormData,
 ): Promise<SuggestResetResult> {
   const ctx = await getAuthedClient();
-  if (!ctx) return fail("Sign in to suggest a reset.");
+  if (!ctx || ctx.user.is_anonymous) return fail("Sign in to suggest a reset.");
 
   const sectionId = String(formData.get("section_id") ?? "");
   const resetOn = String(formData.get("reset_on") ?? "");

@@ -1,10 +1,10 @@
 import { Suspense } from "react";
 import { getActiveGymsWithSections } from "@/lib/db/gyms";
-import { getCurrentUser } from "@/lib/auth";
+import { pullMyVisits } from "@/lib/db/visits";
+import { VisitsProvider } from "@/hooks/useVisits";
 import { GymList } from "@/components/GymList";
 import { GymListSkeleton } from "@/components/GymListSkeleton";
 import { HeaderAuth } from "@/components/HeaderAuth";
-import { Button } from "@/components/ui/button";
 
 export default function Home() {
   return (
@@ -43,12 +43,18 @@ export default function Home() {
 }
 
 async function HeaderAuthSection() {
-  const gyms = await getActiveGymsWithSections();
-  return <HeaderAuth gyms={gyms} />;
+  const [gyms, visitHistory] = await Promise.all([
+    getActiveGymsWithSections(),
+    pullMyVisits(),
+  ]);
+  return <HeaderAuth gyms={gyms} visitHistory={visitHistory} />;
 }
 
 async function GymsSection() {
-  const [gyms, user] = await Promise.all([getActiveGymsWithSections(), getCurrentUser()]);
+  const [gyms, initialHistory] = await Promise.all([
+    getActiveGymsWithSections(),
+    pullMyVisits(),
+  ]);
 
   if (gyms.length === 0) {
     return (
@@ -58,10 +64,13 @@ async function GymsSection() {
     );
   }
 
-  return <GymList gyms={gyms} authed={Boolean(user)} />;
+  return (
+    <VisitsProvider initialHistory={initialHistory}>
+      <GymList gyms={gyms} />
+    </VisitsProvider>
+  );
 }
 
 function HeaderAuthFallback() {
   return <div className="h-8"></div>;
 }
-

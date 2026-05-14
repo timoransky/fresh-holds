@@ -1,5 +1,4 @@
-import type { GymWithSections, Reset, Section } from "@/lib/types";
-import type { Visits } from "@/hooks/useVisits";
+import type { GymWithSections, Reset, Section, Visits } from "@/lib/types";
 import type { Tier } from "@/lib/tier";
 import { gymFreshness, type FreshLabel } from "@/lib/freshness/scoring";
 import { badgeCountLabel, describeFreshness } from "@/lib/freshness/narrative";

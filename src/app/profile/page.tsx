@@ -54,7 +54,7 @@ export default function ProfilePage() {
 
 async function ProfileContent() {
   const user = await getCurrentUser();
-  if (!user) redirect("/login?next=/profile");
+  if (!user || user.is_anonymous) redirect("/login?next=/profile");
 
   const submissions = await listMySubmissions();
 
