@@ -3,59 +3,31 @@
 import { useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { HelpCircleIcon } from "@hugeicons/core-free-icons";
-import type { GymWithSections } from "@/lib/types";
-import { describeFreshness, mostRecentReset, type FreshLabel } from "@/lib/freshness";
+import type { ScoredGym } from "@/lib/freshness";
 import { VisitedButton } from "@/components/VisitedButton";
 import { FreshnessBadge } from "@/components/FreshnessBadge";
 import { GymExternalLinks } from "@/components/gym/GymExternalLinks";
 import { GymResetTable } from "@/components/gym/GymResetTable";
-import type { Tier } from "@/lib/tier";
 import { tierCardStyle } from "@/lib/tier-style";
 import { cn } from "@/lib/utils";
 
 type Variant = "hero" | "compact";
 
 type Props = {
-  gym: GymWithSections;
-  tier: Tier;
-  freshSectionIds: Set<string>;
-  label: FreshLabel | null;
-  lastVisited: string | null;
-  mostRecentFreshISO: string | null;
+  scored: ScoredGym;
   variant: Variant;
   visitedDates: string[];
   onChangeVisits: (isoDates: string[]) => void;
 };
 
-export function GymCard({
-  gym,
-  tier,
-  freshSectionIds,
-  label,
-  lastVisited,
-  mostRecentFreshISO,
-  variant,
-  visitedDates,
-  onChangeVisits,
-}: Props) {
+export function GymCard({ scored, variant, visitedDates, onChangeVisits }: Props) {
+  const { gym, tier, label, badgeText, narrative, freshSectionIds } = scored;
   const isCountMode = gym.freshness_mode === "count";
-  const sectionsByOrder = [...gym.sections].sort((a, b) => a.display_order - b.display_order);
-  const sectionsByRecent = [...gym.sections].sort((a, b) => {
-    const aLatest = a.resets[0]?.reset_on ?? "";
-    const bLatest = b.resets[0]?.reset_on ?? "";
-    if (aLatest === bLatest) return a.display_order - b.display_order;
-    return bLatest.localeCompare(aLatest);
-  });
-  const recent = mostRecentReset(sectionsByOrder);
-  const allResets = isCountMode
-    ? gym.sections.flatMap((s) => s.resets).sort((a, b) => b.reset_on.localeCompare(a.reset_on))
-    : [];
-
   const isHero = variant === "hero";
 
   const surfaceStyle = tierCardStyle(tier);
 
-  const hasDetails = recent !== null && sectionsByOrder.length > 0;
+  const hasDetails = scored.mostRecentResetISO !== null && scored.sectionsByDisplay.length > 0;
   const [isOpen, setIsOpen] = useState(false);
   const detailsId = `gym-details-${gym.id}`;
 
@@ -77,7 +49,13 @@ export function GymCard({
         >
           {gym.name}
         </h2>
-        <FreshnessBadge tier={tier} label={label} size={isHero ? "hero" : "compact"} bob={isHero} />
+        <FreshnessBadge
+          tier={tier}
+          label={label}
+          badgeText={badgeText}
+          size={isHero ? "hero" : "compact"}
+          bob={isHero}
+        />
       </header>
 
       {hasDetails ? (
@@ -89,7 +67,7 @@ export function GymCard({
             aria-controls={detailsId}
             className="mt-1 w-full text-left text-sm text-muted-foreground outline-none! cursor-pointer hover:text-foreground/80 transition-colors"
           >
-            <span>{describeFreshness(label, lastVisited, mostRecentFreshISO)}</span>
+            <span>{narrative}</span>
             <span
               className={cn(
                 "inline-flex items-center relative justify-center size-4 ml-1 rounded-full align-text-bottom transition-colors",
@@ -108,11 +86,15 @@ export function GymCard({
           >
             <div className="pt-3">
               {isCountMode ? (
-                <GymResetTable mode="count" resets={allResets} lastVisited={lastVisited} />
+                <GymResetTable
+                  mode="count"
+                  resets={scored.allResetsByRecent}
+                  lastVisited={scored.lastVisited}
+                />
               ) : (
                 <GymResetTable
                   mode="sections"
-                  sections={sectionsByRecent}
+                  sections={scored.sectionsByRecent}
                   freshSectionIds={freshSectionIds}
                 />
               )}
@@ -120,9 +102,7 @@ export function GymCard({
           </div>
         </>
       ) : (
-        <p className="mt-3 text-sm text-muted-foreground">
-          {describeFreshness(label, lastVisited, mostRecentFreshISO)}
-        </p>
+        <p className="mt-3 text-sm text-muted-foreground">{narrative}</p>
       )}
 
       <footer className="flex flex-wrap mt-auto pt-4 items-center justify-between gap-3">
