@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import { badgeCountLabel, type FreshLabel } from "@/lib/freshness";
+import type { FreshLabel } from "@/lib/freshness";
 import type { Tier } from "@/lib/tier";
 import { tierBadgeStyle } from "@/lib/tier-style";
 import { cn } from "@/lib/utils";
@@ -7,12 +7,20 @@ import { cn } from "@/lib/utils";
 type Props = {
   tier: Tier;
   label: FreshLabel | null;
+  badgeText: string;
   size?: "hero" | "compact";
   bob?: boolean;
   className?: string;
 };
 
-export function FreshnessBadge({ tier, label, size = "hero", bob = false, className }: Props) {
+export function FreshnessBadge({
+  tier,
+  label,
+  badgeText,
+  size = "hero",
+  bob = false,
+  className,
+}: Props) {
   const isUnknown = tier.key === "unknown";
 
   const baseStyle: CSSProperties = {
@@ -59,7 +67,7 @@ export function FreshnessBadge({ tier, label, size = "hero", bob = false, classN
           ) : (
             <>
               <span className={numberClass}>{label.count}</span>
-              <span className={descriptorClass}>{badgeCountLabel(label)}</span>
+              <span className={descriptorClass}>{badgeText}</span>
             </>
           )}
         </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { rankGyms, type GymRanking, type RankedGym } from "@/lib/ranking";
+import { rankGyms, type GymRanking, type RankedGym } from "@/lib/freshness";
 import type { GymWithSections } from "@/lib/types";
 import type { Visits } from "@/hooks/useVisits";
 

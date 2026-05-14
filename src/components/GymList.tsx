@@ -47,12 +47,7 @@ export function GymList({ gyms, authed }: Props) {
           </h2>
         )}
         <GymCard
-          gym={hero.gym}
-          tier={hero.tier}
-          freshSectionIds={hero.freshSectionIds}
-          label={hero.label}
-          lastVisited={hero.lastVisited}
-          mostRecentFreshISO={hero.mostRecentFreshISO}
+          scored={hero}
           variant="hero"
           visitedDates={history[hero.gym.slug] ?? []}
           onChangeVisits={(dates) => setVisits(hero.gym.slug, dates)}
@@ -65,18 +60,13 @@ export function GymList({ gyms, authed }: Props) {
             also worth a look
           </h2>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 items-start">
-            {runnersUp.map((c) => (
+            {runnersUp.map((scored) => (
               <GymCard
-                key={c.gym.id}
-                gym={c.gym}
-                tier={c.tier}
-                freshSectionIds={c.freshSectionIds}
-                label={c.label}
-                lastVisited={c.lastVisited}
-                mostRecentFreshISO={c.mostRecentFreshISO}
+                key={scored.gym.id}
+                scored={scored}
                 variant="compact"
-                visitedDates={history[c.gym.slug] ?? []}
-                onChangeVisits={(dates) => setVisits(c.gym.slug, dates)}
+                visitedDates={history[scored.gym.slug] ?? []}
+                onChangeVisits={(dates) => setVisits(scored.gym.slug, dates)}
               />
             ))}
           </div>

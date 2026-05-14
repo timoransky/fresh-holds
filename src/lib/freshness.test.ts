@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { rankGyms } from "@/lib/ranking";
+import { rankGyms, scoreGym } from "@/lib/freshness";
 import type { FreshnessMode, GymWithSections, Reset, Section } from "@/lib/types";
 
 // All scenarios pin "now" to this date. Dates in the fixtures are relative to it
@@ -253,5 +253,191 @@ describe("rankGyms — edge cases", () => {
     expect(r.hero?.gym.slug).toBe("a");
     expect(r.runnersUp).toEqual([]);
     expect(r.noDataExtras).toEqual([]);
+  });
+});
+
+describe("scoreGym — narrative", () => {
+  it("no reset data → check-yourself line", () => {
+    const a = makeGym({ slug: "a", sections: { Slab: [] } });
+    expect(scoreGym(a, null).narrative).toBe("No reset data - you have to check for yourself.");
+  });
+
+  it("never-visited + single section → singular sector copy", () => {
+    const a = makeGym({ slug: "a", sections: { Slab: [daysAgo(2)] } });
+    expect(scoreGym(a, null).narrative).toBe(
+      "Never visited - one sector is fresh, last reset 2 days ago.",
+    );
+  });
+
+  it("never-visited + multiple sections → 'all N sectors fresh' copy", () => {
+    const a = makeGym({
+      slug: "a",
+      sections: { Slab: [daysAgo(2)], Overhang: [daysAgo(3)] },
+    });
+    expect(scoreGym(a, null).narrative).toBe(
+      "Never visited - all 2 sectors fresh, last reset 2 days ago.",
+    );
+  });
+
+  it("never-visited + count mode → 'N fresh boulders' copy", () => {
+    const a = makeGym({
+      slug: "a",
+      mode: "count",
+      countResets: [
+        [daysAgo(1), 7],
+        [daysAgo(3), 5],
+      ],
+    });
+    expect(scoreGym(a, null).narrative).toBe(
+      "Never visited - 12 fresh boulders, last reset 1 day ago.",
+    );
+  });
+
+  it("visited today with no fresh resets → 'nothing new since you visited today'", () => {
+    const a = makeGym({ slug: "a", sections: { Slab: [daysAgo(2)] } });
+    expect(scoreGym(a, daysAgo(0)).narrative).toBe("Nothing new since you visited today.");
+  });
+
+  it("visited days ago with no fresh resets → 'nothing new since your last visit Ndays ago'", () => {
+    const a = makeGym({ slug: "a", sections: { Slab: [daysAgo(5)] } });
+    expect(scoreGym(a, daysAgo(3)).narrative).toBe("Nothing new since your last visit 3 days ago.");
+  });
+
+  it("visited + sections mode + fresh resets → 'X of Y sectors fresh, last reset ...'", () => {
+    const a = makeGym({
+      slug: "a",
+      sections: { Slab: [daysAgo(1)], Overhang: [daysAgo(5)] },
+    });
+    expect(scoreGym(a, daysAgo(3)).narrative).toBe("1 of 2 sectors fresh, last reset 1 day ago.");
+  });
+
+  it("visited + count mode + fresh resets → 'N fresh boulders, last reset ...'", () => {
+    const a = makeGym({
+      slug: "a",
+      mode: "count",
+      countResets: [
+        [daysAgo(1), 4],
+        [daysAgo(2), 3],
+        [daysAgo(8), 9],
+      ],
+    });
+    expect(scoreGym(a, daysAgo(5)).narrative).toBe("7 fresh boulders, last reset 1 day ago.");
+  });
+});
+
+describe("scoreGym — badgeText", () => {
+  it("sections mode plural → 'fresh sectors'", () => {
+    const a = makeGym({
+      slug: "a",
+      sections: { Slab: [daysAgo(1)], Overhang: [daysAgo(2)] },
+    });
+    expect(scoreGym(a, null).badgeText).toBe("fresh sectors");
+  });
+
+  it("sections mode singular → 'fresh sector'", () => {
+    const a = makeGym({ slug: "a", sections: { Slab: [daysAgo(1)] } });
+    expect(scoreGym(a, null).badgeText).toBe("fresh sector");
+  });
+
+  it("count mode plural → 'new boulders'", () => {
+    const a = makeGym({
+      slug: "a",
+      mode: "count",
+      countResets: [[daysAgo(1), 5]],
+    });
+    expect(scoreGym(a, null).badgeText).toBe("new boulders");
+  });
+
+  it("count mode singular → 'new boulder'", () => {
+    const a = makeGym({
+      slug: "a",
+      mode: "count",
+      countResets: [[daysAgo(1), 1]],
+    });
+    expect(scoreGym(a, null).badgeText).toBe("new boulder");
+  });
+
+  it("no reset data → empty badgeText (badge renders em-dash from label=null)", () => {
+    const a = makeGym({ slug: "a", sections: { Slab: [] } });
+    const s = scoreGym(a, null);
+    expect(s.label).toBeNull();
+    expect(s.badgeText).toBe("");
+  });
+});
+
+describe("scoreGym — ordering invariants", () => {
+  it("sectionsByDisplay is sorted by display_order ascending", () => {
+    const gym: GymWithSections = {
+      id: "g",
+      slug: "g",
+      name: "g",
+      neighborhood: null,
+      website_url: null,
+      instagram_handle: null,
+      city_id: null,
+      freshness_mode: "sections",
+      sections: [
+        makeSection("B", [makeReset(daysAgo(1))], 2),
+        makeSection("A", [makeReset(daysAgo(5))], 0),
+        makeSection("C", [makeReset(daysAgo(3))], 1),
+      ],
+    };
+    expect(scoreGym(gym, null).sectionsByDisplay.map((s) => s.name)).toEqual(["A", "C", "B"]);
+  });
+
+  it("sectionsByRecent is sorted by most recent reset descending, tiebreak display_order", () => {
+    const gym: GymWithSections = {
+      id: "g",
+      slug: "g",
+      name: "g",
+      neighborhood: null,
+      website_url: null,
+      instagram_handle: null,
+      city_id: null,
+      freshness_mode: "sections",
+      sections: [
+        makeSection("Old", [makeReset(daysAgo(10))], 0),
+        makeSection("Tie-2", [makeReset(daysAgo(1))], 2),
+        makeSection("Tie-1", [makeReset(daysAgo(1))], 1),
+      ],
+    };
+    expect(scoreGym(gym, null).sectionsByRecent.map((s) => s.name)).toEqual([
+      "Tie-1",
+      "Tie-2",
+      "Old",
+    ]);
+  });
+
+  it("allResetsByRecent is populated for count-mode gyms, sorted newest-first", () => {
+    const a = makeGym({
+      slug: "a",
+      mode: "count",
+      countResets: [
+        [daysAgo(5), 3],
+        [daysAgo(1), 7],
+        [daysAgo(3), 5],
+      ],
+    });
+    expect(scoreGym(a, null).allResetsByRecent.map((r) => r.reset_on)).toEqual([
+      daysAgo(1),
+      daysAgo(3),
+      daysAgo(5),
+    ]);
+  });
+
+  it("allResetsByRecent is empty for sections-mode gyms", () => {
+    const a = makeGym({
+      slug: "a",
+      sections: { Slab: [daysAgo(1), daysAgo(3)], Overhang: [daysAgo(2)] },
+    });
+    expect(scoreGym(a, null).allResetsByRecent).toEqual([]);
+  });
+
+  it("mostRecentResetISO reflects the newest reset even when no reset is fresh since visit", () => {
+    // visited today; latest reset is yesterday → no fresh resets, but mostRecentResetISO still set
+    const a = makeGym({ slug: "a", sections: { Slab: [daysAgo(1), daysAgo(3)] } });
+    const s = scoreGym(a, daysAgo(0));
+    expect(s.mostRecentFreshISO).toBeNull();
+    expect(s.mostRecentResetISO).toBe(daysAgo(1));
   });
 });

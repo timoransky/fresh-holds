@@ -14,19 +14,19 @@ Vocabulary the code and the UI should use consistently. Add terms here as they c
 
 ## Derived concepts
 
-**Freshness** — for a given Gym and a given user, the resets that happened *strictly after* the user's last Visit. A Section is fresh iff it has any Reset later than the visit. A never-visited Gym treats every reset as fresh by definition.
+**Freshness** — for a given Gym and a given user, the resets that happened _strictly after_ the user's last Visit. A Section is fresh iff it has any Reset later than the visit. A never-visited Gym treats every reset as fresh by definition.
 
 **Novelty score** — `freshResetCount * min(daysSinceVisit / WEEKLY_VISIT_DAYS, 1)`. Encodes "how new is this gym to this user, _right now_." Decays for users who visited recently; saturates after a week. The home-page sort key.
 
 **Tier** — one of `hot` / `worth` / `slim` / `stale` / `unknown`, bound from the Novelty score (and a "just visited" floor). Each tier has user-facing copy ("sending hot", "worth a climb", etc.), an emoji, and a CSS token set. UI never speaks raw scores — it speaks Tiers.
 
-**ScoredGym** — a Gym paired with everything derived for it at a specific user-and-time: Novelty score, Tier, label counts, narrative string, badge string, sorted sections, flat reset list. The output of `scoreGym(gym, lastVisited, now)`. The deep Freshness module's currency — components consume `ScoredGym` fields rather than re-deriving.
+**ScoredGym** — a Gym paired with everything derived for it at a specific user-and-time: Novelty score, Tier, label counts, narrative string, badge string, sorted sections, flat reset list. The output of `scoreGym(gym, lastVisited)`. The deep Freshness module's currency — components consume `ScoredGym` fields rather than re-deriving.
 
-**Now** — the moment freshness is computed relative to. An explicit input to scoring. For server-rendered pages, captured once at request start and threaded through the render; for client-only paths, captured at hook entry. Tests pass it explicitly.
+**Now** — the moment freshness is computed relative to. Read implicitly via `Date.now()` inside the Freshness module's date helpers; not threaded through the API. Trade-off: a render that straddles midnight, or an SSR/client pair that disagrees on the clock, can produce slightly different `daysSince` for the same input. Acceptable for this app — see ADR / issue #35 for the rejected alternative of threading an explicit `now` param.
 
 ## Home-page categories
 
-`rankGyms(gyms, visits, now)` partitions Gyms into three categories the UI renders separately:
+`rankGyms(gyms, visits)` partitions Gyms into three categories the UI renders separately:
 
 **Hero** — the top ScoredGym. The card that auto-expands. Picks the highest Novelty score with reset data; falls back to a no-data Gym only if no Gym has reset data at all.
 
