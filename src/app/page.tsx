@@ -1,8 +1,9 @@
 import { Suspense } from "react";
+import { cookies } from "next/headers";
 import { getActiveGymsWithSections } from "@/lib/db/gyms";
 import { getCurrentUser } from "@/lib/auth";
 import { rankGyms } from "@/lib/freshness";
-import { readVisitsCookie } from "@/lib/visit-cookie";
+import { VISITS_COOKIE, parseVisitsCookie } from "@/lib/visit-cookie";
 import { GymList } from "@/components/GymList";
 import { GymListSkeleton } from "@/components/GymListSkeleton";
 import { HeaderAuth } from "@/components/HeaderAuth";
@@ -63,10 +64,10 @@ async function HeaderAuthSection() {
 }
 
 async function GymsSection() {
-  const [gyms, user, cookieVisits] = await Promise.all([
+  const [gyms, user, cookieStore] = await Promise.all([
     getActiveGymsWithSections(),
     getCurrentUser(),
-    readVisitsCookie(),
+    cookies(),
   ]);
 
   if (gyms.length === 0) {
@@ -77,6 +78,7 @@ async function GymsSection() {
     );
   }
 
+  const cookieVisits = parseVisitsCookie(cookieStore.get(VISITS_COOKIE)?.value);
   const initialRanking = rankGyms(gyms, cookieVisits);
 
   return <GymList gyms={gyms} authed={Boolean(user)} initialRanking={initialRanking} />;

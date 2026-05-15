@@ -1,5 +1,3 @@
-import "server-only";
-import { cookies } from "next/headers";
 import type { Visits } from "@/hooks/useVisits";
 
 // Tiny mirror of the latest-visit-per-gym map (Visits), kept alongside
@@ -9,13 +7,16 @@ import type { Visits } from "@/hooks/useVisits";
 //
 // Cookie name is intentionally short to keep header size down. Format
 // is URL-encoded JSON of a Visits map (gym_slug → ISO date).
+//
+// This module is environment-neutral — no "server-only" guard, no
+// next/headers import — so the constant can be shared with the
+// client-side cookie writer in useVisits. The server reads happen
+// inline in src/app/page.tsx via the cookies() API.
 export const VISITS_COOKIE = "fh-visits";
 
-export async function readVisitsCookie(): Promise<Visits> {
+export function parseVisitsCookie(raw: string | undefined): Visits {
+  if (!raw) return {};
   try {
-    const store = await cookies();
-    const raw = store.get(VISITS_COOKIE)?.value;
-    if (!raw) return {};
     const parsed = JSON.parse(decodeURIComponent(raw));
     if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
     const out: Visits = {};
