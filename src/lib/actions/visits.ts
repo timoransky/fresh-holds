@@ -4,15 +4,17 @@ import { getAuthedClient } from "@/lib/auth";
 import { ISO_DATE_RE } from "@/lib/date";
 import type { VisitHistory } from "@/lib/types";
 
-export async function pullMyVisits(): Promise<VisitHistory> {
+export type PullVisitsResult = { authed: boolean; history: VisitHistory };
+
+export async function pullMyVisits(): Promise<PullVisitsResult> {
   const ctx = await getAuthedClient();
-  if (!ctx) return {};
+  if (!ctx) return { authed: false, history: {} };
 
   const { data, error } = await ctx.supabase
     .from("visits")
     .select("gym_slug, visited_on")
     .eq("user_id", ctx.userId);
-  if (error || !data) return {};
+  if (error || !data) return { authed: true, history: {} };
 
   const history: VisitHistory = {};
   for (const row of data) {
@@ -21,7 +23,7 @@ export async function pullMyVisits(): Promise<VisitHistory> {
   for (const slug of Object.keys(history)) {
     history[slug] = [...new Set(history[slug])].sort();
   }
-  return history;
+  return { authed: true, history };
 }
 
 // Additive upsert. Never deletes — safe to call with the client's union of

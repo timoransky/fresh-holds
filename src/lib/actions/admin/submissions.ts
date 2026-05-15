@@ -2,6 +2,7 @@
 
 import { revalidatePath, updateTag } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
+import { getActiveGymsWithSections } from "@/lib/db/gyms";
 import { fail, ok, type ActionResult } from "@/lib/actions/result";
 
 export type ReviewResult = ActionResult;
@@ -56,6 +57,9 @@ export async function approveSubmission(
   revalidatePath("/admin/submissions");
   revalidatePath("/admin");
   updateTag("gyms");
+  // Re-prime the cache so the first user lands on a warm read instead of
+  // paying the full Supabase JOIN inside the home page's dynamic segment.
+  await getActiveGymsWithSections();
   return ok("Approved");
 }
 

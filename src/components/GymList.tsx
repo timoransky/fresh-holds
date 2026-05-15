@@ -10,7 +10,6 @@ import { GymNoDataCard } from "@/components/gym/GymNoDataCard";
 
 type Props = {
   gyms: GymWithSections[];
-  authed: boolean;
   initialRanking: GymRanking;
 };
 
@@ -18,7 +17,7 @@ const subscribeHydration = () => () => {};
 const getHydrationSnapshot = () => true;
 const getHydrationServerSnapshot = () => false;
 
-export function GymList({ gyms, authed, initialRanking }: Props) {
+export function GymList({ gyms, initialRanking }: Props) {
   // True after the first client render; false on the server and during
   // hydration. We use it to switch from the cookie-derived initial
   // ranking (which matches what the server rendered) to the live,
@@ -29,7 +28,7 @@ export function GymList({ gyms, authed, initialRanking }: Props) {
     getHydrationServerSnapshot,
   );
 
-  const { visits, history, setVisits, writeError } = useSyncedVisits(authed);
+  const { visits, history, setVisits, writeError } = useSyncedVisits();
   const liveRanking = useGymRanking(gyms, visits);
 
   const { hero, heroHasData, runnersUp, noDataExtras } = isHydrated

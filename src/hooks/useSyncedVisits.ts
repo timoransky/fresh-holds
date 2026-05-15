@@ -6,66 +6,31 @@ import { pullMyVisits, pushMyVisits, setVisitsForGym } from "@/lib/actions/visit
 import { historiesEqual, unionHistories } from "@/lib/visit-history";
 import { todayISO } from "@/lib/date";
 
-// Per-tab flag: once we've reconciled with the server in this session, we
-// don't refetch on subsequent navigations / refreshes. Cleared via the
-// auth flow on sign-out.
-const SYNCED_KEY = "fh-synced-session";
-
-function readSyncedFlag(): boolean {
-  if (typeof sessionStorage === "undefined") return false;
-  try {
-    return sessionStorage.getItem(SYNCED_KEY) === "1";
-  } catch {
-    return false;
-  }
-}
-
-function writeSyncedFlag(): void {
-  if (typeof sessionStorage === "undefined") return;
-  try {
-    sessionStorage.setItem(SYNCED_KEY, "1");
-  } catch {
-    // sessionStorage disabled — we'll just resync next nav, harmless.
-  }
-}
-
-function clearSyncedFlag(): void {
-  if (typeof sessionStorage === "undefined") return;
-  try {
-    sessionStorage.removeItem(SYNCED_KEY);
-  } catch {
-    // ignore
-  }
-}
-
 // Wraps useVisits to keep an authed user's visits in sync with the
 // `visits` table. localStorage stays the synchronous source of truth for
-// the UI, so rendering never waits on the network. The reconciliation
-// pass is fire-and-forget: pull once per tab session, union with local,
-// apply in a single atomic write, push any local additions back. All
-// failures leave localStorage as-is — we'll reconcile on the next sign-in.
-export function useSyncedVisits(authed: boolean) {
+// the UI, so rendering never waits on the network. On mount we ask the
+// server "am I authed, and what do you have?" once via pullMyVisits;
+// the response tells us both whether to push and whether subsequent
+// writes need a server-action call. All failures leave localStorage
+// as-is — we'll reconcile on the next mount.
+export function useSyncedVisits() {
   const base = useVisits();
-  const syncing = useRef(false);
+  // null = unknown (still pulling), true/false = known auth state.
+  const authedRef = useRef<boolean | null>(null);
+  const reconciled = useRef(false);
 
   useEffect(() => {
-    if (!authed) {
-      // Reset for the next sign-in: clear both the in-flight guard and the
-      // session flag, so signing back in (possibly as a different user)
-      // triggers a fresh reconciliation.
-      syncing.current = false;
-      clearSyncedFlag();
-      return;
-    }
-    if (syncing.current) return;
-    if (readSyncedFlag()) return;
-    syncing.current = true;
+    if (reconciled.current) return;
+    reconciled.current = true;
 
     let canceled = false;
     (async () => {
       try {
-        const remote = await pullMyVisits();
+        const { authed, history: remote } = await pullMyVisits();
         if (canceled) return;
+
+        authedRef.current = authed;
+        if (!authed) return;
 
         // Snapshot local at apply time (it may have changed during the
         // network round-trip — e.g. a click while we were waiting).
@@ -78,13 +43,13 @@ export function useSyncedVisits(authed: boolean) {
         // Push only if we have rows the server doesn't yet.
         if (!historiesEqual(union, remote)) {
           pushMyVisits(union).catch(() => {
-            // Local stays canonical; next sign-in retries via this same flow.
+            // Local stays canonical; next mount retries via this same flow.
           });
         }
-        writeSyncedFlag();
       } catch {
-        // Network/auth blip — leave the flag unset so we retry on next mount.
-        syncing.current = false;
+        // Network blip — leave reconciled.current true so we don't thrash.
+        // Subsequent writes will skip server-actions because authedRef
+        // stays null, treated as "not known to be authed".
       }
     })();
 
@@ -92,34 +57,33 @@ export function useSyncedVisits(authed: boolean) {
       canceled = true;
     };
     // base.history / base.setHistory are intentionally not in deps — we
-    // only want to run this reconciliation once per session, not whenever
-    // history changes from clicks.
+    // only reconcile once per mount, not on every visits change.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [authed]);
+  }, []);
 
   const setVisits = useCallback(
     (gymSlug: string, isoDates: string[]) => {
       base.setVisits(gymSlug, isoDates);
-      if (authed) {
+      if (authedRef.current === true) {
         setVisitsForGym(gymSlug, isoDates).catch(() => {
           // Network/server failures don't block the local UI; the next
-          // sign-in or page mount reconciles via pullMyVisits.
+          // mount reconciles via pullMyVisits.
         });
       }
     },
-    [authed, base],
+    [base],
   );
 
   const markVisited = useCallback(
     (gymSlug: string, isoDate?: string) => {
       base.markVisited(gymSlug, isoDate);
-      if (authed) {
+      if (authedRef.current === true) {
         const next = base.history[gymSlug] ?? [];
         const merged = [...new Set([...next, isoDate ?? todayISO()])].sort();
         setVisitsForGym(gymSlug, merged).catch(() => {});
       }
     },
-    [authed, base],
+    [base],
   );
 
   return { ...base, setVisits, markVisited };
