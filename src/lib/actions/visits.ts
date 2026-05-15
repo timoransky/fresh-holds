@@ -24,15 +24,15 @@ export async function pullMyVisits(): Promise<VisitHistory> {
   return history;
 }
 
-// Additive merge: union the caller's local history into the server, then
-// return the unioned history. Never deletes, so it's safe to call on first
-// sign-in from a device where localStorage may be partial or empty.
-export async function mergeFromLocal(local: VisitHistory): Promise<VisitHistory> {
+// Additive upsert. Never deletes — safe to call with the client's union of
+// (local ∪ remote) on first authed mount. No return value; callers already
+// have the data they wrote.
+export async function pushMyVisits(history: VisitHistory): Promise<void> {
   const ctx = await getAuthedClient();
-  if (!ctx) return local;
+  if (!ctx) return;
 
   const rows: { user_id: string; gym_slug: string; visited_on: string }[] = [];
-  for (const [slug, dates] of Object.entries(local)) {
+  for (const [slug, dates] of Object.entries(history)) {
     if (typeof slug !== "string" || !slug) continue;
     for (const date of dates) {
       if (typeof date !== "string" || !ISO_DATE_RE.test(date)) continue;
@@ -40,11 +40,9 @@ export async function mergeFromLocal(local: VisitHistory): Promise<VisitHistory>
     }
   }
 
-  if (rows.length > 0) {
-    await ctx.supabase.from("visits").upsert(rows, { onConflict: "user_id,gym_slug,visited_on" });
-  }
+  if (rows.length === 0) return;
 
-  return pullMyVisits();
+  await ctx.supabase.from("visits").upsert(rows, { onConflict: "user_id,gym_slug,visited_on" });
 }
 
 export async function setVisitsForGym(gymSlug: string, dates: string[]): Promise<void> {

@@ -20,7 +20,9 @@ export async function HeaderAuth({
   if (!user) {
     return (
       <Button asChild variant="outline" size="sm" className="rounded-full">
-        <Link href={`/login?next=${encodeURIComponent(next)}`}>Sign in</Link>
+        <Link href={`/login?next=${encodeURIComponent(next)}`} prefetch={false}>
+          Sign in
+        </Link>
       </Button>
     );
   }

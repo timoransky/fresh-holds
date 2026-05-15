@@ -125,5 +125,18 @@ export function useVisits() {
     }
   }, []);
 
-  return { visits, history, markVisited, setVisits, writeError };
+  // Atomic replace of the entire history. Used by the background server
+  // sync to apply a union result in one write — replacing one localStorage
+  // write per slug (which fan out to one render per slug via the storage
+  // event).
+  const setHistory = useCallback((next: VisitHistory) => {
+    try {
+      writeHistory(next);
+      setWriteError(null);
+    } catch (e) {
+      setWriteError(e instanceof Error ? e : new Error(String(e)));
+    }
+  }, []);
+
+  return { visits, history, markVisited, setVisits, setHistory, writeError };
 }
