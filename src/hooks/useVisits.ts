@@ -1,13 +1,25 @@
 "use client";
 
-import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { todayISO } from "@/lib/date";
+import { VISITS_COOKIE } from "@/lib/visit-cookie";
 
 const STORAGE_KEY = "freshholds:visits";
 const CHANGE_EVENT = "freshholds:visits-change";
+const COOKIE_MAX_AGE_S = 365 * 24 * 60 * 60; // 1 year
 
 export type VisitHistory = Record<string, string[]>;
 export type Visits = Record<string, string>;
+
+function writeVisitsCookie(visits: Visits): void {
+  if (typeof document === "undefined") return;
+  if (Object.keys(visits).length === 0) {
+    document.cookie = `${VISITS_COOKIE}=; path=/; max-age=0; samesite=lax`;
+    return;
+  }
+  const value = encodeURIComponent(JSON.stringify(visits));
+  document.cookie = `${VISITS_COOKIE}=${value}; path=/; max-age=${COOKIE_MAX_AGE_S}; samesite=lax`;
+}
 
 function readRaw(): string {
   try {
@@ -76,6 +88,14 @@ export function useVisits() {
     }
     return latest;
   }, [history]);
+
+  // Mirror the latest-visit-per-gym map into a cookie so the server can
+  // pre-rank the home page on the next refresh. Fires after every change
+  // (including the first post-hydration mount, which seeds a missing
+  // cookie from existing localStorage).
+  useEffect(() => {
+    writeVisitsCookie(visits);
+  }, [visits]);
 
   const markVisited = useCallback((gymSlug: string, isoDate?: string) => {
     try {
