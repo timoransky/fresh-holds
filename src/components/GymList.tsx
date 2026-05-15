@@ -3,21 +3,26 @@
 import { useSyncExternalStore } from "react";
 import { useSyncedVisits } from "@/hooks/useSyncedVisits";
 import { useGymRanking } from "@/hooks/useGymRanking";
+import type { GymRanking } from "@/lib/freshness";
 import type { GymWithSections } from "@/lib/types";
 import { GymCard } from "@/components/GymCard";
-import { GymListSkeleton } from "@/components/GymListSkeleton";
 import { GymNoDataCard } from "@/components/gym/GymNoDataCard";
 
 type Props = {
   gyms: GymWithSections[];
   authed: boolean;
+  initialRanking: GymRanking;
 };
 
 const subscribeHydration = () => () => {};
 const getHydrationSnapshot = () => true;
 const getHydrationServerSnapshot = () => false;
 
-export function GymList({ gyms, authed }: Props) {
+export function GymList({ gyms, authed, initialRanking }: Props) {
+  // True after the first client render; false on the server and during
+  // hydration. We use it to switch from the cookie-derived initial
+  // ranking (which matches what the server rendered) to the live,
+  // localStorage-derived ranking once we have it.
   const isHydrated = useSyncExternalStore(
     subscribeHydration,
     getHydrationSnapshot,
@@ -25,9 +30,13 @@ export function GymList({ gyms, authed }: Props) {
   );
 
   const { visits, history, setVisits, writeError } = useSyncedVisits(authed);
-  const { hero, heroHasData, runnersUp, noDataExtras } = useGymRanking(gyms, visits);
+  const liveRanking = useGymRanking(gyms, visits);
 
-  if (!isHydrated || !hero) return <GymListSkeleton />;
+  const { hero, heroHasData, runnersUp, noDataExtras } = isHydrated
+    ? liveRanking
+    : initialRanking;
+
+  if (!hero) return null;
 
   return (
     <div className="flex flex-col gap-10">
