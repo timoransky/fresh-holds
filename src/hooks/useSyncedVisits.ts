@@ -2,42 +2,98 @@
 
 import { useCallback, useEffect, useRef } from "react";
 import { useVisits } from "@/hooks/useVisits";
-import { mergeFromLocal, setVisitsForGym } from "@/lib/actions/visits";
+import { pullMyVisits, pushMyVisits, setVisitsForGym } from "@/lib/actions/visits";
+import { historiesEqual, unionHistories } from "@/lib/visit-history";
 import { todayISO } from "@/lib/date";
 
-// Wraps useVisits to keep an authed user's visits in sync with the `visits`
-// table. localStorage stays the synchronous read source for the UI, so the
-// list never waits on the network. Anonymous users get the original behavior.
+// Per-tab flag: once we've reconciled with the server in this session, we
+// don't refetch on subsequent navigations / refreshes. Cleared via the
+// auth flow on sign-out.
+const SYNCED_KEY = "fh-synced-session";
+
+function readSyncedFlag(): boolean {
+  if (typeof sessionStorage === "undefined") return false;
+  try {
+    return sessionStorage.getItem(SYNCED_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function writeSyncedFlag(): void {
+  if (typeof sessionStorage === "undefined") return;
+  try {
+    sessionStorage.setItem(SYNCED_KEY, "1");
+  } catch {
+    // sessionStorage disabled — we'll just resync next nav, harmless.
+  }
+}
+
+function clearSyncedFlag(): void {
+  if (typeof sessionStorage === "undefined") return;
+  try {
+    sessionStorage.removeItem(SYNCED_KEY);
+  } catch {
+    // ignore
+  }
+}
+
+// Wraps useVisits to keep an authed user's visits in sync with the
+// `visits` table. localStorage stays the synchronous source of truth for
+// the UI, so rendering never waits on the network. The reconciliation
+// pass is fire-and-forget: pull once per tab session, union with local,
+// apply in a single atomic write, push any local additions back. All
+// failures leave localStorage as-is — we'll reconcile on the next sign-in.
 export function useSyncedVisits(authed: boolean) {
   const base = useVisits();
-  const merged = useRef(false);
+  const syncing = useRef(false);
 
   useEffect(() => {
     if (!authed) {
-      merged.current = false;
+      // Reset for the next sign-in: clear both the in-flight guard and the
+      // session flag, so signing back in (possibly as a different user)
+      // triggers a fresh reconciliation.
+      syncing.current = false;
+      clearSyncedFlag();
       return;
     }
-    if (merged.current) return;
-    merged.current = true;
+    if (syncing.current) return;
+    if (readSyncedFlag()) return;
+    syncing.current = true;
 
     let canceled = false;
     (async () => {
       try {
-        const server = await mergeFromLocal(base.history);
+        const remote = await pullMyVisits();
         if (canceled) return;
-        for (const [slug, dates] of Object.entries(server)) {
-          base.setVisits(slug, dates);
+
+        // Snapshot local at apply time (it may have changed during the
+        // network round-trip — e.g. a click while we were waiting).
+        const localNow = base.history;
+        const union = unionHistories(localNow, remote);
+
+        if (!historiesEqual(union, localNow)) {
+          base.setHistory(union);
         }
+        // Push only if we have rows the server doesn't yet.
+        if (!historiesEqual(union, remote)) {
+          pushMyVisits(union).catch(() => {
+            // Local stays canonical; next sign-in retries via this same flow.
+          });
+        }
+        writeSyncedFlag();
       } catch {
-        merged.current = false;
+        // Network/auth blip — leave the flag unset so we retry on next mount.
+        syncing.current = false;
       }
     })();
 
     return () => {
       canceled = true;
     };
-    // base.setVisits is stable; base.history is intentionally read once at
-    // sync time so we don't re-merge on every local write.
+    // base.history / base.setHistory are intentionally not in deps — we
+    // only want to run this reconciliation once per session, not whenever
+    // history changes from clicks.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authed]);
 
@@ -47,7 +103,7 @@ export function useSyncedVisits(authed: boolean) {
       if (authed) {
         setVisitsForGym(gymSlug, isoDates).catch(() => {
           // Network/server failures don't block the local UI; the next
-          // sign-in will reconcile via mergeFromLocal.
+          // sign-in or page mount reconciles via pullMyVisits.
         });
       }
     },
