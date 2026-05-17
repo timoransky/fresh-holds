@@ -11,7 +11,7 @@ type CountModeProps = {
 type SectionModeProps = {
   mode: "sections";
   sections: GymWithSections["sections"];
-  freshSectionIds: Set<string>;
+  freshSectionIds: string[];
 };
 
 type Props = CountModeProps | SectionModeProps;
@@ -38,7 +38,7 @@ export function GymResetTable(props: Props) {
               <SectionRow
                 key={section.id}
                 section={section}
-                isFresh={props.freshSectionIds.has(section.id)}
+                isFresh={props.freshSectionIds.includes(section.id)}
               />
             ))}
       </tbody>

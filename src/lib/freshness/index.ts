@@ -21,7 +21,7 @@ export type ScoredGym = {
 
   noveltyScore: number;
   hasResetData: boolean;
-  freshSectionIds: Set<string>;
+  freshSectionIds: string[];
   freshResetCount: number;
 
   mostRecentFreshISO: string | null;

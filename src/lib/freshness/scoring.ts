@@ -8,7 +8,7 @@ export type FreshLabel =
   | { kind: "boulders"; count: number };
 
 export type FreshnessResult = {
-  freshSectionIds: Set<string>;
+  freshSectionIds: string[];
   freshResetCount: number;
   noveltyScore: number;
   daysSinceVisit: number | null;
@@ -18,7 +18,7 @@ export type FreshnessResult = {
 };
 
 export function gymFreshness(gym: GymWithSections, lastVisitedISO: string | null): FreshnessResult {
-  const freshSectionIds = new Set<string>();
+  const freshSectionIds: string[] = [];
   const sections = gym.sections;
   const hasResetData = sections.some((s) => s.resets.length > 0);
   const daysSinceVisit = lastVisitedISO === null ? null : Math.max(0, daysSince(lastVisitedISO));
@@ -53,7 +53,7 @@ export function gymFreshness(gym: GymWithSections, lastVisitedISO: string | null
         sectionHasFresh = true;
       }
     }
-    if (sectionHasFresh) freshSectionIds.add(section.id);
+    if (sectionHasFresh) freshSectionIds.push(section.id);
   }
 
   const visitFactor = daysSinceVisit === null ? 1 : Math.min(daysSinceVisit / WEEKLY_VISIT_DAYS, 1);
@@ -62,7 +62,7 @@ export function gymFreshness(gym: GymWithSections, lastVisitedISO: string | null
   const label: FreshLabel =
     gym.freshness_mode === "count"
       ? { kind: "boulders", count: freshBoulderSum }
-      : { kind: "sections", count: freshSectionIds.size, total: sections.length };
+      : { kind: "sections", count: freshSectionIds.length, total: sections.length };
 
   return {
     freshSectionIds,
