@@ -1,9 +1,9 @@
 import { Suspense } from "react";
 import { cookies } from "next/headers";
-import { getActiveGymsWithSections } from "@/lib/db/gyms";
+import { getRankedGyms } from "@/lib/db/ranking";
 import { getCurrentUser } from "@/lib/auth";
-import { rankGyms } from "@/lib/freshness";
-import { VISITS_COOKIE, parseVisitsCookie } from "@/lib/visit-cookie";
+import { todayISO } from "@/lib/date";
+import { VISITS_COOKIE } from "@/lib/visit-cookie";
 import { GymList } from "@/components/GymList";
 import { GymListSkeleton } from "@/components/GymListSkeleton";
 import { HeaderAuth } from "@/components/HeaderAuth";
@@ -46,6 +46,22 @@ export default function Home() {
   );
 }
 
+async function GymsSection() {
+  const [cookieStore, user] = await Promise.all([cookies(), getCurrentUser()]);
+  const visitsCookieRaw = cookieStore.get(VISITS_COOKIE)?.value ?? "";
+  const { gyms, ranking } = await getRankedGyms(visitsCookieRaw, todayISO());
+
+  if (gyms.length === 0) {
+    return (
+      <p className="rounded-2xl border-2 border-dashed border-foreground/20 bg-background/60 p-6 text-sm text-muted-foreground">
+        No gyms yet.
+      </p>
+    );
+  }
+
+  return <GymList gyms={gyms} authed={Boolean(user)} initialRanking={ranking} />;
+}
+
 async function HeaderAuthSection() {
   return (
     <HeaderAuth
@@ -61,27 +77,6 @@ async function HeaderAuthSection() {
       }
     />
   );
-}
-
-async function GymsSection() {
-  const [gyms, user, cookieStore] = await Promise.all([
-    getActiveGymsWithSections(),
-    getCurrentUser(),
-    cookies(),
-  ]);
-
-  if (gyms.length === 0) {
-    return (
-      <p className="rounded-2xl border-2 border-dashed border-foreground/20 bg-background/60 p-6 text-sm text-muted-foreground">
-        No gyms yet.
-      </p>
-    );
-  }
-
-  const cookieVisits = parseVisitsCookie(cookieStore.get(VISITS_COOKIE)?.value);
-  const initialRanking = rankGyms(gyms, cookieVisits);
-
-  return <GymList gyms={gyms} authed={Boolean(user)} initialRanking={initialRanking} />;
 }
 
 function HeaderAuthFallback() {

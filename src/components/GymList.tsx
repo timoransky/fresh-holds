@@ -19,11 +19,11 @@ const getHydrationSnapshot = () => true;
 const getHydrationServerSnapshot = () => false;
 
 export function GymList({ gyms, authed, initialRanking }: Props) {
-  // True after the first client render; false on the server and during
-  // hydration. We use it to switch from the cookie-derived initial
-  // ranking (which matches what the server rendered) to the live,
-  // localStorage-derived ranking once we have it.
-  const isHydrated = useSyncExternalStore(
+  // True after first commit; false on server and during hydration. Lets
+  // us render the server-computed initialRanking on first paint (matching
+  // the HTML exactly) and switch to liveRanking afterward — which is
+  // value-identical in steady state and diverges on clicks or drift.
+  const hydrated = useSyncExternalStore(
     subscribeHydration,
     getHydrationSnapshot,
     getHydrationServerSnapshot,
@@ -31,10 +31,7 @@ export function GymList({ gyms, authed, initialRanking }: Props) {
 
   const { visits, history, setVisits, writeError } = useSyncedVisits(authed);
   const liveRanking = useGymRanking(gyms, visits);
-
-  const { hero, heroHasData, runnersUp, noDataExtras } = isHydrated
-    ? liveRanking
-    : initialRanking;
+  const { hero, heroHasData, runnersUp, noDataExtras } = hydrated ? liveRanking : initialRanking;
 
   if (!hero) return null;
 
