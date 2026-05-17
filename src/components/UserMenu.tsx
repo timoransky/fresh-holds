@@ -14,12 +14,7 @@ type Props = {
   adminLinkSlot: ReactNode;
 };
 
-export function UserMenu({
-  email,
-  createdAt,
-  suggestResetDialogSlot,
-  adminLinkSlot,
-}: Props) {
+export function UserMenu({ email, createdAt, suggestResetDialogSlot, adminLinkSlot }: Props) {
   const [open, setOpen] = useState(false);
   const [suggestOpen, setSuggestOpen] = useState(false);
   const closePopover = useCallback(() => setOpen(false), []);
@@ -33,18 +28,14 @@ export function UserMenu({
     <SuggestResetContext value={suggestCtx}>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          <AvatarTrigger email={email} />
+          <AvatarTrigger email={email} open={open} />
         </PopoverTrigger>
         <PopoverContent
           align="end"
           sideOffset={10}
           className="w-72 origin-top-right overflow-hidden squircle-3xl rounded-2xl bg-card p-0 ring-1 ring-brand/15 shadow-2xl shadow-brand-shadow/25"
         >
-          <MembershipCard
-            email={email}
-            createdAt={createdAt}
-            adminLinkSlot={adminLinkSlot}
-          />
+          <MembershipCard email={email} createdAt={createdAt} adminLinkSlot={adminLinkSlot} />
         </PopoverContent>
       </Popover>
       {suggestResetDialogSlot}

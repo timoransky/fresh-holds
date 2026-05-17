@@ -38,13 +38,13 @@ export function GymCard({ scored, variant, visitedDates, onChangeVisits }: Props
         "group squircle-4xl relative flex flex-col rounded-3xl border-2 border-(--surface-stroke) bg-(--surface-tint) backdrop-blur-sm transition-all",
         "shadow-[0_2px_0_0_var(--surface-stroke),0_12px_32px_-12px_var(--surface-shadow)]",
         "p-4 sm:p-5",
-        isHero ? "min-h-41" : "min-h-36.5",
+        isHero ? "min-h-44" : "min-h-40 sm:min-h-37",
       )}
     >
       <header className="flex relative items-start justify-between gap-4">
         <h2
           className={cn(
-            "font-heading font-bold tracking-tight text-foreground text-balance max-w-[calc(100%-var(--badge-width))] min-w-0 flex-1",
+            "font-heading font-bold tracking-tight leading-tight text-foreground text-balance max-w-[calc(100%-var(--badge-width))] min-w-0 flex-1",
             isHero ? "min-h-12 text-3xl sm:text-4xl" : "text-2xl",
           )}
         >
