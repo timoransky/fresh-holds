@@ -6,7 +6,7 @@ import { Logout02Icon } from "@hugeicons/core-free-icons";
 import { signOut } from "@/lib/actions/auth";
 import { Button } from "@/components/ui/button";
 import { SuggestResetMenuButton } from "@/components/SuggestResetMenuButton";
-import { useVisits } from "@/hooks/useVisits";
+import { useVisitLog } from "@/lib/visit-log";
 
 function formatMemberSince(iso?: string | null): string | null {
   if (!iso) return null;
@@ -22,7 +22,10 @@ type Props = {
 };
 
 export function MembershipCard({ email, createdAt, adminLinkSlot }: Props) {
-  const { history } = useVisits();
+  // MembershipCard renders only inside the authed UserMenu, so authed=true.
+  // Calling the synced hook (rather than a bare local read) means counts
+  // reflect server reconciliation when the menu opens before GymList mounts.
+  const { history } = useVisitLog(true);
   const visitCount = Object.values(history).reduce((sum, dates) => sum + dates.length, 0);
   const gymCount = Object.keys(history).length;
   const memberSince = formatMemberSince(createdAt);

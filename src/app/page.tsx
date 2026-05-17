@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { getRankedGyms } from "@/lib/db/ranking";
 import { getCurrentUser } from "@/lib/auth";
 import { todayISO } from "@/lib/date";
-import { VISITS_COOKIE } from "@/lib/visit-cookie";
+import { VISITS_COOKIE } from "@/lib/visit-log";
 import { GymList } from "@/components/GymList";
 import { HeaderAuth } from "@/components/HeaderAuth";
 import { AdminMenuLink } from "@/components/user/AdminMenuLink";
