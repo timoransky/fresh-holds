@@ -1,7 +1,7 @@
 import { unstable_cache } from "next/cache";
 import { getActiveGymsWithSections } from "@/lib/db/gyms";
 import { rankGyms, type GymRanking } from "@/lib/freshness";
-import { parseVisitsCookie } from "@/lib/visit-cookie";
+import { parseVisitsCookie } from "@/lib/visit-log";
 import type { GymWithSections } from "@/lib/types";
 
 const ONE_DAY_SECONDS = 24 * 60 * 60;

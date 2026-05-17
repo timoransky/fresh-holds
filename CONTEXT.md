@@ -12,6 +12,8 @@ Vocabulary the code and the UI should use consistently. Add terms here as they c
 
 **Visit** — a user-recorded date the user climbed at a Gym. Stored in browser `localStorage` for anonymous users (`Record<gymSlug, isoDate[]>`) and on the server for signed-in users. The most recent visit per gym is what freshness compares against.
 
+**Visit log** — the unified record of a user's Visits across the three places it has to exist: browser `localStorage` (canonical client store), the `fh-visits` cookie (latest-per-gym mirror so the server can pre-rank), and the server `visits` table (for cross-device sync of signed-in users). Owned by `src/lib/visit-log/`. One client hook (`useVisitLog(authed)`) for all consumers — when authed, it reconciles local with server once per tab session via a pure `reconcile(local, remote)` function. Server actions in `src/lib/actions/visits.ts` provide the RPC seam to the visits table.
+
 ## Derived concepts
 
 **Freshness** — for a given Gym and a given user, the resets that happened _strictly after_ the user's last Visit. A Section is fresh iff it has any Reset later than the visit. A never-visited Gym treats every reset as fresh by definition.

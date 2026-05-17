@@ -2,7 +2,7 @@
 
 import { getAuthedClient } from "@/lib/auth";
 import { ISO_DATE_RE } from "@/lib/date";
-import type { VisitHistory } from "@/lib/types";
+import type { VisitHistory } from "@/lib/visit-log";
 
 export async function pullMyVisits(): Promise<VisitHistory> {
   const ctx = await getAuthedClient();
