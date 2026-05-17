@@ -1,9 +1,8 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useMemo, useSyncExternalStore } from "react";
 import { useSyncedVisits } from "@/hooks/useSyncedVisits";
-import { useGymRanking } from "@/hooks/useGymRanking";
-import type { GymRanking } from "@/lib/freshness";
+import { rankGyms, type GymRanking } from "@/lib/freshness";
 import type { GymWithSections } from "@/lib/types";
 import { GymCard } from "@/components/GymCard";
 import { GymNoDataCard } from "@/components/gym/GymNoDataCard";
@@ -30,7 +29,7 @@ export function GymList({ gyms, authed, initialRanking }: Props) {
   );
 
   const { visits, history, setVisits, writeError } = useSyncedVisits(authed);
-  const liveRanking = useGymRanking(gyms, visits);
+  const liveRanking = useMemo(() => rankGyms(gyms, visits), [gyms, visits]);
   const { hero, heroHasData, runnersUp, noDataExtras } = hydrated ? liveRanking : initialRanking;
 
   if (!hero) return null;
