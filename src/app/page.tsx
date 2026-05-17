@@ -1,16 +1,19 @@
 import { Suspense } from "react";
 import { cookies } from "next/headers";
-import { getActiveGymsWithSections } from "@/lib/db/gyms";
+import { getRankedGyms } from "@/lib/db/ranking";
 import { getCurrentUser } from "@/lib/auth";
-import { rankGyms } from "@/lib/freshness";
-import { VISITS_COOKIE, parseVisitsCookie } from "@/lib/visit-cookie";
+import { todayISO } from "@/lib/date";
+import { VISITS_COOKIE } from "@/lib/visit-cookie";
 import { GymList } from "@/components/GymList";
-import { GymListSkeleton } from "@/components/GymListSkeleton";
 import { HeaderAuth } from "@/components/HeaderAuth";
 import { AdminMenuLink } from "@/components/user/AdminMenuLink";
 import { SuggestResetMenuDialogSlot } from "@/components/user/SuggestResetMenuDialogSlot";
 
-export default function Home() {
+export default async function Home() {
+  const [cookieStore, user] = await Promise.all([cookies(), getCurrentUser()]);
+  const visitsCookieRaw = cookieStore.get(VISITS_COOKIE)?.value ?? "";
+  const { gyms, ranking } = await getRankedGyms(visitsCookieRaw, todayISO());
+
   return (
     <main className="mx-auto min-h-dvh w-full max-w-4xl px-4 py-6 sm:pt-10 sm:pb-14 overflow-hidden">
       <header className="mb-10 sm:mb-14">
@@ -28,9 +31,13 @@ export default function Home() {
         </p>
       </header>
 
-      <Suspense fallback={<GymListSkeleton />}>
-        <GymsSection />
-      </Suspense>
+      {gyms.length === 0 ? (
+        <p className="rounded-2xl border-2 border-dashed border-foreground/20 bg-background/60 p-6 text-sm text-muted-foreground">
+          No gyms yet.
+        </p>
+      ) : (
+        <GymList gyms={gyms} authed={Boolean(user)} initialRanking={ranking} />
+      )}
 
       <footer className="mt-16 flex flex-row justify-center flex-wrap items-center gap-2 text-center text-xs text-muted-foreground">
         <span>resets logged manually</span>
@@ -61,27 +68,6 @@ async function HeaderAuthSection() {
       }
     />
   );
-}
-
-async function GymsSection() {
-  const [gyms, user, cookieStore] = await Promise.all([
-    getActiveGymsWithSections(),
-    getCurrentUser(),
-    cookies(),
-  ]);
-
-  if (gyms.length === 0) {
-    return (
-      <p className="rounded-2xl border-2 border-dashed border-foreground/20 bg-background/60 p-6 text-sm text-muted-foreground">
-        No gyms yet.
-      </p>
-    );
-  }
-
-  const cookieVisits = parseVisitsCookie(cookieStore.get(VISITS_COOKIE)?.value);
-  const initialRanking = rankGyms(gyms, cookieVisits);
-
-  return <GymList gyms={gyms} authed={Boolean(user)} initialRanking={initialRanking} />;
 }
 
 function HeaderAuthFallback() {
