@@ -1,9 +1,9 @@
 import type { CSSProperties } from "react";
 import { GymExternalLinks } from "@/components/gym/GymExternalLinks";
-import type { GymWithSections } from "@/lib/types";
+import type { Gym } from "@/lib/types";
 
 type Props = {
-  gym: GymWithSections;
+  gym: Gym;
 };
 
 const surfaceStyle = {

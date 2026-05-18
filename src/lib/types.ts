@@ -3,6 +3,8 @@ export type Reset = {
   reset_on: string;
   notes: string | null;
   boulders_reset: number | null;
+  section_id: string | null;
+  section_name: string | null;
 };
 
 export type Section = {
@@ -10,7 +12,6 @@ export type Section = {
   name: string;
   display_order: number;
   is_active: boolean;
-  resets: Reset[];
 };
 
 export type Gym = {
@@ -23,7 +24,10 @@ export type Gym = {
   city_id: string | null;
 };
 
-export type GymWithSections = Gym & {
-  sections: Section[];
-  gymWideResets: Reset[];
+// Resets are flat (newest first) and self-describe their sector attribution.
+// The catalog of named sections lives elsewhere (admin form only needs it).
+export type GymWithResets = Gym & {
+  resets: Reset[];
 };
+
+export type VisitHistory = Record<string, string[]>;

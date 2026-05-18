@@ -25,10 +25,10 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { todayISO } from "@/lib/date";
-import type { GymWithSections } from "@/lib/types";
+import type { GymWithSectionCatalog } from "@/lib/db/gyms";
 
 type Props = {
-  gyms: GymWithSections[];
+  gyms: GymWithSectionCatalog[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
 };

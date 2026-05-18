@@ -21,12 +21,12 @@ type Props = {
 };
 
 export function GymCard({ scored, variant, visitedDates, onChangeVisits }: Props) {
-  const { gym, tier, badgeCount, badgeText, narrative, freshSectionIds } = scored;
+  const { gym, tier, badgeCount, badgeText, narrative } = scored;
   const isHero = variant === "hero";
 
   const surfaceStyle = tierCardStyle(tier);
 
-  const hasDetails = scored.timelineResets.length > 0;
+  const hasDetails = scored.resets.length > 0;
   const [isOpen, setIsOpen] = useState(false);
   const detailsId = `gym-details-${gym.id}`;
 
@@ -85,12 +85,7 @@ export function GymCard({ scored, variant, visitedDates, onChangeVisits }: Props
             )}
           >
             <div className="pt-3">
-              <GymResetTable
-                sections={scored.sectionsByRecent}
-                timelineResets={scored.timelineResets}
-                lastVisited={scored.lastVisited}
-                freshSectionIds={freshSectionIds}
-              />
+              <GymResetTable resets={scored.resets} lastVisited={scored.lastVisited} />
             </div>
           </div>
         </>

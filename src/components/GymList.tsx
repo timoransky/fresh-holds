@@ -3,12 +3,12 @@
 import { useMemo, useSyncExternalStore } from "react";
 import { useVisitLog } from "@/lib/visit-log";
 import { rankGyms, type GymRanking } from "@/lib/freshness";
-import type { GymWithSections } from "@/lib/types";
+import type { GymWithResets } from "@/lib/types";
 import { GymCard } from "@/components/GymCard";
 import { GymNoDataCard } from "@/components/gym/GymNoDataCard";
 
 type Props = {
-  gyms: GymWithSections[];
+  gyms: GymWithResets[];
   authed: boolean;
   initialRanking: GymRanking;
 };

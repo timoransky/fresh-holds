@@ -1,8 +1,8 @@
-import { getActiveGymsWithSections } from "@/lib/db/gyms";
+import { getActiveGymsWithResets } from "@/lib/db/gyms";
 import { renderGymsMarkdown } from "@/lib/agentDigest";
 
 export async function GET() {
-  const gyms = await getActiveGymsWithSections();
+  const gyms = await getActiveGymsWithResets();
   return new Response(renderGymsMarkdown(gyms), {
     headers: {
       "content-type": "text/markdown; charset=utf-8",

@@ -1,8 +1,8 @@
 import { unstable_cache } from "next/cache";
-import { getActiveGymsWithSections } from "@/lib/db/gyms";
+import { getActiveGymsWithResets } from "@/lib/db/gyms";
 import { rankGyms, type GymRanking } from "@/lib/freshness";
 import { parseVisitsCookie } from "@/lib/visit-log";
-import type { GymWithSections } from "@/lib/types";
+import type { GymWithResets } from "@/lib/types";
 
 const ONE_DAY_SECONDS = 24 * 60 * 60;
 
@@ -17,12 +17,12 @@ export const getRankedGyms = unstable_cache(
   async (
     visitsCookieRaw: string,
     todayISO: string,
-  ): Promise<{ gyms: GymWithSections[]; ranking: GymRanking }> => {
+  ): Promise<{ gyms: GymWithResets[]; ranking: GymRanking }> => {
     void todayISO;
 
     console.log("[ranking] CACHE MISS", { visitsCookieRaw, todayISO });
 
-    const gyms = await getActiveGymsWithSections();
+    const gyms = await getActiveGymsWithResets();
     const visits = parseVisitsCookie(visitsCookieRaw || undefined);
     const ranking = rankGyms(gyms, visits);
 

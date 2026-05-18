@@ -2,10 +2,10 @@
 
 import { SuggestResetForm } from "@/components/SuggestResetForm";
 import { useSuggestReset } from "@/components/user/SuggestResetContext";
-import type { GymWithSections } from "@/lib/types";
+import type { GymWithSectionCatalog } from "@/lib/db/gyms";
 
 type Props = {
-  gyms: GymWithSections[];
+  gyms: GymWithSectionCatalog[];
 };
 
 export function SuggestResetMenuDialog({ gyms }: Props) {

@@ -1,15 +1,14 @@
-import { mostRecentReset } from "@/lib/freshness";
-import { relativeDay } from "@/lib/date";
-import { todayISO } from "@/lib/date";
-import type { GymWithSections } from "@/lib/types";
+import { mostRecentReset, resetsByRecent } from "@/lib/freshness";
+import { relativeDay, todayISO } from "@/lib/date";
+import type { GymWithResets } from "@/lib/types";
 
-export function renderGymsMarkdown(gyms: GymWithSections[]): string {
+export function renderGymsMarkdown(gyms: GymWithResets[]): string {
   const intro = [
     "# Fresh Holds — Bratislava bouldering gym resets",
     "",
     `Updated ${todayISO()}. Lists every active bouldering gym in Bratislava, Slovakia along with the most recent climbing-route resets logged in the last ~240 days.`,
     "",
-    "A reset means new boulder problems were set on a section of the gym (or across the gym, when the operator didn't specify). Gyms below are sorted newest-reset first, so the gym at the top usually has the freshest climbing. Per-user visit history is stored in the browser only and is not included here.",
+    "A reset means new boulder problems were set somewhere in the gym. Each row notes the sector when known, the boulder count when shared, and free-form notes from the operator. Gyms below are sorted newest-reset first, so the gym at the top usually has the freshest climbing. Per-user visit history is stored in the browser only and is not included here.",
   ].join("\n");
 
   if (gyms.length === 0) {
@@ -25,7 +24,7 @@ export function renderGymsMarkdown(gyms: GymWithSections[]): string {
   return `${intro}\n\n${sorted.map(gymBlock).join("\n")}`;
 }
 
-function gymBlock(gym: GymWithSections): string {
+function gymBlock(gym: GymWithResets): string {
   const heading = gym.neighborhood ? `## ${gym.name} — ${gym.neighborhood}` : `## ${gym.name}`;
   const links: string[] = [];
   if (gym.website_url) links.push(`- Website: ${gym.website_url}`);
@@ -36,32 +35,17 @@ function gymBlock(gym: GymWithSections): string {
     return [heading, "", ...links, "", "_No recent reset data logged._", ""].join("\n");
   }
 
-  const recentSection = recent.section_name ?? "across the gym";
-  const recentLine = `- Most recent reset: ${recent.reset_on} (${recentSection}, ${relativeDay(recent.reset_on)})`;
-  const sectionRows = gym.sections.flatMap((s) =>
-    s.resets.map((r) => ({
-      date: r.reset_on,
-      section: s.name as string | null,
-      boulders: r.boulders_reset,
-      notes: r.notes,
-    })),
-  );
-  const gymWideRows = gym.gymWideResets.map((r) => ({
-    date: r.reset_on,
-    section: null as string | null,
-    boulders: r.boulders_reset,
-    notes: r.notes,
-  }));
-  const allResets = [...sectionRows, ...gymWideRows]
-    .sort((a, b) => b.date.localeCompare(a.date))
-    .map((r) => {
-      const label = r.section ?? "across the gym";
-      const boulders = r.boulders
-        ? ` (${r.boulders} ${r.boulders === 1 ? "boulder" : "boulders"})`
-        : "";
-      const notes = r.notes ? ` — ${r.notes}` : "";
-      return `- ${r.date} — ${label}${boulders}${notes}`;
-    });
+  const recentLabel = recent.section_name ?? "across the gym";
+  const recentLine = `- Most recent reset: ${recent.reset_on} (${recentLabel}, ${relativeDay(recent.reset_on)})`;
+
+  const allResets = resetsByRecent(gym).map((r) => {
+    const label = r.section_name ?? "across the gym";
+    const boulders = r.boulders_reset
+      ? ` (${r.boulders_reset} ${r.boulders_reset === 1 ? "boulder" : "boulders"})`
+      : "";
+    const notes = r.notes ? ` — ${r.notes}` : "";
+    return `- ${r.reset_on} — ${label}${boulders}${notes}`;
+  });
 
   return [heading, "", recentLine, ...links, "", "Recent resets:", ...allResets, ""].join("\n");
 }

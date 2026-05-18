@@ -1,40 +1,28 @@
-import type { GymWithSections, Section } from "@/lib/types";
+import type { GymWithResets, Reset } from "@/lib/types";
 import type { Visits } from "@/lib/visit-log";
 import type { Tier } from "@/lib/tier";
-import { gymFreshness, type FreshLabel } from "@/lib/freshness/scoring";
+import { gymFreshness } from "@/lib/freshness/scoring";
 import { chooseBadge, describeFreshness } from "@/lib/freshness/narrative";
-import {
-  flattenResetsByRecent,
-  mostRecentReset,
-  sortSectionsByDisplay,
-  sortSectionsByRecent,
-  type TimelineReset,
-} from "@/lib/freshness/sort";
+import { resetsByRecent } from "@/lib/freshness/sort";
 import { bindTier } from "@/lib/freshness/tier-binding";
 
 export { WEEKLY_VISIT_DAYS } from "@/lib/freshness/scoring";
-export { mostRecentReset } from "@/lib/freshness/sort";
-export type { FreshLabel } from "@/lib/freshness/scoring";
-export type { TimelineReset } from "@/lib/freshness/sort";
+export { mostRecentReset, resetsByRecent } from "@/lib/freshness/sort";
 
 export type ScoredGym = {
-  gym: GymWithSections;
+  gym: GymWithResets;
   lastVisited: string | null;
 
   noveltyScore: number;
   hasResetData: boolean;
-  freshSectionIds: string[];
   freshResetCount: number;
 
   mostRecentFreshISO: string | null;
   mostRecentResetISO: string | null;
 
   tier: Tier;
-  label: FreshLabel | null;
 
-  sectionsByDisplay: Section[];
-  sectionsByRecent: Section[];
-  timelineResets: TimelineReset[];
+  resets: Reset[];
 
   narrative: string;
   badgeCount: number | null;
@@ -50,11 +38,10 @@ export type GymRanking = {
   noDataExtras: ScoredGym[];
 };
 
-export function scoreGym(gym: GymWithSections, lastVisited: string | null): ScoredGym {
+export function scoreGym(gym: GymWithResets, lastVisited: string | null): ScoredGym {
   const freshness = gymFreshness(gym, lastVisited);
   const tier = bindTier(freshness);
-  const mostRecentResetISO = mostRecentReset(gym)?.reset_on ?? null;
-  const badge = chooseBadge(freshness.label, freshness.freshResetCount);
+  const badge = chooseBadge(freshness.hasResetData, freshness.freshResetCount);
 
   return {
     gym,
@@ -62,21 +49,17 @@ export function scoreGym(gym: GymWithSections, lastVisited: string | null): Scor
 
     noveltyScore: freshness.noveltyScore,
     hasResetData: freshness.hasResetData,
-    freshSectionIds: freshness.freshSectionIds,
     freshResetCount: freshness.freshResetCount,
 
     mostRecentFreshISO: freshness.mostRecentFreshISO,
-    mostRecentResetISO,
+    mostRecentResetISO: freshness.mostRecentResetISO,
 
     tier,
-    label: freshness.label,
 
-    sectionsByDisplay: sortSectionsByDisplay(gym.sections),
-    sectionsByRecent: sortSectionsByRecent(gym.sections),
-    timelineResets: flattenResetsByRecent(gym),
+    resets: resetsByRecent(gym),
 
     narrative: describeFreshness(
-      freshness.label,
+      freshness.hasResetData,
       freshness.freshResetCount,
       lastVisited,
       freshness.mostRecentFreshISO,
@@ -86,7 +69,7 @@ export function scoreGym(gym: GymWithSections, lastVisited: string | null): Scor
   };
 }
 
-export function rankGyms(gyms: GymWithSections[], visits: Visits): GymRanking {
+export function rankGyms(gyms: GymWithResets[], visits: Visits): GymRanking {
   const scored = gyms.map((gym) => scoreGym(gym, visits[gym.slug] ?? null));
 
   const withData = scored
