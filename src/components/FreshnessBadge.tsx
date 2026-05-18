@@ -1,12 +1,11 @@
 import type { CSSProperties } from "react";
-import type { FreshLabel } from "@/lib/freshness";
 import type { Tier } from "@/lib/tier";
 import { tierBadgeStyle } from "@/lib/tier-style";
 import { cn } from "@/lib/utils";
 
 type Props = {
   tier: Tier;
-  label: FreshLabel | null;
+  badgeCount: number | null;
   badgeText: string;
   size?: "hero" | "compact";
   bob?: boolean;
@@ -15,7 +14,7 @@ type Props = {
 
 export function FreshnessBadge({
   tier,
-  label,
+  badgeCount,
   badgeText,
   size = "hero",
   bob = false,
@@ -62,11 +61,13 @@ export function FreshnessBadge({
           {tier.label}
         </span>
         <div className="flex items-baseline gap-1">
-          {label === null ? (
+          {badgeCount === null && badgeText === "" ? (
             <span className={numberClass}>—</span>
+          ) : badgeCount === null ? (
+            <span className={descriptorClass}>{badgeText}</span>
           ) : (
             <>
-              <span className={numberClass}>{label.count}</span>
+              <span className={numberClass}>{badgeCount}</span>
               <span className={descriptorClass}>{badgeText}</span>
             </>
           )}

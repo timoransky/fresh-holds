@@ -1,7 +1,5 @@
 import { getSupabase } from "@/lib/auth";
 
-import type { FreshnessMode } from "@/lib/types";
-
 export type AdminSection = {
   id: string;
   name: string;
@@ -12,7 +10,6 @@ export type AdminGym = {
   id: string;
   name: string;
   slug: string;
-  freshness_mode: FreshnessMode;
   sections: AdminSection[];
 };
 
@@ -22,7 +19,7 @@ export type RecentReset = {
   notes: string | null;
   logged_by: string | null;
   boulders_reset: number | null;
-  section_name: string;
+  section_name: string | null;
   gym_name: string;
 };
 
@@ -31,9 +28,7 @@ export async function getGymsForAdmin(): Promise<AdminGym[]> {
 
   const { data, error } = await supabase
     .from("gyms")
-    .select(
-      "id, name, slug, freshness_mode, sections(id, name, display_order, is_active)",
-    )
+    .select("id, name, slug, sections(id, name, display_order, is_active)")
     .eq("is_active", true)
     .order("display_order", { ascending: true })
     .order("display_order", { referencedTable: "sections", ascending: true });
@@ -44,7 +39,9 @@ export async function getGymsForAdmin(): Promise<AdminGym[]> {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (data ?? []).map((gym: any) => ({
-    ...gym,
+    id: gym.id,
+    name: gym.name,
+    slug: gym.slug,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     sections: (gym.sections ?? []).filter((s: any) => s.is_active),
   }));
@@ -55,7 +52,9 @@ export async function getRecentResets(limit = 30): Promise<RecentReset[]> {
 
   const { data, error } = await supabase
     .from("resets")
-    .select("id, reset_on, notes, logged_by, boulders_reset, sections(name, gyms(name))")
+    .select(
+      "id, reset_on, notes, logged_by, boulders_reset, sections(name), gyms(name)",
+    )
     .order("reset_on", { ascending: false })
     .order("created_at", { ascending: false })
     .limit(limit);
@@ -71,7 +70,7 @@ export async function getRecentResets(limit = 30): Promise<RecentReset[]> {
     notes: r.notes,
     logged_by: r.logged_by,
     boulders_reset: r.boulders_reset ?? null,
-    section_name: r.sections?.name ?? "",
-    gym_name: r.sections?.gyms?.name ?? "",
+    section_name: r.sections?.name ?? null,
+    gym_name: r.gyms?.name ?? "",
   }));
 }

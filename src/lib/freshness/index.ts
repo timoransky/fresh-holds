@@ -1,19 +1,21 @@
-import type { GymWithSections, Reset, Section } from "@/lib/types";
+import type { GymWithSections, Section } from "@/lib/types";
 import type { Visits } from "@/hooks/useVisits";
 import type { Tier } from "@/lib/tier";
 import { gymFreshness, type FreshLabel } from "@/lib/freshness/scoring";
-import { badgeCountLabel, describeFreshness } from "@/lib/freshness/narrative";
+import { chooseBadge, describeFreshness } from "@/lib/freshness/narrative";
 import {
   flattenResetsByRecent,
   mostRecentReset,
   sortSectionsByDisplay,
   sortSectionsByRecent,
+  type TimelineReset,
 } from "@/lib/freshness/sort";
 import { bindTier } from "@/lib/freshness/tier-binding";
 
 export { WEEKLY_VISIT_DAYS } from "@/lib/freshness/scoring";
 export { mostRecentReset } from "@/lib/freshness/sort";
 export type { FreshLabel } from "@/lib/freshness/scoring";
+export type { TimelineReset } from "@/lib/freshness/sort";
 
 export type ScoredGym = {
   gym: GymWithSections;
@@ -32,9 +34,10 @@ export type ScoredGym = {
 
   sectionsByDisplay: Section[];
   sectionsByRecent: Section[];
-  allResetsByRecent: Reset[];
+  timelineResets: TimelineReset[];
 
   narrative: string;
+  badgeCount: number | null;
   badgeText: string;
 };
 
@@ -50,8 +53,8 @@ export type GymRanking = {
 export function scoreGym(gym: GymWithSections, lastVisited: string | null): ScoredGym {
   const freshness = gymFreshness(gym, lastVisited);
   const tier = bindTier(freshness);
-  const mostRecentResetISO = mostRecentReset(gym.sections)?.reset_on ?? null;
-  const isCountMode = gym.freshness_mode === "count";
+  const mostRecentResetISO = mostRecentReset(gym)?.reset_on ?? null;
+  const badge = chooseBadge(freshness.label, freshness.freshResetCount);
 
   return {
     gym,
@@ -70,10 +73,16 @@ export function scoreGym(gym: GymWithSections, lastVisited: string | null): Scor
 
     sectionsByDisplay: sortSectionsByDisplay(gym.sections),
     sectionsByRecent: sortSectionsByRecent(gym.sections),
-    allResetsByRecent: isCountMode ? flattenResetsByRecent(gym) : [],
+    timelineResets: flattenResetsByRecent(gym),
 
-    narrative: describeFreshness(freshness.label, lastVisited, freshness.mostRecentFreshISO),
-    badgeText: freshness.label === null ? "" : badgeCountLabel(freshness.label),
+    narrative: describeFreshness(
+      freshness.label,
+      freshness.freshResetCount,
+      lastVisited,
+      freshness.mostRecentFreshISO,
+    ),
+    badgeCount: badge.count,
+    badgeText: badge.text,
   };
 }
 

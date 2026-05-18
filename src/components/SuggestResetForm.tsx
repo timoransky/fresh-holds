@@ -4,6 +4,7 @@ import { useActionState, useEffect, useMemo, useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Image01Icon } from "@hugeicons/core-free-icons";
 import { suggestReset } from "@/lib/actions/submissions";
+import { GYM_WIDE_VALUE } from "@/lib/actions/submissions-constants";
 import { Button } from "@/components/ui/button";
 import { FormAlert } from "@/components/ui/form-alert";
 import { Input } from "@/components/ui/input";
@@ -50,7 +51,7 @@ export function SuggestResetForm({ gyms, open, onOpenChange }: Props) {
     [selectedGym],
   );
 
-  const isCountMode = selectedGym?.freshness_mode === "count";
+  const isGymWide = selectedSectionId === GYM_WIDE_VALUE;
   const wasSuccess = state !== null && "success" in state;
 
   useEffect(() => {
@@ -108,6 +109,9 @@ export function SuggestResetForm({ gyms, open, onOpenChange }: Props) {
             <SelectValue placeholder={selectedGym ? "Select a sector…" : "Pick a gym first"} />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value={GYM_WIDE_VALUE}>
+              <span className="italic">Across the gym</span>
+            </SelectItem>
             {sortedSections.map((s) => (
               <SelectItem key={s.id} value={s.id}>
                 {s.name}
@@ -130,24 +134,23 @@ export function SuggestResetForm({ gyms, open, onOpenChange }: Props) {
         />
       </div>
 
-      {isCountMode && (
-        <div className="flex flex-col gap-1.5">
-          <Label htmlFor="suggest_boulders_reset">New boulders</Label>
-          <Input
-            id="suggest_boulders_reset"
-            name="boulders_reset"
-            type="number"
-            inputMode="numeric"
-            min={1}
-            step={1}
-            required
-            placeholder="e.g. 25"
-          />
-          <p className="text-xs text-muted-foreground">
-            How many new boulders did this reset add?
-          </p>
-        </div>
-      )}
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="suggest_boulders_reset">
+          New boulders <span className="font-normal text-muted-foreground">(optional)</span>
+        </Label>
+        <Input
+          id="suggest_boulders_reset"
+          name="boulders_reset"
+          type="number"
+          inputMode="numeric"
+          min={1}
+          step={1}
+          placeholder={isGymWide ? "e.g. 25 across the gym" : "e.g. 5 new in this sector"}
+        />
+        <p className="text-xs text-muted-foreground">
+          Skip if the gym didn&rsquo;t say how many.
+        </p>
+      </div>
 
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="suggest_notes">

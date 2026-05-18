@@ -67,7 +67,7 @@ async function RecentResetsSection() {
               <span className="tabular-nums text-xs text-muted-foreground">{r.reset_on}</span>
             </div>
             <div className="mt-0.5 text-muted-foreground">
-              {r.section_name}
+              {r.section_name ?? <span className="italic">Across the gym</span>}
               {r.boulders_reset !== null && (
                 <span className="ml-1 text-xs">· {r.boulders_reset} boulders</span>
               )}

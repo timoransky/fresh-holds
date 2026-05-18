@@ -11,8 +11,9 @@ export type PendingSubmission = {
   boulders_reset: number | null;
   created_at: string;
   submitter_email: string;
-  section_id: string;
-  section_name: string;
+  section_id: string | null;
+  section_name: string | null;
+  gym_id: string;
   gym_name: string;
   gym_slug: string;
 };
@@ -25,7 +26,7 @@ export type MySubmission = {
   reviewed_at: string | null;
   notes: string | null;
   boulders_reset: number | null;
-  section_name: string;
+  section_name: string | null;
   gym_name: string;
 };
 
@@ -35,7 +36,7 @@ export async function listPendingSubmissions(): Promise<PendingSubmission[]> {
   const { data, error } = await supabase
     .from("reset_submissions")
     .select(
-      "id, reset_on, notes, boulders_reset, created_at, section_id, sections(name, gyms(name, slug)), profiles(email)",
+      "id, reset_on, notes, boulders_reset, created_at, section_id, gym_id, sections(name), gyms(name, slug), profiles(email)",
     )
     .eq("status", "pending")
     .order("created_at", { ascending: true });
@@ -50,10 +51,11 @@ export async function listPendingSubmissions(): Promise<PendingSubmission[]> {
     boulders_reset: row.boulders_reset ?? null,
     created_at: row.created_at,
     submitter_email: row.profiles?.email ?? "unknown",
-    section_id: row.section_id,
-    section_name: row.sections?.name ?? "",
-    gym_name: row.sections?.gyms?.name ?? "",
-    gym_slug: row.sections?.gyms?.slug ?? "",
+    section_id: row.section_id ?? null,
+    section_name: row.sections?.name ?? null,
+    gym_id: row.gym_id,
+    gym_name: row.gyms?.name ?? "",
+    gym_slug: row.gyms?.slug ?? "",
   }));
 }
 
@@ -64,7 +66,7 @@ export async function listMySubmissions(): Promise<MySubmission[]> {
   const { data, error } = await ctx.supabase
     .from("reset_submissions")
     .select(
-      "id, reset_on, status, created_at, reviewed_at, notes, boulders_reset, sections(name, gyms(name))",
+      "id, reset_on, status, created_at, reviewed_at, notes, boulders_reset, sections(name), gyms(name)",
     )
     .eq("submitted_by", ctx.userId)
     .order("created_at", { ascending: false })
@@ -81,7 +83,7 @@ export async function listMySubmissions(): Promise<MySubmission[]> {
     reviewed_at: row.reviewed_at,
     notes: row.notes,
     boulders_reset: row.boulders_reset ?? null,
-    section_name: row.sections?.name ?? "",
-    gym_name: row.sections?.gyms?.name ?? "",
+    section_name: row.sections?.name ?? null,
+    gym_name: row.gyms?.name ?? "",
   }));
 }

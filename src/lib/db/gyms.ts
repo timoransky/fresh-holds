@@ -1,7 +1,7 @@
 import { cacheLife, cacheTag } from "next/cache";
 import { createAnonClient } from "@/utils/supabase/server";
 import { isoFromDate, todayISO } from "@/lib/date";
-import type { GymWithSections } from "@/lib/types";
+import type { GymWithSections, Reset } from "@/lib/types";
 
 // Resets older than this are excluded — keeps the homepage payload focused on
 // actionable freshness data. Tune if users start asking about older sessions.
@@ -18,15 +18,16 @@ export async function getActiveGymsWithSections(): Promise<GymWithSections[]> {
   const cutoffISO = isoFromDate(new Date(Date.now() - RESET_HISTORY_DAYS * DAY_MS));
   const todayStr = todayISO();
 
-  const { data, error } = await supabase
+  // Gyms + their named sections (left join — a gym may have zero sections and
+  // still log gym-wide resets) + each section's resets in the window.
+  const gymsPromise = supabase
     .from("gyms")
     .select(
       `
       id, slug, name, neighborhood, website_url, instagram_handle, city_id,
-      freshness_mode,
-      sections!inner (
+      sections (
         id, name, display_order, is_active,
-        resets ( id, reset_on, notes, boulders_reset )
+        resets!section_id ( id, reset_on, notes, boulders_reset )
       )
     `,
     )
@@ -41,9 +42,38 @@ export async function getActiveGymsWithSections(): Promise<GymWithSections[]> {
       ascending: false,
     });
 
-  if (error) {
-    throw new Error(`Failed to load gyms: ${error.message}`);
+  // Gym-wide resets in the same window, fetched flat and grouped client-side
+  // by gym_id. Two queries beats one because each row would otherwise need to
+  // travel twice (once under section, once under gym).
+  const gymWidePromise = supabase
+    .from("resets")
+    .select("id, gym_id, reset_on, notes, boulders_reset")
+    .is("section_id", null)
+    .gte("reset_on", cutoffISO)
+    .lte("reset_on", todayStr)
+    .order("reset_on", { ascending: false });
+
+  const [{ data: gymsData, error: gymsError }, { data: gymWideData, error: gymWideError }] =
+    await Promise.all([gymsPromise, gymWidePromise]);
+
+  if (gymsError) throw new Error(`Failed to load gyms: ${gymsError.message}`);
+  if (gymWideError) throw new Error(`Failed to load gym-wide resets: ${gymWideError.message}`);
+
+  const gymWideByGym = new Map<string, Reset[]>();
+  for (const row of gymWideData ?? []) {
+    const list = gymWideByGym.get(row.gym_id) ?? [];
+    list.push({
+      id: row.id,
+      reset_on: row.reset_on,
+      notes: row.notes,
+      boulders_reset: row.boulders_reset,
+    });
+    gymWideByGym.set(row.gym_id, list);
   }
 
-  return (data ?? []) as GymWithSections[];
+  return (gymsData ?? []).map((gym) => ({
+    ...gym,
+    sections: gym.sections ?? [],
+    gymWideResets: gymWideByGym.get(gym.id) ?? [],
+  })) as GymWithSections[];
 }

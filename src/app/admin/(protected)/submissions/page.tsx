@@ -41,7 +41,8 @@ async function PendingSection() {
           <CardContent>
             <div className="flex items-baseline justify-between gap-2">
               <span className="font-medium">
-                {s.gym_name} — {s.section_name}
+                {s.gym_name} —{" "}
+                {s.section_name ?? <span className="italic">across the gym</span>}
               </span>
               <span className="tabular-nums text-xs text-muted-foreground">{s.reset_on}</span>
             </div>

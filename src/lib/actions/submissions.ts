@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { getAuthedClient } from "@/lib/auth";
 import { fail, okWithData, type ActionResult } from "@/lib/actions/result";
 import { ISO_DATE_RE, todayISO } from "@/lib/date";
+import { GYM_WIDE_VALUE } from "@/lib/actions/submissions-constants";
 
 export type SuggestResetResult = ActionResult<{ submissionId: string }>;
 
@@ -14,15 +15,19 @@ export async function suggestReset(
   const ctx = await getAuthedClient();
   if (!ctx) return fail("Sign in to suggest a reset.");
 
-  const sectionId = String(formData.get("section_id") ?? "");
+  const gymId = String(formData.get("gym_id") ?? "");
+  const sectionChoice = String(formData.get("section_id") ?? "");
   const resetOn = String(formData.get("reset_on") ?? "");
   const notes = String(formData.get("notes") ?? "").trim() || null;
   const bouldersResetRaw = String(formData.get("boulders_reset") ?? "").trim();
 
-  if (!sectionId) return fail("Pick a sector.");
+  if (!gymId) return fail("Pick a gym.");
+  if (!sectionChoice) return fail("Pick a sector or 'across the gym'.");
   if (!ISO_DATE_RE.test(resetOn)) return fail("Pick a valid date.");
 
   if (resetOn > todayISO()) return fail("Reset date can't be in the future.");
+
+  const sectionId = sectionChoice === GYM_WIDE_VALUE ? null : sectionChoice;
 
   let bouldersReset: number | null = null;
   if (bouldersResetRaw !== "") {
@@ -36,6 +41,7 @@ export async function suggestReset(
   const { data, error } = await ctx.supabase
     .from("reset_submissions")
     .insert({
+      gym_id: gymId,
       section_id: sectionId,
       reset_on: resetOn,
       notes,

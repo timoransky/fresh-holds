@@ -21,11 +21,11 @@ import type { AdminGym } from "@/lib/db/admin";
 export function ResetForm({ gyms }: { gyms: AdminGym[] }) {
   const [selectedGymId, setSelectedGymId] = useState("");
   const [checkedSections, setCheckedSections] = useState<Set<string>>(new Set());
+  const [gymWide, setGymWide] = useState(false);
   const [bouldersReset, setBouldersReset] = useState("");
   const [state, formAction, isPending] = useActionState(submitReset, null);
 
   const selectedGym = gyms.find((g) => g.id === selectedGymId);
-  const isCountMode = selectedGym?.freshness_mode === "count";
   const today = todayISO();
 
   const wasSuccess = state !== null && "success" in state;
@@ -34,6 +34,7 @@ export function ResetForm({ gyms }: { gyms: AdminGym[] }) {
     setPrevSuccess(wasSuccess);
     if (wasSuccess) {
       setCheckedSections(new Set());
+      setGymWide(false);
       setBouldersReset("");
     }
   }
@@ -41,6 +42,7 @@ export function ResetForm({ gyms }: { gyms: AdminGym[] }) {
   function handleGymChange(gymId: string) {
     setSelectedGymId(gymId);
     setCheckedSections(new Set());
+    setGymWide(false);
     setBouldersReset("");
   }
 
@@ -53,11 +55,8 @@ export function ResetForm({ gyms }: { gyms: AdminGym[] }) {
     });
   }
 
-  // Count-mode gyms have a single "whole gym" section; the form auto-attaches to it.
-  const countModeSection = isCountMode ? selectedGym?.sections[0] : undefined;
-  const canSubmit = isCountMode
-    ? Boolean(countModeSection) && bouldersReset.trim() !== "" && Number(bouldersReset) > 0
-    : Boolean(selectedGymId) && checkedSections.size > 0;
+  const canSubmit =
+    Boolean(selectedGymId) && (checkedSections.size > 0 || gymWide);
 
   return (
     <form action={formAction} className="flex flex-col gap-5">
@@ -73,7 +72,6 @@ export function ResetForm({ gyms }: { gyms: AdminGym[] }) {
             {gyms.map((g) => (
               <SelectItem key={g.id} value={g.id}>
                 {g.name}
-                {g.freshness_mode === "count" ? " (count mode)" : ""}
               </SelectItem>
             ))}
           </SelectContent>
@@ -81,9 +79,9 @@ export function ResetForm({ gyms }: { gyms: AdminGym[] }) {
         <input type="hidden" name="gym_id" value={selectedGymId} />
       </div>
 
-      {selectedGym && !isCountMode && (
+      {selectedGym && (
         <fieldset className="flex flex-col gap-2">
-          <legend className="text-sm font-medium">Sections reset</legend>
+          <legend className="text-sm font-medium">What was reset</legend>
           <div className="mt-1.5 grid grid-cols-2 gap-2">
             {selectedGym.sections.map((section) => {
               const checked = checkedSections.has(section.id);
@@ -103,28 +101,33 @@ export function ResetForm({ gyms }: { gyms: AdminGym[] }) {
                 </Label>
               );
             })}
+            <Label className="cursor-pointer rounded-md border border-dashed border-border px-3 py-2 text-sm transition-colors hover:bg-muted has-[[data-state=checked]]:border-foreground/50 has-[[data-state=checked]]:bg-secondary col-span-2">
+              <Checkbox
+                checked={gymWide}
+                onCheckedChange={(c) => setGymWide(c === true)}
+                name="gym_wide"
+              />
+              <span className="italic">Across the gym (no specific sector)</span>
+            </Label>
           </div>
         </fieldset>
       )}
 
-      {isCountMode && countModeSection && (
-        <>
-          <input type="hidden" name="section_ids" value={countModeSection.id} />
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="boulders_reset">Boulders reset</Label>
-            <Input
-              id="boulders_reset"
-              name="boulders_reset"
-              type="number"
-              min={1}
-              inputMode="numeric"
-              value={bouldersReset}
-              onChange={(e) => setBouldersReset(e.target.value)}
-              placeholder="e.g. 17"
-            />
-          </div>
-        </>
-      )}
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="boulders_reset">
+          Boulders reset <span className="font-normal text-muted-foreground">(optional)</span>
+        </Label>
+        <Input
+          id="boulders_reset"
+          name="boulders_reset"
+          type="number"
+          min={1}
+          inputMode="numeric"
+          value={bouldersReset}
+          onChange={(e) => setBouldersReset(e.target.value)}
+          placeholder="e.g. 17"
+        />
+      </div>
 
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="reset_on">Reset date</Label>
@@ -139,7 +142,7 @@ export function ResetForm({ gyms }: { gyms: AdminGym[] }) {
           id="notes"
           name="notes"
           rows={2}
-          placeholder="e.g. Full reset, 30 new problems"
+          placeholder="e.g. 5B–7A, by @by_womo"
           className="resize-none"
         />
       </div>

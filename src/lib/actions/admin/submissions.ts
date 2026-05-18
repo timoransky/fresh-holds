@@ -18,7 +18,7 @@ export async function approveSubmission(
 
   const { data: submission, error: readError } = await ctx.supabase
     .from("reset_submissions")
-    .select("id, section_id, reset_on, notes, boulders_reset, status")
+    .select("id, gym_id, section_id, reset_on, notes, boulders_reset, status")
     .eq("id", submissionId)
     .single();
 
@@ -28,6 +28,7 @@ export async function approveSubmission(
   const { data: inserted, error: insertError } = await ctx.supabase
     .from("resets")
     .insert({
+      gym_id: submission.gym_id,
       section_id: submission.section_id,
       reset_on: submission.reset_on,
       notes: submission.notes,

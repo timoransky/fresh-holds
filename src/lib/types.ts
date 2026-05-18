@@ -1,5 +1,3 @@
-export type FreshnessMode = "sections" | "count";
-
 export type Reset = {
   id: string;
   reset_on: string;
@@ -23,11 +21,11 @@ export type Gym = {
   website_url: string | null;
   instagram_handle: string | null;
   city_id: string | null;
-  freshness_mode: FreshnessMode;
 };
 
 export type GymWithSections = Gym & {
   sections: Section[];
+  gymWideResets: Reset[];
 };
 
 export type VisitHistory = Record<string, string[]>;

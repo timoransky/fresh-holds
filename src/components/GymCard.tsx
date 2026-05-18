@@ -21,13 +21,12 @@ type Props = {
 };
 
 export function GymCard({ scored, variant, visitedDates, onChangeVisits }: Props) {
-  const { gym, tier, label, badgeText, narrative, freshSectionIds } = scored;
-  const isCountMode = gym.freshness_mode === "count";
+  const { gym, tier, badgeCount, badgeText, narrative, freshSectionIds } = scored;
   const isHero = variant === "hero";
 
   const surfaceStyle = tierCardStyle(tier);
 
-  const hasDetails = scored.mostRecentResetISO !== null && scored.sectionsByDisplay.length > 0;
+  const hasDetails = scored.timelineResets.length > 0;
   const [isOpen, setIsOpen] = useState(false);
   const detailsId = `gym-details-${gym.id}`;
 
@@ -52,7 +51,7 @@ export function GymCard({ scored, variant, visitedDates, onChangeVisits }: Props
         </h2>
         <FreshnessBadge
           tier={tier}
-          label={label}
+          badgeCount={badgeCount}
           badgeText={badgeText}
           size={isHero ? "hero" : "compact"}
           bob={isHero}
@@ -86,19 +85,12 @@ export function GymCard({ scored, variant, visitedDates, onChangeVisits }: Props
             )}
           >
             <div className="pt-3">
-              {isCountMode ? (
-                <GymResetTable
-                  mode="count"
-                  resets={scored.allResetsByRecent}
-                  lastVisited={scored.lastVisited}
-                />
-              ) : (
-                <GymResetTable
-                  mode="sections"
-                  sections={scored.sectionsByRecent}
-                  freshSectionIds={freshSectionIds}
-                />
-              )}
+              <GymResetTable
+                sections={scored.sectionsByRecent}
+                timelineResets={scored.timelineResets}
+                lastVisited={scored.lastVisited}
+                freshSectionIds={freshSectionIds}
+              />
             </div>
           </div>
         </>
