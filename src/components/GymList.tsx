@@ -64,7 +64,12 @@ export function GymList({ gyms, authed, initialRanking }: Props) {
           <h2 className="px-1 text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">
             also worth a look
           </h2>
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 items-start">
+          {/* Mobile: one stacked column preserves rank order top-to-bottom.
+              Desktop: two independent flex columns so expanding a card only
+              grows its own column — the sibling column stays put. Indexes
+              alternate between columns so the z-shape reading order matches
+              the ranking (rank 1 top-left, rank 2 top-right, rank 3 mid-left). */}
+          <div className="flex flex-col gap-6 sm:hidden">
             {runnersUp.map((scored) => (
               <GymCard
                 key={scored.gym.id}
@@ -73,6 +78,23 @@ export function GymList({ gyms, authed, initialRanking }: Props) {
                 visitedDates={history[scored.gym.slug] ?? []}
                 onChangeVisits={(dates) => setVisits(scored.gym.slug, dates)}
               />
+            ))}
+          </div>
+          <div className="hidden sm:grid sm:grid-cols-2 sm:items-start sm:gap-6">
+            {[0, 1].map((col) => (
+              <div key={col} className="flex flex-col gap-6">
+                {runnersUp
+                  .filter((_, i) => i % 2 === col)
+                  .map((scored) => (
+                    <GymCard
+                      key={scored.gym.id}
+                      scored={scored}
+                      variant="compact"
+                      visitedDates={history[scored.gym.slug] ?? []}
+                      onChangeVisits={(dates) => setVisits(scored.gym.slug, dates)}
+                    />
+                  ))}
+              </div>
             ))}
           </div>
         </section>
