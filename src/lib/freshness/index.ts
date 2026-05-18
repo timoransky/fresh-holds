@@ -1,10 +1,9 @@
-import type { GymWithSections, Reset, Section } from "@/lib/types";
+import type { GymWithSections, Section } from "@/lib/types";
 import type { Visits } from "@/lib/visit-log";
 import type { Tier } from "@/lib/tier";
 import { gymFreshness, type FreshLabel } from "@/lib/freshness/scoring";
-import { badgeCountLabel, describeFreshness } from "@/lib/freshness/narrative";
+import { badgeCountLabel, badgeCountNumber, describeFreshness } from "@/lib/freshness/narrative";
 import {
-  flattenResetsByRecent,
   mostRecentReset,
   sortSectionsByDisplay,
   sortSectionsByRecent,
@@ -29,10 +28,10 @@ export type ScoredGym = {
 
   tier: Tier;
   label: FreshLabel | null;
+  badgeNumber: number;
 
   sectionsByDisplay: Section[];
   sectionsByRecent: Section[];
-  allResetsByRecent: Reset[];
 
   narrative: string;
   badgeText: string;
@@ -51,7 +50,6 @@ export function scoreGym(gym: GymWithSections, lastVisited: string | null): Scor
   const freshness = gymFreshness(gym, lastVisited);
   const tier = bindTier(freshness);
   const mostRecentResetISO = mostRecentReset(gym.sections)?.reset_on ?? null;
-  const isCountMode = gym.freshness_mode === "count";
 
   return {
     gym,
@@ -67,10 +65,10 @@ export function scoreGym(gym: GymWithSections, lastVisited: string | null): Scor
 
     tier,
     label: freshness.label,
+    badgeNumber: freshness.label === null ? 0 : badgeCountNumber(freshness.label),
 
     sectionsByDisplay: sortSectionsByDisplay(gym.sections),
     sectionsByRecent: sortSectionsByRecent(gym.sections),
-    allResetsByRecent: isCountMode ? flattenResetsByRecent(gym) : [],
 
     narrative: describeFreshness(freshness.label, lastVisited, freshness.mostRecentFreshISO),
     badgeText: freshness.label === null ? "" : badgeCountLabel(freshness.label),

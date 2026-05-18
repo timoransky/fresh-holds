@@ -50,7 +50,6 @@ export function SuggestResetForm({ gyms, open, onOpenChange }: Props) {
     [selectedGym],
   );
 
-  const isCountMode = selectedGym?.freshness_mode === "count";
   const wasSuccess = state !== null && "success" in state;
 
   useEffect(() => {
@@ -130,24 +129,23 @@ export function SuggestResetForm({ gyms, open, onOpenChange }: Props) {
         />
       </div>
 
-      {isCountMode && (
-        <div className="flex flex-col gap-1.5">
-          <Label htmlFor="suggest_boulders_reset">New boulders</Label>
-          <Input
-            id="suggest_boulders_reset"
-            name="boulders_reset"
-            type="number"
-            inputMode="numeric"
-            min={1}
-            step={1}
-            required
-            placeholder="e.g. 25"
-          />
-          <p className="text-xs text-muted-foreground">
-            How many new boulders did this reset add?
-          </p>
-        </div>
-      )}
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="suggest_boulders_reset">
+          New boulders <span className="font-normal text-muted-foreground">(optional)</span>
+        </Label>
+        <Input
+          id="suggest_boulders_reset"
+          name="boulders_reset"
+          type="number"
+          inputMode="numeric"
+          min={1}
+          step={1}
+          placeholder="e.g. 11"
+        />
+        <p className="text-xs text-muted-foreground">
+          Skip if you don&apos;t know — the sector reset will still be logged.
+        </p>
+      </div>
 
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="suggest_notes">

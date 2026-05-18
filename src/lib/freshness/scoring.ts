@@ -3,9 +3,12 @@ import { daysSince } from "@/lib/date";
 
 export const WEEKLY_VISIT_DAYS = 7;
 
-export type FreshLabel =
-  | { kind: "sections"; count: number; total: number }
-  | { kind: "boulders"; count: number };
+export type FreshLabel = {
+  freshSections: number;
+  totalSections: number;
+  countedBoulders: number;
+  hasUncountedResets: boolean;
+};
 
 export type FreshnessResult = {
   freshSectionIds: string[];
@@ -39,14 +42,19 @@ export function gymFreshness(gym: GymWithSections, lastVisitedISO: string | null
 
   let freshResetCount = 0;
   let mostRecentFreshISO: string | null = null;
-  let freshBoulderSum = 0;
+  let countedBoulders = 0;
+  let hasUncountedResets = false;
 
   for (const section of sections) {
     let sectionHasFresh = false;
     for (const reset of section.resets) {
       if (Date.parse(reset.reset_on) > visitedTime) {
         freshResetCount += 1;
-        freshBoulderSum += reset.boulders_reset ?? 0;
+        if (reset.boulders_reset !== null) {
+          countedBoulders += reset.boulders_reset;
+        } else {
+          hasUncountedResets = true;
+        }
         if (mostRecentFreshISO === null || reset.reset_on > mostRecentFreshISO) {
           mostRecentFreshISO = reset.reset_on;
         }
@@ -59,10 +67,12 @@ export function gymFreshness(gym: GymWithSections, lastVisitedISO: string | null
   const visitFactor = daysSinceVisit === null ? 1 : Math.min(daysSinceVisit / WEEKLY_VISIT_DAYS, 1);
   const noveltyScore = freshResetCount * visitFactor;
 
-  const label: FreshLabel =
-    gym.freshness_mode === "count"
-      ? { kind: "boulders", count: freshBoulderSum }
-      : { kind: "sections", count: freshSectionIds.length, total: sections.length };
+  const label: FreshLabel = {
+    freshSections: freshSectionIds.length,
+    totalSections: sections.length,
+    countedBoulders,
+    hasUncountedResets,
+  };
 
   return {
     freshSectionIds,

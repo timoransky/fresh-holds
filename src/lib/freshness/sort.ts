@@ -1,4 +1,4 @@
-import type { GymWithSections, Reset, Section } from "@/lib/types";
+import type { GymWithSections, Section } from "@/lib/types";
 
 export function sortSectionsByDisplay(sections: Section[]): Section[] {
   return [...sections].sort((a, b) => a.display_order - b.display_order);
@@ -11,10 +11,6 @@ export function sortSectionsByRecent(sections: Section[]): Section[] {
     if (aLatest === bLatest) return a.display_order - b.display_order;
     return bLatest.localeCompare(aLatest);
   });
-}
-
-export function flattenResetsByRecent(gym: GymWithSections): Reset[] {
-  return gym.sections.flatMap((s) => s.resets).sort((a, b) => b.reset_on.localeCompare(a.reset_on));
 }
 
 export function mostRecentReset(

@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 type Props = {
   tier: Tier;
   label: FreshLabel | null;
+  badgeNumber: number;
   badgeText: string;
   size?: "hero" | "compact";
   bob?: boolean;
@@ -16,6 +17,7 @@ type Props = {
 export function FreshnessBadge({
   tier,
   label,
+  badgeNumber,
   badgeText,
   size = "hero",
   bob = false,
@@ -66,7 +68,7 @@ export function FreshnessBadge({
             <span className={numberClass}>—</span>
           ) : (
             <>
-              <span className={numberClass}>{label.count}</span>
+              <span className={numberClass}>{badgeNumber}</span>
               <span className={descriptorClass}>{badgeText}</span>
             </>
           )}
