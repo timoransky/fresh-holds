@@ -27,5 +27,3 @@ export type GymWithSections = Gym & {
   sections: Section[];
   gymWideResets: Reset[];
 };
-
-export type VisitHistory = Record<string, string[]>;

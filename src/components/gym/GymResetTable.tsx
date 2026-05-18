@@ -7,7 +7,7 @@ type Props = {
   sections: Section[];
   timelineResets: TimelineReset[];
   lastVisited: string | null;
-  freshSectionIds: Set<string>;
+  freshSectionIds: string[];
 };
 
 // Renders whichever signals the gym carries. If the gym has named sectors
@@ -50,7 +50,7 @@ export function GymResetTable({ sections, timelineResets, lastVisited, freshSect
           <SectionRow
             key={section.id}
             section={section}
-            isFresh={freshSectionIds.has(section.id)}
+            isFresh={freshSectionIds.includes(section.id)}
           />
         ))}
         {gymWide.map((reset) => (

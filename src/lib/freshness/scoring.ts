@@ -16,7 +16,7 @@ export type FreshLabel = {
 };
 
 export type FreshnessResult = {
-  freshSectionIds: Set<string>;
+  freshSectionIds: string[];
   freshResetCount: number;
   noveltyScore: number;
   daysSinceVisit: number | null;
@@ -26,7 +26,6 @@ export type FreshnessResult = {
 };
 
 export function gymFreshness(gym: GymWithSections, lastVisitedISO: string | null): FreshnessResult {
-  const freshSectionIds = new Set<string>();
   const sections = gym.sections;
   const gymWideResets = gym.gymWideResets;
   const hasResetData = sections.some((s) => s.resets.length > 0) || gymWideResets.length > 0;
@@ -34,7 +33,7 @@ export function gymFreshness(gym: GymWithSections, lastVisitedISO: string | null
 
   if (!hasResetData) {
     return {
-      freshSectionIds,
+      freshSectionIds: [],
       freshResetCount: 0,
       noveltyScore: 0,
       daysSinceVisit,
@@ -46,6 +45,9 @@ export function gymFreshness(gym: GymWithSections, lastVisitedISO: string | null
 
   const visitedTime = lastVisitedISO === null ? -Infinity : Date.parse(lastVisitedISO);
 
+  // Set-while-computing, list-when-returning: dedup is cheaper as a Set
+  // but the caller (and the cache layer) wants a serializable array.
+  const freshSectionIdSet = new Set<string>();
   let freshResetCount = 0;
   let mostRecentFreshISO: string | null = null;
   let freshBoulderSum = 0;
@@ -62,7 +64,7 @@ export function gymFreshness(gym: GymWithSections, lastVisitedISO: string | null
       mostRecentFreshISO = reset.reset_on;
     }
     if (attachedSectionId !== null) {
-      freshSectionIds.add(attachedSectionId);
+      freshSectionIdSet.add(attachedSectionId);
     }
   };
 
@@ -79,12 +81,13 @@ export function gymFreshness(gym: GymWithSections, lastVisitedISO: string | null
   const noveltyScore = freshResetCount * visitFactor;
 
   const label: FreshLabel = {
-    sectors: sections.length > 0 ? { count: freshSectionIds.size, total: sections.length } : null,
+    sectors:
+      sections.length > 0 ? { count: freshSectionIdSet.size, total: sections.length } : null,
     boulders: anyCountedFresh ? freshBoulderSum : null,
   };
 
   return {
-    freshSectionIds,
+    freshSectionIds: [...freshSectionIdSet],
     freshResetCount,
     noveltyScore,
     daysSinceVisit,

@@ -1,5 +1,5 @@
 import type { GymWithSections, Section } from "@/lib/types";
-import type { Visits } from "@/hooks/useVisits";
+import type { Visits } from "@/lib/visit-log";
 import type { Tier } from "@/lib/tier";
 import { gymFreshness, type FreshLabel } from "@/lib/freshness/scoring";
 import { chooseBadge, describeFreshness } from "@/lib/freshness/narrative";
@@ -23,7 +23,7 @@ export type ScoredGym = {
 
   noveltyScore: number;
   hasResetData: boolean;
-  freshSectionIds: Set<string>;
+  freshSectionIds: string[];
   freshResetCount: number;
 
   mostRecentFreshISO: string | null;

@@ -1,6 +1,6 @@
 "use server";
 
-import { updateTag } from "next/cache";
+import { revalidateTag } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
 import { fail, ok, type ActionResult } from "@/lib/actions/result";
 
@@ -72,7 +72,7 @@ export async function submitReset(
     return fail(error.message);
   }
 
-  updateTag("gyms");
+  revalidateTag("gyms", "max");
   const total = inserts.length;
   return ok(`Logged ${total} reset${total > 1 ? "s" : ""}`);
 }

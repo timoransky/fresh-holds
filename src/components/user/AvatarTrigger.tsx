@@ -9,8 +9,9 @@ function getInitial(email: string): string {
 export function AvatarTrigger({
   email,
   className,
+  open,
   ...props
-}: React.ComponentProps<"button"> & { email: string }) {
+}: React.ComponentProps<"button"> & { email: string; open: boolean }) {
   return (
     <button
       type="button"
@@ -23,6 +24,7 @@ export function AvatarTrigger({
         "focus-visible:-translate-y-0.5 focus-visible:shadow-[0_4px_0_0_var(--color-brand-shadow)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background",
         "active:translate-y-px active:shadow-[0_1px_0_0_var(--color-brand-shadow)]",
         "aria-expanded:-translate-y-0.5 aria-expanded:shadow-[0_4px_0_0_var(--color-brand-shadow)]",
+        open && "translate-y-px! shadow-[0_1px_0_0_var(--color-brand-shadow)]!",
         className,
       )}
       {...props}

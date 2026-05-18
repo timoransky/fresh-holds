@@ -12,6 +12,8 @@ Vocabulary the code and the UI should use consistently. Add terms here as they c
 
 **Visit** — a user-recorded date the user climbed at a Gym. Stored in browser `localStorage` for anonymous users (`Record<gymSlug, isoDate[]>`) and on the server for signed-in users. The most recent visit per gym is what freshness compares against.
 
+**Visit log** — the unified record of a user's Visits across the three places it has to exist: browser `localStorage` (canonical client store), the `fh-visits` cookie (latest-per-gym mirror so the server can pre-rank), and the server `visits` table (for cross-device sync of signed-in users). Owned by `src/lib/visit-log/`. One client hook (`useVisitLog(authed)`) for all consumers — when authed, it reconciles local with server once per tab session via a pure `reconcile(local, remote)` function. Server actions in `src/lib/actions/visits.ts` provide the RPC seam to the visits table.
+
 ## Derived concepts
 
 **Freshness** — for a given Gym and a given user, the resets that happened _strictly after_ the user's last Visit. A Section is fresh iff it has any Reset later than the visit. A never-visited Gym treats every reset as fresh by definition.
@@ -23,6 +25,18 @@ Vocabulary the code and the UI should use consistently. Add terms here as they c
 **ScoredGym** — a Gym paired with everything derived for it at a specific user-and-time: Novelty score, Tier, label counts, narrative string, badge string, sorted sections, flat reset list. The output of `scoreGym(gym, lastVisited)`. The deep Freshness module's currency — components consume `ScoredGym` fields rather than re-deriving.
 
 **Now** — the moment freshness is computed relative to. Read implicitly via `Date.now()` inside the Freshness module's date helpers; not threaded through the API. Trade-off: a render that straddles midnight, or an SSR/client pair that disagrees on the clock, can produce slightly different `daysSince` for the same input. Acceptable for this app — see ADR / issue #35 for the rejected alternative of threading an explicit `now` param.
+
+## Caching
+
+**Gym cache** — `getActiveGymsWithSections` in `src/lib/db/gyms.ts` is wrapped in `unstable_cache` (not `"use cache"`), tagged `"gyms"`, revalidated daily. The Supabase query is the cache fill.
+
+**Ranking cache** — `getRankedGyms(visitsCookieRaw, todayISO)` in `src/lib/db/ranking.ts` is wrapped in `unstable_cache` and tagged `"gyms"`. Both arguments are cache key participants: users with the same visits share an entry; the entry rotates daily so the time-decay term in the novelty score stays accurate. Empty cookie collapses to one shared entry across all anonymous-no-visit users.
+
+**Invalidation** — Admin reset/approve actions call `revalidateTag("gyms", "max")` (the second arg is mandatory in Next.js 16; `"max"` = stale-while-revalidate). The single-arg form is deprecated. `updateTag` is unavailable to us because it's a cacheComponents-only API.
+
+**Serialization** — Anything returned from a cached function must be JSON-serializable. `Set`, `Map`, class instances do not survive the round-trip (caught us with `freshSectionIds` — now `string[]`). Stick to primitives, arrays, and plain objects.
+
+We deliberately chose `unstable_cache` over `"use cache"` + `cacheComponents`, accepting deprecation risk in exchange for not having to render the gym list through a Suspense boundary. See [ADR-0001](docs/adr/0001-cache-architecture.md) for the full rationale and revisit triggers.
 
 ## Home-page categories
 
