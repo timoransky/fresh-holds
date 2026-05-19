@@ -36,12 +36,13 @@ function SelectTrigger({
       data-slot="select-trigger"
       data-size={size}
       className={cn(
-        "squircle-xl flex w-full items-center justify-between gap-2 rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none transition-[color,box-shadow] whitespace-nowrap",
+        "squircle-xl flex w-full items-center justify-between gap-2 rounded-lg border border-input bg-background px-3 py-2 text-base outline-none transition-[color,box-shadow] whitespace-nowrap",
         "data-[size=default]:h-9 data-[size=sm]:h-8",
         "focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",
         "disabled:cursor-not-allowed disabled:opacity-50",
         "data-[placeholder]:text-muted-foreground",
         "aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20",
+        "md:text-sm",
         "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         "[&>span]:line-clamp-1",
         className,
