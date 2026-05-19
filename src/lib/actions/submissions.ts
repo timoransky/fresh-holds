@@ -7,6 +7,12 @@ import { ISO_DATE_RE, todayISO } from "@/lib/date";
 
 export type SuggestResetResult = ActionResult<{ submissionId: string }>;
 
+// Vercel hobby caps function bodies at ~4.5 MB. Leave headroom for the rest
+// of the multipart payload and let next.config.ts's bodySizeLimit reject
+// anything over that before it reaches this action.
+const MAX_PHOTO_BYTES = 4 * 1024 * 1024;
+const PHOTO_BUCKET = "reset-photos";
+
 export async function suggestReset(
   prevState: SuggestResetResult,
   formData: FormData,
@@ -18,7 +24,7 @@ export async function suggestReset(
   const resetOn = String(formData.get("reset_on") ?? "");
   const notes = String(formData.get("notes") ?? "").trim() || null;
   const bouldersResetRaw = String(formData.get("boulders_reset") ?? "").trim();
-  const photoPathRaw = String(formData.get("photo_path") ?? "").trim();
+  const photoEntry = formData.get("photo");
 
   if (!sectionId) return fail("Pick a sector.");
   if (!ISO_DATE_RE.test(resetOn)) return fail("Pick a valid date.");
@@ -34,13 +40,35 @@ export async function suggestReset(
     bouldersReset = parsed;
   }
 
-  let photoPath: string | null = null;
-  if (photoPathRaw !== "") {
-    const expectedPrefix = `submissions/${ctx.userId}/`;
-    if (!photoPathRaw.startsWith(expectedPrefix) || photoPathRaw.includes("..")) {
-      return fail("Photo upload looks invalid — try again.");
+  const photoFile =
+    photoEntry instanceof File && photoEntry.size > 0 ? photoEntry : null;
+
+  if (photoFile) {
+    if (photoFile.size > MAX_PHOTO_BYTES) {
+      return fail("Photo is too big (max 4 MB).");
     }
-    photoPath = photoPathRaw;
+    if (!photoFile.type.startsWith("image/")) {
+      return fail("Photo must be an image.");
+    }
+  }
+
+  let photoPath: string | null = null;
+  if (photoFile) {
+    const ext =
+      photoFile.name.split(".").pop()?.toLowerCase().replace(/[^a-z0-9]/g, "") ||
+      "jpg";
+    photoPath = `submissions/${ctx.userId}/${crypto.randomUUID()}.${ext}`;
+
+    const { error: uploadError } = await ctx.supabase.storage
+      .from(PHOTO_BUCKET)
+      .upload(photoPath, photoFile, {
+        contentType: photoFile.type,
+        upsert: false,
+      });
+
+    if (uploadError) {
+      return fail("Couldn't upload photo. Try again.");
+    }
   }
 
   const { data, error } = await ctx.supabase
@@ -57,6 +85,10 @@ export async function suggestReset(
     .single();
 
   if (error || !data) {
+    // Don't strand an orphan in storage when the insert is rejected.
+    if (photoPath) {
+      await ctx.supabase.storage.from(PHOTO_BUCKET).remove([photoPath]);
+    }
     if (error?.code === "42501" || error?.message?.includes("policy")) {
       return fail("You already have 5 pending suggestions. Wait for admin review.");
     }
