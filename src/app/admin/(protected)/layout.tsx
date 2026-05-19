@@ -50,8 +50,8 @@ async function AdminLayoutContent({ children }: { children: React.ReactNode }) {
               is_admin = true
             </code>{" "}
             for your row in the{" "}
-            <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">profiles</code>{" "}
-            table in Supabase, then refresh.
+            <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">profiles</code> table
+            in Supabase, then refresh.
           </p>
           <form action={signOut} className="mt-8">
             <Button type="submit" variant="outline" size="sm">
@@ -72,35 +72,27 @@ async function AdminLayoutContent({ children }: { children: React.ReactNode }) {
     <div className="min-h-dvh">
       <header className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
         <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3">
-          <div className="flex items-center gap-3">
-            <BrandBadge asChild className="px-2.5 py-0.5">
-              <Link href="/admin">fresh holds · admin</Link>
-            </BrandBadge>
-            <AdminNav
-              items={[
-                { href: "/admin", label: "Reset log" },
-                {
-                  href: "/admin/submissions",
-                  label: "Submissions",
-                  badgeCount: pendingCount ?? 0,
-                },
-              ]}
-            />
-          </div>
-          <div className="flex items-center gap-2 sm:gap-3">
-            <Button asChild variant="ghost" size="xs">
-              <Link href="/">
-                <HugeiconsIcon icon={ArrowLeft01Icon} strokeWidth={2} />
-                Back to app
-              </Link>
+          <Button asChild variant="ghost" size="xs">
+            <Link href="/">
+              <HugeiconsIcon icon={ArrowLeft01Icon} strokeWidth={2} />
+              Back to app
+            </Link>
+          </Button>
+          <AdminNav
+            items={[
+              { href: "/admin", label: "Reset log" },
+              {
+                href: "/admin/submissions",
+                label: "Submissions",
+                badgeCount: pendingCount ?? 0,
+              },
+            ]}
+          />
+          <form action={signOut}>
+            <Button type="submit" variant="outline" size="xs">
+              Sign out
             </Button>
-            <span className="hidden text-xs text-muted-foreground sm:inline">{user.email}</span>
-            <form action={signOut}>
-              <Button type="submit" variant="outline" size="xs">
-                Sign out
-              </Button>
-            </form>
-          </div>
+          </form>
         </div>
       </header>
       {children}

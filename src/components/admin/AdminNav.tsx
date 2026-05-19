@@ -15,7 +15,10 @@ export function AdminNav({ items }: { items: AdminNavItem[] }) {
   const pathname = usePathname();
 
   return (
-    <nav aria-label="Admin sections" className="flex items-center gap-1">
+    <nav
+      aria-label="Admin sections"
+      className="flex items-center gap-1 max-sm:order-3 max-sm:flex-1 max-sm:w-full max-sm:justify-center"
+    >
       {items.map((item) => {
         const active = pathname === item.href;
         return (
