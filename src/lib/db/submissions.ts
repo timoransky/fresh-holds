@@ -38,11 +38,12 @@ export async function listPendingSubmissions(): Promise<PendingSubmission[]> {
   const { data, error } = await supabase
     .from("reset_submissions")
     .select(
-      "id, reset_on, notes, boulders_reset, created_at, section_id, photo_path, sections(name, gyms(name, slug)), profiles(email)",
+      "id, reset_on, notes, boulders_reset, created_at, section_id, photo_path, sections(name, gyms(name, slug)), profiles!submitted_by(email)",
     )
     .eq("status", "pending")
     .order("created_at", { ascending: true });
 
+  if (error) console.error("[listPendingSubmissions]", error);
   if (error || !data) return [];
 
   const paths = data
