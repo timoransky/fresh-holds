@@ -159,6 +159,61 @@ describe("rankGyms — tiebreakers", () => {
   });
 });
 
+describe("rankGyms — single-section vs multi-section parity", () => {
+  it("a single-section gym with N resets scores the same as a multi-section gym with N reset sectors", () => {
+    // Spot (1 section, "whole gym") was reset twice in the last two weeks —
+    // one part last week, another part this week. Both uncounted.
+    const spot = makeGym({
+      slug: "spot",
+      sections: { "Whole gym": [daysAgo(2), daysAgo(7)] },
+    });
+
+    // An 8-sector gym had one sector reset this week and another last week;
+    // the other 6 sectors have nothing in window.
+    const multi = makeGym({
+      slug: "multi",
+      sections: {
+        S1: [daysAgo(2)],
+        S2: [daysAgo(7)],
+        S3: [],
+        S4: [],
+        S5: [],
+        S6: [],
+        S7: [],
+        S8: [],
+      },
+    });
+
+    // User hasn't visited either in two weeks → full visit weight.
+    const visits = { spot: daysAgo(14), multi: daysAgo(14) };
+    const r = rankGyms([spot, multi], visits);
+
+    const spotScored = [r.hero, ...r.runnersUp].find((g) => g?.gym.slug === "spot")!;
+    const multiScored = [r.hero, ...r.runnersUp].find((g) => g?.gym.slug === "multi")!;
+
+    // Scoring is reset-row based, not section-based: 2 fresh resets either way.
+    expect(spotScored.freshResetCount).toBe(2);
+    expect(multiScored.freshResetCount).toBe(2);
+    expect(spotScored.noveltyScore).toBe(multiScored.noveltyScore);
+    expect(spotScored.tier.key).toBe(multiScored.tier.key);
+
+    // Labels differ in shape (the single-section gym can't surface sector
+    // coverage), but the ranking signal is identical.
+    expect(spotScored.label).toEqual({
+      freshSections: 1,
+      totalSections: 1,
+      countedBoulders: 0,
+      hasUncountedResets: true,
+    });
+    expect(multiScored.label).toEqual({
+      freshSections: 2,
+      totalSections: 8,
+      countedBoulders: 0,
+      hasUncountedResets: true,
+    });
+  });
+});
+
 describe("rankGyms — mixed reset data", () => {
   it("gyms with no reset data go to noDataExtras, never to runnersUp", () => {
     const a = makeGym({ slug: "a", sections: { Slab: [daysAgo(1)] } });
