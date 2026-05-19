@@ -53,12 +53,15 @@ export async function listPendingSubmissions(): Promise<PendingSubmission[]> {
 
   const signedUrls = new Map<string, string>();
   if (paths.length > 0) {
-    const { data: signed } = await supabase.storage
+    const { data: signed, error: signError } = await supabase.storage
       .from("reset-photos")
       .createSignedUrls(paths, PHOTO_SIGNED_URL_TTL_SECONDS);
+    if (signError) console.error("[listPendingSubmissions] createSignedUrls", signError);
     signed?.forEach((s) => {
+      if (s.error) console.error("[listPendingSubmissions] signed url item", s.path, s.error);
       if (s.path && s.signedUrl) signedUrls.set(s.path, s.signedUrl);
     });
+    console.log("[listPendingSubmissions] paths/signed", paths, [...signedUrls.keys()]);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
