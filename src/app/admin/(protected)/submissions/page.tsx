@@ -59,6 +59,22 @@ async function PendingSection() {
                 {s.notes}
               </div>
             )}
+            {s.photo_url && (
+              <a
+                href={s.photo_url}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-2 inline-block"
+                title="Open photo in new tab"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={s.photo_url}
+                  alt="Submitted reset photo"
+                  className="size-20 rounded-md border border-border object-cover transition hover:opacity-80"
+                />
+              </a>
+            )}
             <div className="mt-3">
               <ReviewActions submissionId={s.id} />
             </div>

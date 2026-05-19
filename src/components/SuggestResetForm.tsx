@@ -1,8 +1,8 @@
 "use client";
 
-import { useActionState, useEffect, useMemo, useState } from "react";
+import { useActionState, useEffect, useMemo, useRef, useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Image01Icon } from "@hugeicons/core-free-icons";
+import { Cancel01Icon, Image01Icon } from "@hugeicons/core-free-icons";
 import { suggestReset } from "@/lib/actions/submissions";
 import { Button } from "@/components/ui/button";
 import { FormAlert } from "@/components/ui/form-alert";
@@ -26,6 +26,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { todayISO } from "@/lib/date";
 import type { GymWithSections } from "@/lib/types";
 
+const MAX_PHOTO_BYTES = 4 * 1024 * 1024;
+
 type Props = {
   gyms: GymWithSections[];
   open: boolean;
@@ -36,6 +38,9 @@ export function SuggestResetForm({ gyms, open, onOpenChange }: Props) {
   const [state, formAction, isPending] = useActionState(suggestReset, null);
   const [selectedGymId, setSelectedGymId] = useState("");
   const [selectedSectionId, setSelectedSectionId] = useState("");
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoError, setPhotoError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const today = todayISO();
 
   const selectedGym = useMemo(
@@ -62,10 +67,44 @@ export function SuggestResetForm({ gyms, open, onOpenChange }: Props) {
     }
   }, [wasSuccess, onOpenChange]);
 
+  const previewUrl = useMemo(
+    () => (photoFile ? URL.createObjectURL(photoFile) : null),
+    [photoFile],
+  );
+  useEffect(() => {
+    if (!previewUrl) return;
+    return () => URL.revokeObjectURL(previewUrl);
+  }, [previewUrl]);
+
   const handleGymChange = (id: string) => {
     setSelectedGymId(id);
     setSelectedSectionId("");
   };
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setPhotoError("Pick an image file.");
+      return;
+    }
+    if (file.size > MAX_PHOTO_BYTES) {
+      setPhotoError("Photo is too big (max 4 MB).");
+      return;
+    }
+    setPhotoError(null);
+    setPhotoFile(file);
+  };
+
+  const resetPhoto = () => {
+    if (fileInputRef.current) fileInputRef.current.value = "";
+    setPhotoFile(null);
+    setPhotoError(null);
+  };
+
+  useEffect(() => {
+    if (open && fileInputRef.current) fileInputRef.current.value = "";
+  }, [open]);
 
   const [prevOpen, setPrevOpen] = useState(open);
   if (open !== prevOpen) {
@@ -73,6 +112,8 @@ export function SuggestResetForm({ gyms, open, onOpenChange }: Props) {
     if (open) {
       setSelectedGymId("");
       setSelectedSectionId("");
+      setPhotoFile(null);
+      setPhotoError(null);
     }
   }
 
@@ -163,9 +204,53 @@ export function SuggestResetForm({ gyms, open, onOpenChange }: Props) {
         />
       </div>
 
-      <div className="flex items-center gap-2 rounded-md border border-dashed border-foreground/15 bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
-        <HugeiconsIcon icon={Image01Icon} className="size-3.5" />
-        <span>Photo upload coming soon.</span>
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="suggest_photo">
+          Photo <span className="font-normal text-muted-foreground">(optional)</span>
+        </Label>
+        <input
+          ref={fileInputRef}
+          id="suggest_photo"
+          name="photo"
+          type="file"
+          accept="image/*"
+          className="sr-only"
+          onChange={handlePhotoChange}
+        />
+        {previewUrl ? (
+          <div className="flex items-start gap-3 rounded-md border border-foreground/15 bg-muted/40 p-2">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={previewUrl}
+              alt="Selected reset photo"
+              className="size-16 rounded object-cover"
+            />
+            <div className="flex min-w-0 flex-1 flex-col gap-1 text-xs">
+              <span className="text-muted-foreground">Ready to send</span>
+              <button
+                type="button"
+                onClick={resetPhoto}
+                disabled={isPending}
+                className="inline-flex w-fit items-center gap-1 text-muted-foreground hover:text-foreground disabled:opacity-50"
+              >
+                <HugeiconsIcon icon={Cancel01Icon} className="size-3" />
+                Remove
+              </button>
+            </div>
+          </div>
+        ) : (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => fileInputRef.current?.click()}
+            className="w-fit"
+          >
+            <HugeiconsIcon icon={Image01Icon} className="size-3.5" />
+            Add photo
+          </Button>
+        )}
+        {photoError && <p className="text-xs text-destructive">{photoError}</p>}
       </div>
 
       <div className="flex justify-end gap-2 pt-1">
@@ -178,7 +263,7 @@ export function SuggestResetForm({ gyms, open, onOpenChange }: Props) {
           Cancel
         </Button>
         <Button type="submit" size="sm" disabled={isPending || wasSuccess}>
-          {isPending ? "Sending…" : "Send suggestion"}
+          {isPending ? (photoFile ? "Uploading…" : "Sending…") : "Send suggestion"}
         </Button>
       </div>
     </form>
