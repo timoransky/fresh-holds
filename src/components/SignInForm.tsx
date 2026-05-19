@@ -44,7 +44,17 @@ export function SignInForm({ next = "/" }: Props) {
 
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="email">Email</Label>
-        <Input id="email" name="email" type="email" required autoComplete="email" />
+        <Input
+          id="email"
+          name="email"
+          type="email"
+          required
+          autoComplete="email"
+          inputMode="email"
+          autoCapitalize="off"
+          autoCorrect="off"
+          spellCheck={false}
+        />
       </div>
 
       <Button type="submit" disabled={requestPending} className="mt-2 w-full">
