@@ -15,7 +15,10 @@ export type PendingSubmission = {
   section_name: string;
   gym_name: string;
   gym_slug: string;
+  photo_url: string | null;
 };
+
+const PHOTO_SIGNED_URL_TTL_SECONDS = 60 * 60;
 
 export type MySubmission = {
   id: string;
@@ -35,12 +38,27 @@ export async function listPendingSubmissions(): Promise<PendingSubmission[]> {
   const { data, error } = await supabase
     .from("reset_submissions")
     .select(
-      "id, reset_on, notes, boulders_reset, created_at, section_id, sections(name, gyms(name, slug)), profiles(email)",
+      "id, reset_on, notes, boulders_reset, created_at, section_id, photo_path, sections(name, gyms(name, slug)), profiles(email)",
     )
     .eq("status", "pending")
     .order("created_at", { ascending: true });
 
   if (error || !data) return [];
+
+  const paths = data
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .map((row: any) => row.photo_path as string | null)
+    .filter((p): p is string => !!p);
+
+  const signedUrls = new Map<string, string>();
+  if (paths.length > 0) {
+    const { data: signed } = await supabase.storage
+      .from("reset-photos")
+      .createSignedUrls(paths, PHOTO_SIGNED_URL_TTL_SECONDS);
+    signed?.forEach((s) => {
+      if (s.path && s.signedUrl) signedUrls.set(s.path, s.signedUrl);
+    });
+  }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (data as any[]).map((row) => ({
@@ -54,6 +72,7 @@ export async function listPendingSubmissions(): Promise<PendingSubmission[]> {
     section_name: row.sections?.name ?? "",
     gym_name: row.sections?.gyms?.name ?? "",
     gym_slug: row.sections?.gyms?.slug ?? "",
+    photo_url: row.photo_path ? signedUrls.get(row.photo_path) ?? null : null,
   }));
 }
 

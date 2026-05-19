@@ -1,8 +1,8 @@
 "use client";
 
-import { useActionState, useEffect, useMemo, useState } from "react";
+import { useActionState, useEffect, useMemo, useRef, useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Image01Icon } from "@hugeicons/core-free-icons";
+import { Cancel01Icon, Image01Icon } from "@hugeicons/core-free-icons";
 import { suggestReset } from "@/lib/actions/submissions";
 import { Button } from "@/components/ui/button";
 import { FormAlert } from "@/components/ui/form-alert";
@@ -25,6 +25,9 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { todayISO } from "@/lib/date";
 import type { GymWithSections } from "@/lib/types";
+import { createClient } from "@/utils/supabase/client";
+
+const MAX_PHOTO_BYTES = 8 * 1024 * 1024;
 
 type Props = {
   gyms: GymWithSections[];
@@ -36,6 +39,13 @@ export function SuggestResetForm({ gyms, open, onOpenChange }: Props) {
   const [state, formAction, isPending] = useActionState(suggestReset, null);
   const [selectedGymId, setSelectedGymId] = useState("");
   const [selectedSectionId, setSelectedSectionId] = useState("");
+  const [photo, setPhoto] = useState<
+    | { status: "idle" }
+    | { status: "uploading"; previewUrl: string }
+    | { status: "ready"; previewUrl: string; path: string }
+    | { status: "error"; message: string }
+  >({ status: "idle" });
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const today = todayISO();
 
   const selectedGym = useMemo(
@@ -67,14 +77,70 @@ export function SuggestResetForm({ gyms, open, onOpenChange }: Props) {
     setSelectedSectionId("");
   };
 
+  const photoPreviewUrl =
+    photo.status === "uploading" || photo.status === "ready" ? photo.previewUrl : null;
+  useEffect(() => {
+    if (!photoPreviewUrl) return;
+    return () => URL.revokeObjectURL(photoPreviewUrl);
+  }, [photoPreviewUrl]);
+
+  const resetPhoto = () => {
+    if (fileInputRef.current) fileInputRef.current.value = "";
+    setPhoto({ status: "idle" });
+  };
+
+  useEffect(() => {
+    if (open && fileInputRef.current) fileInputRef.current.value = "";
+  }, [open]);
+
+  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setPhoto({ status: "error", message: "Pick an image file." });
+      return;
+    }
+    if (file.size > MAX_PHOTO_BYTES) {
+      setPhoto({ status: "error", message: "Photo is too big (max 8 MB)." });
+      return;
+    }
+
+    const previewUrl = URL.createObjectURL(file);
+    setPhoto({ status: "uploading", previewUrl });
+
+    const supabase = createClient();
+    const { data: userData } = await supabase.auth.getUser();
+    const userId = userData.user?.id;
+    if (!userId) {
+      setPhoto({ status: "error", message: "Sign in to upload a photo." });
+      return;
+    }
+
+    const ext = (file.name.split(".").pop() ?? "jpg").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
+    const path = `submissions/${userId}/${crypto.randomUUID()}.${ext}`;
+    const { error } = await supabase.storage
+      .from("reset-photos")
+      .upload(path, file, { contentType: file.type, upsert: false });
+
+    if (error) {
+      setPhoto({ status: "error", message: error.message });
+      return;
+    }
+    setPhoto({ status: "ready", previewUrl, path });
+  };
+
   const [prevOpen, setPrevOpen] = useState(open);
   if (open !== prevOpen) {
     setPrevOpen(open);
     if (open) {
       setSelectedGymId("");
       setSelectedSectionId("");
+      setPhoto({ status: "idle" });
     }
   }
+
+  const photoPath = photo.status === "ready" ? photo.path : "";
+  const isUploadingPhoto = photo.status === "uploading";
 
   const formBody = (
     <form action={formAction} className="flex flex-col gap-4 px-4 pb-4 pt-2">
@@ -163,9 +229,58 @@ export function SuggestResetForm({ gyms, open, onOpenChange }: Props) {
         />
       </div>
 
-      <div className="flex items-center gap-2 rounded-md border border-dashed border-foreground/15 bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
-        <HugeiconsIcon icon={Image01Icon} className="size-3.5" />
-        <span>Photo upload coming soon.</span>
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="suggest_photo">
+          Photo <span className="font-normal text-muted-foreground">(optional)</span>
+        </Label>
+        <input
+          ref={fileInputRef}
+          id="suggest_photo"
+          type="file"
+          accept="image/*"
+          capture="environment"
+          className="sr-only"
+          onChange={handlePhotoChange}
+        />
+        <input type="hidden" name="photo_path" value={photoPath} />
+        {photoPreviewUrl ? (
+          <div className="flex items-start gap-3 rounded-md border border-foreground/15 bg-muted/40 p-2">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={photoPreviewUrl}
+              alt="Selected reset photo"
+              className="size-16 rounded object-cover"
+            />
+            <div className="flex min-w-0 flex-1 flex-col gap-1 text-xs">
+              <span className="text-muted-foreground">
+                {photo.status === "uploading" ? "Uploading…" : "Ready to send"}
+              </span>
+              <button
+                type="button"
+                onClick={resetPhoto}
+                disabled={photo.status === "uploading"}
+                className="inline-flex w-fit items-center gap-1 text-muted-foreground hover:text-foreground disabled:opacity-50"
+              >
+                <HugeiconsIcon icon={Cancel01Icon} className="size-3" />
+                Remove
+              </button>
+            </div>
+          </div>
+        ) : (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => fileInputRef.current?.click()}
+            className="w-fit"
+          >
+            <HugeiconsIcon icon={Image01Icon} className="size-3.5" />
+            Add photo
+          </Button>
+        )}
+        {photo.status === "error" && (
+          <p className="text-xs text-destructive">{photo.message}</p>
+        )}
       </div>
 
       <div className="flex justify-end gap-2 pt-1">
@@ -177,8 +292,12 @@ export function SuggestResetForm({ gyms, open, onOpenChange }: Props) {
         >
           Cancel
         </Button>
-        <Button type="submit" size="sm" disabled={isPending || wasSuccess}>
-          {isPending ? "Sending…" : "Send suggestion"}
+        <Button
+          type="submit"
+          size="sm"
+          disabled={isPending || wasSuccess || isUploadingPhoto}
+        >
+          {isPending ? "Sending…" : isUploadingPhoto ? "Uploading photo…" : "Send suggestion"}
         </Button>
       </div>
     </form>

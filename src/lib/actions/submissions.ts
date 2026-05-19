@@ -18,6 +18,7 @@ export async function suggestReset(
   const resetOn = String(formData.get("reset_on") ?? "");
   const notes = String(formData.get("notes") ?? "").trim() || null;
   const bouldersResetRaw = String(formData.get("boulders_reset") ?? "").trim();
+  const photoPathRaw = String(formData.get("photo_path") ?? "").trim();
 
   if (!sectionId) return fail("Pick a sector.");
   if (!ISO_DATE_RE.test(resetOn)) return fail("Pick a valid date.");
@@ -33,6 +34,15 @@ export async function suggestReset(
     bouldersReset = parsed;
   }
 
+  let photoPath: string | null = null;
+  if (photoPathRaw !== "") {
+    const expectedPrefix = `submissions/${ctx.userId}/`;
+    if (!photoPathRaw.startsWith(expectedPrefix) || photoPathRaw.includes("..")) {
+      return fail("Photo upload looks invalid — try again.");
+    }
+    photoPath = photoPathRaw;
+  }
+
   const { data, error } = await ctx.supabase
     .from("reset_submissions")
     .insert({
@@ -41,6 +51,7 @@ export async function suggestReset(
       notes,
       boulders_reset: bouldersReset,
       submitted_by: ctx.userId,
+      photo_path: photoPath,
     })
     .select("id")
     .single();
