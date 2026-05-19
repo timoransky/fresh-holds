@@ -101,6 +101,17 @@
   html {
     @apply font-sans;
   }
+  /* iOS Safari renders date inputs at their own intrinsic height/font size,
+     which makes them taller and the value text larger than other inputs.
+     Reset the native appearance so they match the rest of the form. */
+  input[type="date"] {
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  input[type="date"]::-webkit-date-and-time-value {
+    text-align: left;
+    min-height: 1lh;
+  }
 }
 
 @keyframes badge-bob {
