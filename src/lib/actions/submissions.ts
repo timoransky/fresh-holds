@@ -90,7 +90,8 @@ export async function suggestReset(
     if (photoPath) {
       await ctx.supabase.storage.from(PHOTO_BUCKET).remove([photoPath]);
     }
-    if (error?.code === "42501" || error?.message?.includes("policy")) {
+    console.error("[suggestReset] insert failed", error);
+    if (error?.code === "42501") {
       return fail("You already have 5 pending suggestions. Wait for admin review.");
     }
     return fail(error?.message ?? "Couldn't submit.");
