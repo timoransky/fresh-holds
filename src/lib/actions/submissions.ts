@@ -67,7 +67,8 @@ export async function suggestReset(
       });
 
     if (uploadError) {
-      return fail("Couldn't upload photo. Try again.");
+      console.error("[suggestReset] photo upload failed", uploadError);
+      return fail(`Couldn't upload photo: ${uploadError.message}`);
     }
   }
 

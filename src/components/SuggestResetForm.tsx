@@ -214,7 +214,6 @@ export function SuggestResetForm({ gyms, open, onOpenChange }: Props) {
           name="photo"
           type="file"
           accept="image/*"
-          capture="environment"
           className="sr-only"
           onChange={handlePhotoChange}
         />
