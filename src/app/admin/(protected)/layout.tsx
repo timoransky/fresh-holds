@@ -1,9 +1,11 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
 import { getSupabase } from "@/lib/auth";
 import { signOut } from "@/lib/actions/auth";
-import { Badge } from "@/components/ui/badge";
+import { AdminNav } from "@/components/admin/AdminNav";
 import { BrandBadge } from "@/components/ui/brand-badge";
 import { Button } from "@/components/ui/button";
 
@@ -68,23 +70,30 @@ async function AdminLayoutContent({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-dvh">
-      <header className="border-b border-border bg-background">
-        <div className="mx-auto flex max-w-4xl items-center justify-between gap-3 px-4 py-3">
+      <header className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+        <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3">
           <div className="flex items-center gap-3">
             <BrandBadge asChild className="px-2.5 py-0.5">
               <Link href="/admin">fresh holds · admin</Link>
             </BrandBadge>
-            <Link
-              href="/admin/submissions"
-              className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground"
-            >
-              Submissions
-              {pendingCount && pendingCount > 0 ? (
-                <Badge className="h-4 min-w-4 px-1 text-[10px] font-bold">{pendingCount}</Badge>
-              ) : null}
-            </Link>
+            <AdminNav
+              items={[
+                { href: "/admin", label: "Reset log" },
+                {
+                  href: "/admin/submissions",
+                  label: "Submissions",
+                  badgeCount: pendingCount ?? 0,
+                },
+              ]}
+            />
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Button asChild variant="ghost" size="xs">
+              <Link href="/">
+                <HugeiconsIcon icon={ArrowLeft01Icon} strokeWidth={2} />
+                Back to app
+              </Link>
+            </Button>
             <span className="hidden text-xs text-muted-foreground sm:inline">{user.email}</span>
             <form action={signOut}>
               <Button type="submit" variant="outline" size="xs">
@@ -103,9 +112,15 @@ function AdminLayoutFallback() {
   return (
     <div aria-hidden className="min-h-dvh">
       <div className="border-b border-border bg-background">
-        <div className="mx-auto flex max-w-4xl items-center justify-between gap-3 px-4 py-3">
-          <div className="h-6 w-40 rounded bg-foreground/5" />
-          <div className="h-6 w-20 rounded bg-foreground/5" />
+        <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3">
+          <div className="flex items-center gap-3">
+            <div className="h-6 w-40 rounded bg-foreground/5" />
+            <div className="h-5 w-48 rounded bg-foreground/5" />
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="h-6 w-24 rounded bg-foreground/5" />
+            <div className="h-6 w-20 rounded bg-foreground/5" />
+          </div>
         </div>
       </div>
     </div>
