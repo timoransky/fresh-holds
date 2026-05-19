@@ -101,15 +101,18 @@
   html {
     @apply font-sans;
   }
-  /* iOS Safari renders date inputs at their own intrinsic height/font size,
-     which makes them taller and the value text larger than other inputs.
-     Reset the native appearance so they match the rest of the form. */
+  /* iOS Safari renders date inputs with the native chrome and gives the
+     inner value pseudo-element its own intrinsic min-width based on the
+     date text, which pushes the input past its container on narrow
+     viewports. Strip the native appearance and let the value shrink. */
   input[type="date"] {
     -webkit-appearance: none;
     appearance: none;
   }
   input[type="date"]::-webkit-date-and-time-value {
     text-align: left;
+    min-width: 0;
+    width: 100%;
     min-height: 1lh;
   }
 }
