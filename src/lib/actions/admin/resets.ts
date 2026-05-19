@@ -28,6 +28,11 @@ export async function submitReset(
 
   let bouldersReset: number | null = null;
   if (bouldersResetRaw && bouldersResetRaw.trim() !== "") {
+    if (sectionIds.length > 1) {
+      // A count belongs to one reset row; applying it across N rows would
+      // multiply the fresh-boulder total. Force a single-section submission.
+      return fail("Boulder count can only be attached when one section is selected");
+    }
     const parsed = Number(bouldersResetRaw);
     if (!Number.isInteger(parsed) || parsed <= 0) {
       return fail("Boulders reset must be a positive integer");

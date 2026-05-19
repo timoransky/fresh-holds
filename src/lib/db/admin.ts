@@ -1,7 +1,5 @@
 import { getSupabase } from "@/lib/auth";
 
-import type { FreshnessMode } from "@/lib/types";
-
 export type AdminSection = {
   id: string;
   name: string;
@@ -12,7 +10,6 @@ export type AdminGym = {
   id: string;
   name: string;
   slug: string;
-  freshness_mode: FreshnessMode;
   sections: AdminSection[];
 };
 
@@ -31,9 +28,7 @@ export async function getGymsForAdmin(): Promise<AdminGym[]> {
 
   const { data, error } = await supabase
     .from("gyms")
-    .select(
-      "id, name, slug, freshness_mode, sections(id, name, display_order, is_active)",
-    )
+    .select("id, name, slug, sections(id, name, display_order, is_active)")
     .eq("is_active", true)
     .order("display_order", { ascending: true })
     .order("display_order", { referencedTable: "sections", ascending: true });

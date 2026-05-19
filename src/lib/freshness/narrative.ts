@@ -8,9 +8,9 @@ export function describeFreshness(
 ): string {
   if (label === null) return "No reset data - you have to check for yourself.";
 
-  if (label.count === 0) {
+  if (label.freshSections === 0) {
     if (lastVisitedISO === null) {
-      return "Resets logged, but no boulder counts yet.";
+      return "Resets logged, but nothing new yet.";
     }
     if (daysSince(lastVisitedISO) <= 0) {
       return "Nothing new since you visited today.";
@@ -18,29 +18,57 @@ export function describeFreshness(
     return `Nothing new since your last visit ${relativeDay(lastVisitedISO)}.`;
   }
 
-  if (lastVisitedISO === null) {
-    const recent = relativeDay(mostRecentFreshISO!);
-    if (label.kind === "sections") {
-      if (label.total === 1) {
-        return `Never visited - one sector is fresh, last reset ${recent}.`;
-      }
-      return `Never visited - all ${label.total} sectors fresh, last reset ${recent}.`;
-    }
-    return `Never visited - ${label.count} fresh ${pluralize(label.count, "boulder")}, last reset ${recent}.`;
-  }
-
   const recent = relativeDay(mostRecentFreshISO!);
-  if (label.kind === "sections") {
-    return `${label.count} of ${label.total} ${pluralize(label.total, "sector")} fresh, last reset ${recent}.`;
+  const primary = primaryClause(label);
+  const lastReset = `last reset ${recent}`;
+
+  if (lastVisitedISO === null) {
+    return `Never visited - ${primary}, ${lastReset}.`;
   }
-  return `${label.count} fresh ${pluralize(label.count, "boulder")}, last reset ${recent}.`;
+  return `${capitalize(primary)}, ${lastReset}.`;
 }
 
 export function badgeCountLabel(label: FreshLabel): string {
-  if (label.kind === "sections") {
-    return `fresh ${pluralize(label.count, "sector")}`;
+  if (showBouldersFirst(label)) {
+    return `new ${pluralize(label.countedBoulders, "boulder")}`;
   }
-  return `new ${pluralize(label.count, "boulder")}`;
+  return `fresh ${pluralize(label.freshSections, "sector")}`;
+}
+
+export function badgeCountNumber(label: FreshLabel): number {
+  return showBouldersFirst(label) ? label.countedBoulders : label.freshSections;
+}
+
+function showBouldersFirst(label: FreshLabel): boolean {
+  return label.totalSections === 1 && label.countedBoulders > 0;
+}
+
+function primaryClause(label: FreshLabel): string {
+  if (label.totalSections === 1) {
+    if (label.countedBoulders > 0) {
+      return `${boulderCount(label)} new ${pluralize(label.countedBoulders, "boulder")}`;
+    }
+    return "some boulders are fresh";
+  }
+
+  const sectorsClause =
+    label.freshSections === label.totalSections
+      ? `all ${label.totalSections} sectors fresh`
+      : `${label.freshSections} of ${label.totalSections} sectors fresh`;
+
+  if (label.countedBoulders > 0) {
+    const count = `${boulderCount(label)} new ${pluralize(label.countedBoulders, "boulder")}`;
+    return `${sectorsClause} · ${count}`;
+  }
+  return sectorsClause;
+}
+
+function boulderCount(label: FreshLabel): string {
+  return label.hasUncountedResets ? `${label.countedBoulders}+` : `${label.countedBoulders}`;
+}
+
+function capitalize(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
 function pluralize(n: number, word: string): string {

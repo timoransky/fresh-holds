@@ -21,8 +21,7 @@ type Props = {
 };
 
 export function GymCard({ scored, variant, visitedDates, onChangeVisits }: Props) {
-  const { gym, tier, label, badgeText, narrative, freshSectionIds } = scored;
-  const isCountMode = gym.freshness_mode === "count";
+  const { gym, tier, label, badgeNumber, badgeText, narrative, freshSectionIds } = scored;
   const isHero = variant === "hero";
 
   const surfaceStyle = tierCardStyle(tier);
@@ -53,6 +52,7 @@ export function GymCard({ scored, variant, visitedDates, onChangeVisits }: Props
         <FreshnessBadge
           tier={tier}
           label={label}
+          badgeNumber={badgeNumber}
           badgeText={badgeText}
           size={isHero ? "hero" : "compact"}
           bob={isHero}
@@ -86,19 +86,10 @@ export function GymCard({ scored, variant, visitedDates, onChangeVisits }: Props
             )}
           >
             <div className="pt-3">
-              {isCountMode ? (
-                <GymResetTable
-                  mode="count"
-                  resets={scored.allResetsByRecent}
-                  lastVisited={scored.lastVisited}
-                />
-              ) : (
-                <GymResetTable
-                  mode="sections"
-                  sections={scored.sectionsByRecent}
-                  freshSectionIds={freshSectionIds}
-                />
-              )}
+              <GymResetTable
+                sections={scored.sectionsByRecent}
+                freshSectionIds={freshSectionIds}
+              />
             </div>
           </div>
         </>

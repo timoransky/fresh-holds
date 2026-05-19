@@ -25,7 +25,6 @@ export function ResetForm({ gyms }: { gyms: AdminGym[] }) {
   const [state, formAction, isPending] = useActionState(submitReset, null);
 
   const selectedGym = gyms.find((g) => g.id === selectedGymId);
-  const isCountMode = selectedGym?.freshness_mode === "count";
   const today = todayISO();
 
   const wasSuccess = state !== null && "success" in state;
@@ -53,11 +52,11 @@ export function ResetForm({ gyms }: { gyms: AdminGym[] }) {
     });
   }
 
-  // Count-mode gyms have a single "whole gym" section; the form auto-attaches to it.
-  const countModeSection = isCountMode ? selectedGym?.sections[0] : undefined;
-  const canSubmit = isCountMode
-    ? Boolean(countModeSection) && bouldersReset.trim() !== "" && Number(bouldersReset) > 0
-    : Boolean(selectedGymId) && checkedSections.size > 0;
+  // Boulder counts attach to a single reset row, so the input is only valid
+  // when exactly one section is checked. For multi-sector resets, log each
+  // sector as its own row (with or without a count).
+  const singleSectionChecked = checkedSections.size === 1;
+  const canSubmit = Boolean(selectedGymId) && checkedSections.size > 0;
 
   return (
     <form action={formAction} className="flex flex-col gap-5">
@@ -73,7 +72,6 @@ export function ResetForm({ gyms }: { gyms: AdminGym[] }) {
             {gyms.map((g) => (
               <SelectItem key={g.id} value={g.id}>
                 {g.name}
-                {g.freshness_mode === "count" ? " (count mode)" : ""}
               </SelectItem>
             ))}
           </SelectContent>
@@ -81,7 +79,7 @@ export function ResetForm({ gyms }: { gyms: AdminGym[] }) {
         <input type="hidden" name="gym_id" value={selectedGymId} />
       </div>
 
-      {selectedGym && !isCountMode && (
+      {selectedGym && (
         <fieldset className="flex flex-col gap-2">
           <legend className="text-sm font-medium">Sections reset</legend>
           <div className="mt-1.5 grid grid-cols-2 gap-2">
@@ -107,23 +105,27 @@ export function ResetForm({ gyms }: { gyms: AdminGym[] }) {
         </fieldset>
       )}
 
-      {isCountMode && countModeSection && (
-        <>
-          <input type="hidden" name="section_ids" value={countModeSection.id} />
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="boulders_reset">Boulders reset</Label>
-            <Input
-              id="boulders_reset"
-              name="boulders_reset"
-              type="number"
-              min={1}
-              inputMode="numeric"
-              value={bouldersReset}
-              onChange={(e) => setBouldersReset(e.target.value)}
-              placeholder="e.g. 17"
-            />
-          </div>
-        </>
+      {selectedGym && (
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="boulders_reset">
+            New boulders{" "}
+            <span className="font-normal text-muted-foreground">(optional)</span>
+          </Label>
+          <Input
+            id="boulders_reset"
+            name="boulders_reset"
+            type="number"
+            min={1}
+            inputMode="numeric"
+            value={bouldersReset}
+            onChange={(e) => setBouldersReset(e.target.value)}
+            disabled={!singleSectionChecked}
+            placeholder={singleSectionChecked ? "e.g. 11" : "Pick exactly one sector to attach a count"}
+          />
+          <p className="text-xs text-muted-foreground">
+            Counts attach to a single sector. For multi-sector resets, log each as its own row.
+          </p>
+        </div>
       )}
 
       <div className="flex flex-col gap-1.5">
@@ -139,7 +141,7 @@ export function ResetForm({ gyms }: { gyms: AdminGym[] }) {
           id="notes"
           name="notes"
           rows={2}
-          placeholder="e.g. Full reset, 30 new problems"
+          placeholder="e.g. Half of the main boulder area"
           className="resize-none"
         />
       </div>
