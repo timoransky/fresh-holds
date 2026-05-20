@@ -45,7 +45,7 @@ export function VisitedButton({ visitedDates, onChangeVisits }: Props) {
         </Button>
       </ResponsiveDialogTrigger>
       <ResponsiveDialogContent desktopClassName="w-[min(92vw,460px)] p-0">
-        <ResponsiveDialogHeader desktopClassName="px-5 pb-2 pt-5" mobileClassName="px-4 pb-2 pt-4">
+        <ResponsiveDialogHeader desktopClassName="px-6 pb-2 pt-6" mobileClassName="px-6 pb-2 pt-4">
           <ResponsiveDialogTitle>Log a visit</ResponsiveDialogTitle>
           <ResponsiveDialogDescription>
             Tap each day you climbed. We use this to rank gyms by what&rsquo;s new since
@@ -53,7 +53,7 @@ export function VisitedButton({ visitedDates, onChangeVisits }: Props) {
           </ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
         <div
-          className="flex flex-col gap-4 px-4 pb-4 pt-2 md:px-5 md:pb-5"
+          className="flex flex-col gap-4 px-6 pb-8 pt-2 md:pb-6"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex justify-center">
