@@ -4,7 +4,6 @@ import "./globals.css";
 import { Agentation } from "agentation";
 import { cn } from "@/lib/utils";
 import { Analytics } from "@vercel/analytics/next";
-import { OfflineIndicator } from "@/components/OfflineIndicator";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 
 const geistSans = Geist({
@@ -109,8 +108,6 @@ export default function RootLayout({
       <body className="min-h-dvh bg-background text-foreground font-sans antialiased">
         {children}
         {modal}
-
-        <OfflineIndicator />
 
         <Analytics />
         <ServiceWorkerRegister />

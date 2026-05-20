@@ -6,6 +6,7 @@ import { todayISO } from "@/lib/date";
 import { VISITS_COOKIE } from "@/lib/visit-log";
 import { GymList } from "@/components/GymList";
 import { HeaderAuth } from "@/components/HeaderAuth";
+import { OfflineIndicator } from "@/components/OfflineIndicator";
 import { AdminMenuLink } from "@/components/user/AdminMenuLink";
 import { SuggestResetMenuDialogSlot } from "@/components/user/SuggestResetMenuDialogSlot";
 
@@ -17,7 +18,11 @@ export default async function Home() {
   return (
     <main className="mx-auto min-h-dvh w-full max-w-4xl px-4 py-6 sm:pt-10 sm:pb-14 overflow-hidden">
       <header className="mb-10 sm:mb-14">
-        <div className="flex justify-end">
+        <div className="flex items-center justify-between gap-2">
+          {/* Slot div keeps HeaderAuth flush right when OfflineIndicator returns null (online). */}
+          <div>
+            <OfflineIndicator />
+          </div>
           <Suspense fallback={<HeaderAuthFallback />}>
             <HeaderAuthSection />
           </Suspense>
