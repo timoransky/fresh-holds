@@ -1,7 +1,12 @@
 import type { GymWithSections } from "@/lib/types";
 import { daysSince } from "@/lib/date";
 
-export const WEEKLY_VISIT_DAYS = 7;
+// Visit-gap ramp: visitFactor scales from 0 at a fresh visit to MAX_VISIT_FACTOR
+// once the user has been away long enough. 14 days = full weight (1.0), and a
+// long-abandoned gym caps at 2.5 (~35 days) so it doesn't drown out everything.
+const VISIT_RAMP_DAYS = 14;
+const MAX_VISIT_FACTOR = 2.5;
+const NEVER_VISITED_FACTOR = 1.0;
 
 export type FreshLabel = {
   freshSections: number;
@@ -64,15 +69,16 @@ export function gymFreshness(gym: GymWithSections, lastVisitedISO: string | null
     if (sectionHasFresh) freshSectionIds.push(section.id);
   }
 
-  const visitFactor = daysSinceVisit === null ? 1 : Math.min(daysSinceVisit / WEEKLY_VISIT_DAYS, 1);
-  const noveltyScore = freshResetCount * visitFactor;
-
   const label: FreshLabel = {
     freshSections: freshSectionIds.length,
     totalSections: sections.length,
     countedBoulders,
     hasUncountedResets,
   };
+
+  const visitFactor = computeVisitFactor(daysSinceVisit);
+  const substance = computeSubstance(label, freshResetCount);
+  const noveltyScore = visitFactor * substance;
 
   return {
     freshSectionIds,
@@ -83,4 +89,31 @@ export function gymFreshness(gym: GymWithSections, lastVisitedISO: string | null
     hasResetData: true,
     label,
   };
+}
+
+function computeVisitFactor(daysSinceVisit: number | null): number {
+  if (daysSinceVisit === null) return NEVER_VISITED_FACTOR;
+  return Math.min(daysSinceVisit / VISIT_RAMP_DAYS, MAX_VISIT_FACTOR);
+}
+
+function computeSubstance(label: FreshLabel, freshResetCount: number): number {
+  if (label.freshSections === 0) return 0;
+
+  // Multi-sector gyms: sectors are spatial regions, so coverage is meaningful.
+  // Floor at 0.6 so a small partial reset isn't crushed; ceiling at 1.0.
+  if (label.totalSections > 1) {
+    return 0.6 + 0.4 * (label.freshSections / label.totalSections);
+  }
+
+  // Single-sector gyms (whole gym is one announcement). Boulder count is the
+  // honest signal when we have it.
+  if (label.countedBoulders >= 20) return 0.95;
+  if (label.countedBoulders >= 10) return 0.85;
+  if (label.countedBoulders >= 5) return 0.75;
+
+  // Uncounted reset rows ≈ reset events for single-sector gyms (they typically
+  // log one row per weekly drop), so more rows ⇒ more accumulated novelty.
+  if (freshResetCount >= 3) return 0.90;
+  if (freshResetCount >= 2) return 0.80;
+  return 0.70;
 }

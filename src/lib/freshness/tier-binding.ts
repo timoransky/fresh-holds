@@ -1,8 +1,8 @@
 import { HOT, WORTH, SLIM, STALE, UNKNOWN, type Tier } from "@/lib/tier";
 import type { FreshnessResult } from "@/lib/freshness/scoring";
 
-const HOT_SCORE = 2;
-const WORTH_SCORE = 1;
+const HOT_SCORE = 1.8;
+const WORTH_SCORE = 0.5;
 const JUST_VISITED_DAYS = 2;
 
 export function bindTier(result: FreshnessResult): Tier {

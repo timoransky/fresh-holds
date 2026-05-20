@@ -12,11 +12,12 @@ A Next.js 16 (App Router) + Supabase app that helps Bratislava boulderers see wh
 
 ## Freshness model
 
-"Fresh" means _new climbing for this user_ — i.e. sections that were reset after they last visited. Computed in `src/lib/freshness.ts` (`gymFreshness`):
+"Fresh" means _new climbing for this user_ — i.e. sections that were reset after they last visited. Computed in `src/lib/freshness/` (entry: `gymFreshness` in `scoring.ts`):
 
-- **No reset data at all** (no resets in the cutoff window) → `percent: null`. UI shows `—` / "no reset data". We genuinely don't know the state.
-- **Never visited + has resets** → `percent: 100`, every section marked fresh. Sub-label: "never visited". The whole gym is new to this user by definition.
-- **Visited + has resets** → `percent = round(freshSections / totalSections * 100)`, where a section is fresh iff it has any reset strictly after the last visit date. Sub-label: "fresh".
+- **No reset data at all** (no resets in the cutoff window) → `hasResetData: false`, tier `UNKNOWN`. UI shows `—` / "no reset data". We genuinely don't know the state.
+- **Has reset data** → compute `noveltyScore = visitFactor × substance`, then bind to a tier (`HOT` / `WORTH` / `SLIM` / `STALE`). Never-visited is treated as a **neutral** visit gap (`visitFactor = 1.0`), not max — see ADR-0002 for the rationale.
+
+The full formula, constants, and tuning guidance live in [ADR-0002](docs/adr/0002-gym-scoring-model.md). Don't change `HOT_SCORE`, `VISIT_RAMP_DAYS`, or the substance tiers without reading it.
 
 Visit history is stored in `localStorage` as `Record<gymSlug, isoDate[]>`. `useVisits` exposes both the full `history` (for the calendar multi-select) and a derived `visits` map (latest date per gym) for the freshness/sorting logic. Old single-string entries from earlier versions auto-migrate to `[date]` on read.
 
@@ -24,12 +25,12 @@ The reset query window lives in `src/lib/db/gyms.ts` as `cutoffISO`. Resets olde
 
 ## Sort order
 
-`GymList` sorts the home page so the most useful card is at the top, and the top card auto-expands. Order:
+`rankGyms` sorts the home page so the most useful card is at the top, and the top card auto-expands. Order:
 
-1. **Gyms with reset data**, by `percent` descending. Tiebreak: most recent reset date descending.
+1. **Gyms with reset data**, by `noveltyScore` descending. Tiebreak: most recent fresh reset date descending.
 2. **Gyms with no reset data** at the bottom (we can't help the user pick).
 
-Visit state does _not_ segregate the list — a 100% never-visited gym beats a 0% visited one, because the user's question is "where is the freshest climbing _for me right now_", and a never-visited gym is maximally novel. Don't reintroduce a visited-first split without a reason.
+Visit state does _not_ segregate the list. The score blends visit gap and substance multiplicatively, so a long-abandoned gym with modest fresh content can outrank a recently-visited gym with lots of fresh content — that's the intended behavior. Don't reintroduce a visited-first split without a reason.
 
 ## Agent skills
 

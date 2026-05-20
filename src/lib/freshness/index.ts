@@ -10,7 +10,6 @@ import {
 } from "@/lib/freshness/sort";
 import { bindTier } from "@/lib/freshness/tier-binding";
 
-export { WEEKLY_VISIT_DAYS } from "@/lib/freshness/scoring";
 export { mostRecentReset } from "@/lib/freshness/sort";
 export type { FreshLabel } from "@/lib/freshness/scoring";
 

@@ -18,7 +18,7 @@ Vocabulary the code and the UI should use consistently. Add terms here as they c
 
 **Freshness** — for a given Gym and a given user, the resets that happened _strictly after_ the user's last Visit. A Section is fresh iff it has any Reset later than the visit. A never-visited Gym treats every reset as fresh by definition.
 
-**Novelty score** — `freshResetCount * min(daysSinceVisit / WEEKLY_VISIT_DAYS, 1)`. Encodes "how new is this gym to this user, _right now_." Decays for users who visited recently; saturates after a week. The home-page sort key.
+**Novelty score** — `visitFactor × substance`. `visitFactor` ramps `min(daysSinceVisit / 14, 2.5)` (neutral 1.0 if never visited); `substance` is sector coverage for multi-sector gyms, or a tiered function of boulder count / fresh-row count for single-sector gyms. Encodes "how much new climbing is waiting for me at this gym, and how starved am I for it." The home-page sort key. See [ADR-0002](docs/adr/0002-gym-scoring-model.md) for the full formula and constant rationale.
 
 **Tier** — one of `hot` / `worth` / `slim` / `stale` / `unknown`, bound from the Novelty score (and a "just visited" floor). Each tier has user-facing copy ("sending hot", "worth a climb", etc.), an emoji, and a CSS token set. UI never speaks raw scores — it speaks Tiers.
 

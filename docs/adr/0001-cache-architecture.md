@@ -9,7 +9,7 @@ The home page renders gyms in a personalized order — freshest-for-this-user fi
 We want:
 
 1. **Server-side ranking.** Visit history is in the cookie, so the server can compute the right order on first paint. No client-side re-sort flash.
-2. **Caching keyed per visit pattern + per day.** Users with the same visits share a cache entry; the entry rotates daily so the time-decay term (`min(daysSinceVisit / 7, 1)`) in the novelty score stays accurate.
+2. **Caching keyed per visit pattern + per day.** Users with the same visits share a cache entry; the entry rotates daily so the visit-gap term in the novelty score (see [ADR-0002](0002-gym-scoring-model.md)) stays accurate.
 3. **No skeleton flash.** The page should land with the ranked list visible — not as a Suspense fallback that swaps to content.
 
 Next.js 16 ships two caching APIs:
