@@ -4,6 +4,7 @@ import "./globals.css";
 import { Agentation } from "agentation";
 import { cn } from "@/lib/utils";
 import { Analytics } from "@vercel/analytics/next";
+import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -80,6 +81,11 @@ export const metadata: Metadata = {
     },
   },
   category: "sports",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: siteName,
+  },
 };
 
 export const viewport: Viewport = {
@@ -104,6 +110,7 @@ export default function RootLayout({
         {modal}
 
         <Analytics />
+        <ServiceWorkerRegister />
         {process.env.NODE_ENV === "development" && <Agentation />}
       </body>
     </html>
