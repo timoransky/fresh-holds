@@ -107,10 +107,19 @@ function ResponsiveDialogHeader({
   );
 }
 
-function ResponsiveDialogTitle({ children, ...props }: React.ComponentProps<"h2">) {
+function ResponsiveDialogTitle({
+  children,
+  className,
+  ...props
+}: React.ComponentProps<"h2">) {
   const isDesktop = useIsDesktop();
   const Title = isDesktop ? DialogTitle : DrawerTitle;
-  return <Title {...props}>{children}</Title>;
+  const headingClass = "font-heading text-3xl font-extrabold tracking-tight leading-tight";
+  return (
+    <Title className={[headingClass, className].filter(Boolean).join(" ")} {...props}>
+      {children}
+    </Title>
+  );
 }
 
 function ResponsiveDialogDescription({ children, ...props }: React.ComponentProps<"p">) {

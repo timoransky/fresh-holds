@@ -90,7 +90,7 @@ export function VisitHistoryDialog({ gymNames, authed }: Props) {
   return (
     <ResponsiveDialog open={open} onOpenChange={setOpen}>
       <ResponsiveDialogContent desktopClassName="w-[min(92vw,460px)] p-0">
-        <ResponsiveDialogHeader desktopClassName="px-4 pb-2 pt-4" mobileClassName="px-4 pb-2 pt-4">
+        <ResponsiveDialogHeader desktopClassName="px-6 pb-2 pt-6" mobileClassName="px-6 pb-2 pt-4">
           <ResponsiveDialogTitle>Visit history</ResponsiveDialogTitle>
           <ResponsiveDialogDescription>
             Review every visit you&rsquo;ve logged. Delete a row to correct a mis-tap — the
@@ -98,7 +98,7 @@ export function VisitHistoryDialog({ gymNames, authed }: Props) {
           </ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
 
-        <div className="max-h-[60vh] overflow-y-auto px-4 pb-5">
+        <div className="max-h-[60vh] overflow-y-auto px-6 pt-2">
           {groups.length === 0 ? (
             <p className="rounded-xl border border-dashed border-foreground/20 p-5 text-sm text-muted-foreground">
               No visits logged yet. Tap <span className="font-medium text-foreground">log my visit</span>{" "}
@@ -154,6 +154,12 @@ export function VisitHistoryDialog({ gymNames, authed }: Props) {
               ))}
             </ul>
           )}
+        </div>
+
+        <div className="flex justify-end gap-2 px-6 pt-4 pb-8 md:pb-6">
+          <Button type="button" variant="outline" size="sm" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
         </div>
       </ResponsiveDialogContent>
     </ResponsiveDialog>

@@ -7,13 +7,13 @@ import { Button } from "@/components/ui/button";
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
+  ResponsiveDialogDescription,
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
   ResponsiveDialogTrigger,
 } from "@/components/ui/responsive-dialog";
 import { Calendar } from "@/components/ui/calendar";
 import { dateFromISO, isoFromDate } from "@/lib/date";
-import { useMediaQuery } from "@/hooks/useMediaQuery";
 
 type Props = {
   visitedDates: string[];
@@ -23,7 +23,6 @@ type Props = {
 export function VisitedButton({ visitedDates, onChangeVisits }: Props) {
   const [open, setOpen] = useState(false);
   const [pendingDates, setPendingDates] = useState<string[]>([]);
-  const isDesktop = useMediaQuery("(min-width: 768px)");
 
   const handleOpenChange = (nextOpen: boolean) => {
     if (nextOpen) setPendingDates(visitedDates);
@@ -37,85 +36,47 @@ export function VisitedButton({ visitedDates, onChangeVisits }: Props) {
 
   const selectedDates = useMemo(() => pendingDates.map(dateFromISO), [pendingDates]);
 
-  const defaultMonth = useMemo(() => {
-    if (!isDesktop) return undefined;
-    const d = new Date();
-    d.setDate(1);
-    d.setMonth(d.getMonth() - 1);
-    return d;
-  }, [isDesktop]);
-
-  const trigger = (
-    <Button type="button" size="sm" className="rounded-full">
-      <HugeiconsIcon icon={CalendarAdd01Icon} strokeWidth={2} />
-      <span>log my visit</span>
-    </Button>
-  );
-
-  const header = (
-    <div className="px-4 pt-4 pb-2">
-      <p className="text-center text-lg font-semibold">when did you climb?</p>
-    </div>
-  );
-
-  const pickerContent = (
-    <div onClick={(e) => e.stopPropagation()}>
-      {header}
-      <div className="flex justify-center border-t p-4">
-        <Calendar
-          mode="multiple"
-          numberOfMonths={isDesktop ? 2 : 1}
-          defaultMonth={defaultMonth}
-          fixedWeeks
-          selected={selectedDates}
-          onSelect={(dates) => setPendingDates((dates ?? []).map(isoFromDate))}
-          disabled={{ after: new Date() }}
-          autoFocus
-          className="p-0 [--cell-size:--spacing(9.5)]"
-        />
-      </div>
-    </div>
-  );
-
   return (
     <ResponsiveDialog open={open} onOpenChange={handleOpenChange}>
-      <ResponsiveDialogTrigger asChild>{trigger}</ResponsiveDialogTrigger>
-      <ResponsiveDialogContent desktopClassName="w-auto min-w-sm p-0">
-        <ResponsiveDialogHeader srOnly>
+      <ResponsiveDialogTrigger asChild>
+        <Button type="button" size="sm" className="rounded-full">
+          <HugeiconsIcon icon={CalendarAdd01Icon} strokeWidth={2} />
+          <span>log my visit</span>
+        </Button>
+      </ResponsiveDialogTrigger>
+      <ResponsiveDialogContent desktopClassName="w-[min(92vw,460px)] p-0">
+        <ResponsiveDialogHeader desktopClassName="px-6 pb-2 pt-6" mobileClassName="px-6 pb-2 pt-4">
           <ResponsiveDialogTitle>Log a visit</ResponsiveDialogTitle>
+          <ResponsiveDialogDescription>
+            Tap each day you climbed. We use this to rank gyms by what&rsquo;s new since
+            you were last there.
+          </ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
-        {isDesktop ? (
-          <>
-            {pickerContent}
-            <div className="p-3 border-t flex items-center justify-center">
-              <Button onClick={handleConfirm} className="w-full max-w-3xs mx-auto">
-                Done
-              </Button>
-            </div>
-          </>
-        ) : (
-          <div className="px-6 pt-4 pb-8" onClick={(e) => e.stopPropagation()}>
-            <h2 className="mb-4 font-heading text-3xl text-center font-extrabold tracking-tight">
-              when did you climb?
-            </h2>
-            <div className="flex justify-center">
-              <Calendar
-                mode="multiple"
-                numberOfMonths={1}
-                defaultMonth={defaultMonth}
-                fixedWeeks
-                selected={selectedDates}
-                onSelect={(dates) => setPendingDates((dates ?? []).map(isoFromDate))}
-                disabled={{ after: new Date() }}
-                autoFocus
-                className="p-0 [--cell-size:--spacing(9.5)]"
-              />
-            </div>
-            <Button onClick={handleConfirm} className="mt-6 w-full">
+        <div
+          className="flex flex-col gap-4 px-6 pb-8 pt-2 md:pb-6"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="flex justify-center">
+            <Calendar
+              mode="multiple"
+              numberOfMonths={1}
+              fixedWeeks
+              selected={selectedDates}
+              onSelect={(dates) => setPendingDates((dates ?? []).map(isoFromDate))}
+              disabled={{ after: new Date() }}
+              autoFocus
+              className="p-0 [--cell-size:--spacing(9.5)]"
+            />
+          </div>
+          <div className="flex justify-end gap-2 pt-1">
+            <Button type="button" variant="outline" size="sm" onClick={() => setOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="button" size="sm" onClick={handleConfirm}>
               Done
             </Button>
           </div>
-        )}
+        </div>
       </ResponsiveDialogContent>
     </ResponsiveDialog>
   );
