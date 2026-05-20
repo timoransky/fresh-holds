@@ -1,21 +1,29 @@
 {
-  "name": "MyWebSite",
-  "short_name": "MySite",
+  "name": "Fresh Holds",
+  "short_name": "Fresh Holds",
+  "description": "Where's the fresh climbing in Bratislava? Logs your visits and ranks Bratislava bouldering gyms by what's new since you were last there.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#fafaf6",
+  "theme_color": "#fafaf6",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["sports", "lifestyle"],
   "icons": [
     {
       "src": "/web-app-manifest-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "maskable"
+      "purpose": "any maskable"
     },
     {
       "src": "/web-app-manifest-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "maskable"
+      "purpose": "any maskable"
     }
-  ],
-  "theme_color": "#ffffff",
-  "background_color": "#ffffff",
-  "display": "standalone"
+  ]
 }
