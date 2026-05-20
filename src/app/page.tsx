@@ -8,6 +8,7 @@ import { GymList } from "@/components/GymList";
 import { HeaderAuth } from "@/components/HeaderAuth";
 import { AdminMenuLink } from "@/components/user/AdminMenuLink";
 import { SuggestResetMenuDialogSlot } from "@/components/user/SuggestResetMenuDialogSlot";
+import { VisitHistoryMenuDialogSlot } from "@/components/user/VisitHistoryMenuDialogSlot";
 
 export default async function Home() {
   const [cookieStore, user] = await Promise.all([cookies(), getCurrentUser()]);
@@ -59,6 +60,11 @@ async function HeaderAuthSection() {
       suggestResetDialogSlot={
         <Suspense fallback={null}>
           <SuggestResetMenuDialogSlot />
+        </Suspense>
+      }
+      visitHistoryDialogSlot={
+        <Suspense fallback={null}>
+          <VisitHistoryMenuDialogSlot authed />
         </Suspense>
       }
       adminLinkSlot={
