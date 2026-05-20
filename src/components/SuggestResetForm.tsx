@@ -117,7 +117,7 @@ export function SuggestResetForm({ gyms, open, onOpenChange }: Props) {
   }
 
   const formBody = (
-    <form action={formAction} className="flex flex-col gap-4 px-4 pb-4 pt-2">
+    <form action={formAction} className="flex flex-col gap-4 px-4 pb-4 pt-2 md:px-5 md:pb-5">
       <FormAlert state={state} successMessage="Thanks — your suggestion is in the review queue." />
 
       <div className="flex flex-col gap-1.5">
@@ -270,7 +270,7 @@ export function SuggestResetForm({ gyms, open, onOpenChange }: Props) {
   return (
     <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
       <ResponsiveDialogContent desktopClassName="w-[min(92vw,460px)] p-0">
-        <ResponsiveDialogHeader desktopClassName="px-4 pb-2 pt-4">
+        <ResponsiveDialogHeader desktopClassName="px-5 pb-2 pt-5" mobileClassName="px-4 pb-2 pt-4">
           <ResponsiveDialogTitle>Suggest a reset</ResponsiveDialogTitle>
           <ResponsiveDialogDescription>
             Spotted fresh climbing? An admin will review and merge it into the public
