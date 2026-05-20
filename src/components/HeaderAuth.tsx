@@ -7,12 +7,14 @@ import { UserMenu } from "@/components/UserMenu";
 type Props = {
   next?: string;
   suggestResetDialogSlot: ReactNode;
+  visitHistoryDialogSlot: ReactNode;
   adminLinkSlot: ReactNode;
 };
 
 export async function HeaderAuth({
   next = "/",
   suggestResetDialogSlot,
+  visitHistoryDialogSlot,
   adminLinkSlot,
 }: Props) {
   const user = await getCurrentUser();
@@ -32,6 +34,7 @@ export async function HeaderAuth({
       email={user.email ?? ""}
       createdAt={user.created_at}
       suggestResetDialogSlot={suggestResetDialogSlot}
+      visitHistoryDialogSlot={visitHistoryDialogSlot}
       adminLinkSlot={adminLinkSlot}
     />
   );

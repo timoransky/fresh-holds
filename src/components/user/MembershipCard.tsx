@@ -6,6 +6,7 @@ import { Logout02Icon } from "@hugeicons/core-free-icons";
 import { signOut } from "@/lib/actions/auth";
 import { Button } from "@/components/ui/button";
 import { SuggestResetMenuButton } from "@/components/SuggestResetMenuButton";
+import { VisitHistoryMenuButton } from "@/components/VisitHistoryMenuButton";
 import { useVisitLog } from "@/lib/visit-log";
 
 function formatMemberSince(iso?: string | null): string | null {
@@ -72,6 +73,7 @@ export function MembershipCard({ email, createdAt, adminLinkSlot }: Props) {
 
       <div className="px-5 pt-4 pb-5 space-y-2">
         <SuggestResetMenuButton />
+        <VisitHistoryMenuButton />
         {adminLinkSlot}
       </div>
     </div>
