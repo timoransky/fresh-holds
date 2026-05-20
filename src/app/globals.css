@@ -140,3 +140,24 @@
     transform: scale(1);
   }
 }
+
+/* Soft halo behind the fixed offline chip so the badge stays legible
+   when gym cards scroll beneath it. The ::after extends 50% past the
+   chip on every side (= 2x dimensions) and uses two diagonal gradients
+   that fade from the page background color at the top to transparent
+   at the bottom corners. z-index: -1 escapes to the fixed wrapper's
+   stacking context so the halo paints behind the chip's amber fill. */
+.offline-chip-aura {
+  position: relative;
+}
+
+.offline-chip-aura::after {
+  content: "";
+  position: absolute;
+  inset: -50%;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(to bottom left, var(--background) 0%, transparent 70%),
+    linear-gradient(to bottom right, var(--background) 0%, transparent 70%);
+}

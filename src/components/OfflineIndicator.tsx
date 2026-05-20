@@ -53,7 +53,7 @@ export function OfflineIndicator() {
               <button
                 type="button"
                 aria-label="You're offline. Tap for details."
-                className="inline-flex items-center gap-1.5 rounded-full border border-amber-300 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-900 ring-1 ring-amber-900/5 transition hover:bg-amber-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                className="offline-chip-aura inline-flex items-center gap-1.5 rounded-full border border-amber-300 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-900 ring-1 ring-amber-900/5 transition hover:bg-amber-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
               >
                 <HugeiconsIcon icon={WifiDisconnected01Icon} strokeWidth={2} size={14} />
                 Offline
