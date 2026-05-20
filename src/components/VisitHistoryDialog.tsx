@@ -98,7 +98,7 @@ export function VisitHistoryDialog({ gymNames, authed }: Props) {
           </ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
 
-        <div className="max-h-[60vh] overflow-y-auto px-4 pb-4">
+        <div className="max-h-[60vh] overflow-y-auto px-4 pb-5">
           {groups.length === 0 ? (
             <p className="rounded-xl border border-dashed border-foreground/20 p-5 text-sm text-muted-foreground">
               No visits logged yet. Tap <span className="font-medium text-foreground">log my visit</span>{" "}
@@ -118,7 +118,7 @@ export function VisitHistoryDialog({ gymNames, authed }: Props) {
                       return (
                         <li
                           key={date}
-                          className="flex items-center justify-between gap-3 px-3 py-2 text-sm"
+                          className="flex items-center justify-between gap-3 py-2 pl-3 pr-1.5 text-sm"
                         >
                           <div className="flex min-w-0 flex-1 flex-col">
                             <span className="font-medium text-foreground">
@@ -128,26 +128,24 @@ export function VisitHistoryDialog({ gymNames, authed }: Props) {
                               {relativeDay(date)}
                             </span>
                           </div>
-                          {isPending ? (
-                            <Button
-                              type="button"
-                              variant="destructive"
-                              size="xs"
-                              onClick={() => handleDelete(group.slug, date)}
-                            >
-                              Confirm delete
-                            </Button>
-                          ) : (
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon-sm"
-                              aria-label={`Delete visit on ${formatLongDate(date)}`}
-                              onClick={() => handleDelete(group.slug, date)}
-                            >
+                          <Button
+                            type="button"
+                            variant={isPending ? "destructive" : "ghost"}
+                            size={isPending ? "default" : "icon"}
+                            aria-label={
+                              isPending
+                                ? `Confirm delete visit on ${formatLongDate(date)}`
+                                : `Delete visit on ${formatLongDate(date)}`
+                            }
+                            className="transition-colors duration-150 hover:translate-y-0"
+                            onClick={() => handleDelete(group.slug, date)}
+                          >
+                            {isPending ? (
+                              "Confirm delete"
+                            ) : (
                               <HugeiconsIcon icon={Delete02Icon} strokeWidth={2} />
-                            </Button>
-                          )}
+                            )}
+                          </Button>
                         </li>
                       );
                     })}
@@ -156,12 +154,6 @@ export function VisitHistoryDialog({ gymNames, authed }: Props) {
               ))}
             </ul>
           )}
-        </div>
-
-        <div className="flex justify-end gap-2 border-t border-border px-4 py-3">
-          <Button type="button" variant="outline" size="sm" onClick={() => setOpen(false)}>
-            Close
-          </Button>
         </div>
       </ResponsiveDialogContent>
     </ResponsiveDialog>
