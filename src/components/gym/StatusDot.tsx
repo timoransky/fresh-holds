@@ -7,7 +7,7 @@ export function StatusDot({ state }: Props) {
     return (
       <span
         aria-label="fresh since your last visit"
-        className="inline-block size-1.5 rounded-full bg-emerald-500"
+        className="inline-block size-1.5 rounded-full bg-fresh"
       />
     );
   }

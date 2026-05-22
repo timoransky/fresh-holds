@@ -41,6 +41,10 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-success-bg: var(--success-bg);
+  --color-success-fg: var(--success-fg);
+  --color-success-ring: var(--success-ring);
+  --color-fresh: var(--fresh);
 
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
@@ -70,6 +74,10 @@
   --border: oklch(0.88 0.015 90);
   --input: oklch(0.88 0.015 90);
   --ring: oklch(0.45 0.02 270);
+  --success-bg: oklch(0.97 0.04 145);
+  --success-fg: oklch(0.45 0.13 145);
+  --success-ring: oklch(0.55 0.13 145 / 0.2);
+  --fresh: oklch(0.7 0.18 152);
   --radius: 0.875rem;
 }
 
@@ -85,6 +93,17 @@
     border-radius: --value([integer]);
     border-radius: --value(--radius- *);
   }
+}
+
+/* Pressed-Sticker depth: a flat 2px colored stroke-shadow plus a soft
+   ambient underglow. Sites set --surface-stroke and --surface-shadow
+   inline (per-tier or per-instance) and pick their own radius and bg. */
+@utility sticker-surface {
+  border-width: 2px;
+  border-color: var(--surface-stroke);
+  box-shadow:
+    0 2px 0 0 var(--surface-stroke),
+    0 12px 32px -12px var(--surface-shadow);
 }
 
 @layer base {

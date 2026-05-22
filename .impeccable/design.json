@@ -1,0 +1,390 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-05-22T08:27:34Z",
+  "title": "Design System: Fresh Holds",
+  "extensions": {
+    "colorMeta": {
+      "brand": {
+        "role": "primary",
+        "displayName": "Brand Slate",
+        "canonical": "oklch(55.4% 0.046 257.417)",
+        "tonalRamp": [
+          "oklch(0.18 0.04 257)",
+          "oklch(0.28 0.045 257)",
+          "oklch(0.37 0.046 257)",
+          "oklch(0.47 0.046 257)",
+          "oklch(0.55 0.046 257)",
+          "oklch(0.68 0.04 257)",
+          "oklch(0.82 0.025 257)",
+          "oklch(0.95 0.012 257)"
+        ]
+      },
+      "brand-shadow": {
+        "role": "primary-deep",
+        "displayName": "Brand Shadow",
+        "canonical": "oklch(37.2% 0.044 257.287)",
+        "tonalRamp": [
+          "oklch(0.15 0.04 257)",
+          "oklch(0.22 0.044 257)",
+          "oklch(0.30 0.044 257)",
+          "oklch(0.37 0.044 257)",
+          "oklch(0.48 0.044 257)",
+          "oklch(0.60 0.04 257)",
+          "oklch(0.75 0.025 257)",
+          "oklch(0.90 0.012 257)"
+        ]
+      },
+      "background": {
+        "role": "neutral",
+        "displayName": "Off-White Paper",
+        "canonical": "oklch(0.99 0.004 90)",
+        "tonalRamp": [
+          "oklch(0.18 0.012 90)",
+          "oklch(0.30 0.010 90)",
+          "oklch(0.45 0.008 90)",
+          "oklch(0.60 0.007 90)",
+          "oklch(0.75 0.006 90)",
+          "oklch(0.88 0.005 90)",
+          "oklch(0.95 0.004 90)",
+          "oklch(0.99 0.004 90)"
+        ]
+      },
+      "foreground": {
+        "role": "neutral-ink",
+        "displayName": "Ink",
+        "canonical": "oklch(0.18 0.02 270)",
+        "tonalRamp": [
+          "oklch(0.15 0.02 270)",
+          "oklch(0.18 0.02 270)",
+          "oklch(0.30 0.02 270)",
+          "oklch(0.45 0.02 270)",
+          "oklch(0.60 0.015 270)",
+          "oklch(0.75 0.012 270)",
+          "oklch(0.88 0.008 270)",
+          "oklch(0.95 0.005 270)"
+        ]
+      },
+      "muted-foreground": {
+        "role": "neutral-ink-muted",
+        "displayName": "Muted Ink",
+        "canonical": "oklch(0.45 0.02 270)"
+      },
+      "border": {
+        "role": "neutral-border",
+        "displayName": "Border Cream",
+        "canonical": "oklch(0.88 0.015 90)"
+      },
+      "accent": {
+        "role": "accent",
+        "displayName": "Warm Accent Cream",
+        "canonical": "oklch(0.92 0.04 60)"
+      },
+      "destructive": {
+        "role": "status-destructive",
+        "displayName": "Destructive Red",
+        "canonical": "oklch(0.577 0.245 27.325)"
+      },
+      "success-bg": {
+        "role": "status-success-bg",
+        "displayName": "Success Sage Tint",
+        "canonical": "oklch(0.97 0.04 145)"
+      },
+      "success-fg": {
+        "role": "status-success-fg",
+        "displayName": "Success Sage",
+        "canonical": "oklch(0.45 0.13 145)"
+      },
+      "hot-bg": {
+        "role": "tier-hot-surface",
+        "displayName": "Sending Hot Coral (surface)",
+        "canonical": "oklch(0.93 0.08 30)"
+      },
+      "hot-fg": {
+        "role": "tier-hot-ink",
+        "displayName": "Sending Hot Coral (ink)",
+        "canonical": "oklch(0.38 0.18 30)"
+      },
+      "hot-ring": {
+        "role": "tier-hot-ring",
+        "displayName": "Sending Hot Coral (ring)",
+        "canonical": "oklch(0.55 0.20 30)"
+      },
+      "worth-bg": {
+        "role": "tier-worth-surface",
+        "displayName": "Worth-A-Climb Amber (surface)",
+        "canonical": "oklch(0.94 0.13 92)"
+      },
+      "worth-fg": {
+        "role": "tier-worth-ink",
+        "displayName": "Worth-A-Climb Amber (ink)",
+        "canonical": "oklch(0.36 0.10 70)"
+      },
+      "worth-ring": {
+        "role": "tier-worth-ring",
+        "displayName": "Worth-A-Climb Amber (ring)",
+        "canonical": "oklch(0.62 0.16 80)"
+      },
+      "slim-bg": {
+        "role": "tier-slim-surface",
+        "displayName": "Slim Sage (surface)",
+        "canonical": "oklch(0.93 0.07 165)"
+      },
+      "slim-fg": {
+        "role": "tier-slim-ink",
+        "displayName": "Slim Sage (ink)",
+        "canonical": "oklch(0.36 0.10 165)"
+      },
+      "slim-ring": {
+        "role": "tier-slim-ring",
+        "displayName": "Slim Sage (ring)",
+        "canonical": "oklch(0.58 0.13 165)"
+      },
+      "stale-bg": {
+        "role": "tier-stale-surface",
+        "displayName": "Stale Slate (surface)",
+        "canonical": "oklch(0.93 0.025 285)"
+      },
+      "stale-fg": {
+        "role": "tier-stale-ink",
+        "displayName": "Stale Slate (ink)",
+        "canonical": "oklch(0.42 0.04 285)"
+      },
+      "stale-ring": {
+        "role": "tier-stale-ring",
+        "displayName": "Stale Slate (ring)",
+        "canonical": "oklch(0.65 0.05 285)"
+      },
+      "unknown-fg": {
+        "role": "tier-unknown-ink",
+        "displayName": "Unknown Cloud (ink)",
+        "canonical": "oklch(0.5 0 0)"
+      },
+      "unknown-ring": {
+        "role": "tier-unknown-ring",
+        "displayName": "Unknown Cloud (ring)",
+        "canonical": "oklch(0.78 0 0)"
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display (Baloo 2 Bold)",
+        "purpose": "Hero gym name on top card. Proper nouns only. Always text-balance, tracking-tight."
+      },
+      "headline": {
+        "displayName": "Headline (Baloo 2 Bold)",
+        "purpose": "Compact gym card names, some dialog titles."
+      },
+      "title": {
+        "displayName": "Title (Baloo 2 Medium)",
+        "purpose": "shadcn Card titles. Note medium weight, not bold — calm by default."
+      },
+      "tier-label": {
+        "displayName": "Tier Label (Geist Extra-Bold)",
+        "purpose": "Lowercase verdict word on tier badges. 'sending hot', not 'Sending Hot'. The voice in typography form."
+      },
+      "body": {
+        "displayName": "Body (Geist Regular)",
+        "purpose": "Default body, table rows, helper copy. Cap line length 65–75ch in prose."
+      },
+      "mono-numeric": {
+        "displayName": "Mono Numeric (Geist Mono Semibold)",
+        "purpose": "Big number on tier badges. Tabular figures prevent jitter."
+      },
+      "micro-label": {
+        "displayName": "Micro Label (Geist Medium)",
+        "purpose": "Table column headers, structural badges. Uppercase, wide tracking."
+      }
+    },
+    "shadows": [
+      {
+        "name": "sticker-edge-rest",
+        "value": "0 2px 0 0 var(--surface-stroke)",
+        "purpose": "Default flat colored stroke-shadow under any pressable surface. The 'sticker edge.'"
+      },
+      {
+        "name": "sticker-edge-lifted",
+        "value": "0 4px 0 0 var(--surface-stroke)",
+        "purpose": "Hover/focus state. Paired with translateY(-2px) on the surface."
+      },
+      {
+        "name": "sticker-edge-pressed",
+        "value": "0 1px 0 0 var(--surface-stroke)",
+        "purpose": "Active/pressed state. Paired with translateY(+1px)."
+      },
+      {
+        "name": "card-underglow",
+        "value": "0 12px 32px -12px var(--surface-shadow)",
+        "purpose": "Soft ambient under cards. Always stacked with sticker-edge-rest, never alone."
+      },
+      {
+        "name": "tier-badge-hero",
+        "value": "0 3px 0 0 var(--tier-ring)",
+        "purpose": "Deeper sticker edge under hero tier badges. UNKNOWN tier omits this entirely."
+      },
+      {
+        "name": "dialog-overlay",
+        "value": "bg-black/30 backdrop-blur-xs",
+        "purpose": "The only sanctioned glassmorphism. Page-behind blur for modals."
+      }
+    ],
+    "motion": [
+      {
+        "name": "lift-on-press",
+        "value": "transition-all; hover:-translate-y-0.5; focus-visible:-translate-y-0.5; active:translate-y-px",
+        "purpose": "The signature button interaction. Combined with the sticker-edge shadow scaling, surfaces appear to lift off and press into the page."
+      },
+      {
+        "name": "badge-bob",
+        "value": "@keyframes badge-bob { 0%,100% { transform: rotate(var(--rot, 0deg)) translateY(0); } 50% { transform: rotate(var(--rot, 0deg)) translateY(-3px); } } 3.6s ease-in-out infinite, motion-safe only",
+        "purpose": "Hero tier badge bobs to celebrate the top recommendation. Respects prefers-reduced-motion."
+      },
+      {
+        "name": "pop-in",
+        "value": "@keyframes pop-in { 0% { transform: scale(0.6); opacity: 0; } 60% { transform: scale(1.08); opacity: 1; } 100% { transform: scale(1); } }",
+        "purpose": "Entrance animation. Overshoots to 1.08 and settles — playful but quick."
+      },
+      {
+        "name": "card-expand",
+        "value": "transition-[height] duration-300 ease-out, interpolate-size: allow-keywords, h-0 -> h-auto",
+        "purpose": "Reset-detail accordion under each GymCard. Uses interpolate-size for height auto transition."
+      }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" }
+    ],
+    "radii": {
+      "philosophy": "Base radius is 0.875rem, scaled by 0.6 / 0.8 / 1.0 / 1.4 / 1.8 / 2.2 / 2.6 for sm / md / lg / xl / 2xl / 3xl / 4xl. Always paired with the squircle-* utility (corner-shape: squircle in supporting browsers, regular border-radius fallback elsewhere)."
+    }
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The signature action control. Lifts on hover/focus, presses on active, with a stacked drop shadow that acts as a 'sticker edge.'",
+      "html": "<button class=\"ds-btn-primary\">Log a visit</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; height: 36px; padding: 0 10px; font-family: 'Geist', ui-sans-serif, system-ui, sans-serif; font-size: 14px; font-weight: 600; color: var(--color-background, oklch(0.99 0.004 90)); background: var(--color-brand, oklch(55.4% 0.046 257.417)); border: 1px solid var(--color-brand-shadow, oklch(37.2% 0.044 257.287)); border-radius: 14px; box-shadow: 0 2px 0 0 var(--color-brand-shadow, oklch(37.2% 0.044 257.287)); cursor: pointer; transition: transform 200ms ease, box-shadow 200ms ease; } .ds-btn-primary:hover, .ds-btn-primary:focus-visible { transform: translateY(-2px); box-shadow: 0 4px 0 0 var(--color-brand-shadow, oklch(37.2% 0.044 257.287)); outline: none; } .ds-btn-primary:active { transform: translateY(1px); box-shadow: 0 1px 0 0 var(--color-brand-shadow, oklch(37.2% 0.044 257.287)); }"
+    },
+    {
+      "name": "Outline Button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Quiet secondary action with the same lift mechanic.",
+      "html": "<button class=\"ds-btn-outline\">Cancel</button>",
+      "css": ".ds-btn-outline { display: inline-flex; align-items: center; justify-content: center; height: 36px; padding: 0 10px; font-family: 'Geist', ui-sans-serif, system-ui, sans-serif; font-size: 14px; font-weight: 500; color: oklch(0.36 0.02 270); background: oklch(0.99 0.004 90); border: 1px solid oklch(37.2% 0.044 257.287); border-radius: 14px; box-shadow: 0 2px 0 0 oklch(37.2% 0.044 257.287); cursor: pointer; transition: transform 200ms ease, box-shadow 200ms ease; } .ds-btn-outline:hover, .ds-btn-outline:focus-visible { transform: translateY(-2px); box-shadow: 0 4px 0 0 oklch(37.2% 0.044 257.287); outline: none; } .ds-btn-outline:active { transform: translateY(1px); box-shadow: 0 1px 0 0 oklch(37.2% 0.044 257.287); }"
+    },
+    {
+      "name": "Sending Hot Tier Badge",
+      "kind": "custom",
+      "refersTo": "tier-badge-hot",
+      "description": "The signature visual: a tilted, color-coded 'sticker' announcing the gym's freshness verdict. Hero variant bobs gently.",
+      "html": "<div class=\"ds-tier-badge ds-tier-hot\" style=\"--rot: -2deg;\"><span class=\"ds-tier-emoji\" aria-hidden=\"true\">🔥</span><div class=\"ds-tier-body\"><span class=\"ds-tier-label\">sending hot</span><div class=\"ds-tier-count\"><span class=\"ds-tier-num\">3</span><span class=\"ds-tier-desc\">fresh sectors</span></div></div></div>",
+      "css": ".ds-tier-badge { display: inline-flex; align-items: center; gap: 10px; padding: 10px 12px 10px 10px; border: 2px solid; border-radius: 30.8px; transform: rotate(var(--rot, 0deg)); font-family: 'Geist', ui-sans-serif, system-ui, sans-serif; user-select: none; } .ds-tier-hot { background: oklch(0.93 0.08 30); color: oklch(0.38 0.18 30); border-color: oklch(0.55 0.20 30); box-shadow: 0 3px 0 0 oklch(0.55 0.20 30); } .ds-tier-emoji { font-size: 24px; line-height: 1; } .ds-tier-body { display: flex; flex-direction: column; gap: 4px; } .ds-tier-label { font-weight: 800; font-size: 16px; line-height: 1; letter-spacing: -0.015em; text-transform: lowercase; } .ds-tier-count { display: flex; align-items: baseline; gap: 4px; } .ds-tier-num { font-family: 'Geist Mono', ui-monospace, monospace; font-size: 20px; font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; } .ds-tier-desc { font-size: 14px; font-weight: 600; }"
+    },
+    {
+      "name": "Unknown Tier Badge",
+      "kind": "custom",
+      "refersTo": "tier-badge-unknown",
+      "description": "The honest 'no data' variant. Dashed border, no stacked shadow — uncertainty has no weight.",
+      "html": "<div class=\"ds-tier-badge ds-tier-unknown\" style=\"--rot: -1.5deg;\"><span class=\"ds-tier-emoji\" aria-hidden=\"true\">❓</span><div class=\"ds-tier-body\"><span class=\"ds-tier-label\">no data yet</span><div class=\"ds-tier-count\"><span class=\"ds-tier-num\">—</span></div></div></div>",
+      "css": ".ds-tier-unknown { background: transparent; color: oklch(0.5 0 0); border: 2px dashed oklch(0.78 0 0); box-shadow: none; }"
+    },
+    {
+      "name": "Gym Card",
+      "kind": "card",
+      "refersTo": "card-tinted",
+      "description": "The domain card. Warm tier-tinted surface, Pressed-Sticker stacked shadow, large squircle radius.",
+      "html": "<article class=\"ds-gym-card\" style=\"--surface-tint: oklch(0.97 0.04 30 / 0.7); --surface-stroke: oklch(0.86 0.07 30); --surface-shadow: oklch(0.55 0.20 30 / 0.18);\"><header class=\"ds-gym-header\"><h2 class=\"ds-gym-title\">The Spot</h2></header><p class=\"ds-gym-body\">3 sectors reset since you were last there.</p></article>",
+      "css": ".ds-gym-card { position: relative; display: flex; flex-direction: column; padding: 16px; background: var(--surface-tint); border: 2px solid var(--surface-stroke); border-radius: 30.8px; box-shadow: 0 2px 0 0 var(--surface-stroke), 0 12px 32px -12px var(--surface-shadow); backdrop-filter: blur(4px); font-family: 'Geist', ui-sans-serif, system-ui, sans-serif; min-height: 176px; } .ds-gym-header { display: flex; align-items: start; justify-content: space-between; gap: 16px; } .ds-gym-title { font-family: 'Baloo 2', ui-sans-serif, system-ui, sans-serif; font-weight: 700; font-size: clamp(28px, 4vw, 36px); line-height: 1.1; letter-spacing: -0.015em; color: oklch(0.18 0.02 270); margin: 0; text-wrap: balance; } .ds-gym-body { margin-top: 12px; font-size: 14px; color: oklch(0.45 0.02 270); }"
+    },
+    {
+      "name": "Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Surfaces you write on — no lift mechanic, halo focus only.",
+      "html": "<input class=\"ds-input\" type=\"text\" placeholder=\"Section name\">",
+      "css": ".ds-input { display: flex; width: 100%; height: 36px; padding: 4px 12px; font-family: 'Geist', ui-sans-serif, system-ui, sans-serif; font-size: 16px; color: oklch(0.18 0.02 270); background: oklch(0.99 0.004 90); border: 1px solid oklch(0.88 0.015 90); border-radius: 14px; outline: none; transition: border-color 200ms ease, box-shadow 200ms ease; } .ds-input::placeholder { color: oklch(0.45 0.02 270); } .ds-input:focus-visible { border-color: oklch(0.45 0.02 270); box-shadow: 0 0 0 3px oklch(0.45 0.02 270 / 0.5); } @media (min-width: 768px) { .ds-input { font-size: 14px; } }"
+    },
+    {
+      "name": "Success Badge",
+      "kind": "chip",
+      "refersTo": "badge-success",
+      "description": "Status pill — quiet sage tint for approved/synced/ok states.",
+      "html": "<span class=\"ds-badge-success\">Approved</span>",
+      "css": ".ds-badge-success { display: inline-flex; align-items: center; height: 20px; padding: 2px 8px; font-family: 'Geist', ui-sans-serif, system-ui, sans-serif; font-size: 12px; font-weight: 500; color: oklch(0.45 0.13 145); background: oklch(0.97 0.04 145); border: 1px solid oklch(0.55 0.13 145 / 0.2); border-radius: 9999px; }"
+    },
+    {
+      "name": "Brand Badge",
+      "kind": "chip",
+      "refersTo": "brand-badge",
+      "description": "Structural marker — wide tracking, heavy weight, used for context labels like 'BRATISLAVA' or 'BETA'.",
+      "html": "<span class=\"ds-brand-badge\">BRATISLAVA</span>",
+      "css": ".ds-brand-badge { display: inline-block; padding: 4px 12px; font-family: 'Geist', ui-sans-serif, system-ui, sans-serif; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.2em; color: oklch(0.18 0.02 270); background: oklch(0.99 0.004 90); border: 2px solid oklch(0.18 0.02 270 / 0.8); border-radius: 9999px; }"
+    },
+    {
+      "name": "Status Dot",
+      "kind": "custom",
+      "refersTo": null,
+      "description": "Tiny inline pip in the reset table. Fresh-since-visit = filled emerald; already climbed = outline ring; no data = small muted dot.",
+      "html": "<span class=\"ds-status-fresh\" aria-label=\"fresh since your last visit\"></span> <span class=\"ds-status-stale\" aria-label=\"already climbed\"></span> <span class=\"ds-status-none\" aria-label=\"no reset data\"></span>",
+      "css": ".ds-status-fresh, .ds-status-stale, .ds-status-none { display: inline-block; border-radius: 9999px; } .ds-status-fresh { width: 6px; height: 6px; background: oklch(0.7 0.18 152); } .ds-status-stale { width: 6px; height: 6px; border: 1px solid oklch(0.45 0.02 270 / 0.5); } .ds-status-none { width: 4px; height: 4px; background: oklch(0.45 0.02 270 / 0.3); }"
+    },
+    {
+      "name": "Drawer Handle",
+      "kind": "custom",
+      "refersTo": null,
+      "description": "The grab affordance at the top of the Vaul bottom-sheet drawer. A muted pill that screams 'pull me.'",
+      "html": "<div class=\"ds-drawer-sheet\"><div class=\"ds-drawer-handle\"></div><div class=\"ds-drawer-content\">Drawer content</div></div>",
+      "css": ".ds-drawer-sheet { background: oklch(0.99 0.004 90); border-top: 1px solid oklch(0.88 0.015 90); border-top-left-radius: 30.8px; border-top-right-radius: 30.8px; padding-bottom: 24px; } .ds-drawer-handle { width: 100px; height: 8px; margin: 16px auto 0; background: oklch(0.95 0.012 90); border-radius: 9999px; } .ds-drawer-content { padding: 16px; font-family: 'Geist', ui-sans-serif, system-ui, sans-serif; color: oklch(0.18 0.02 270); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Climber's Sticker Sheet",
+    "overview": "Fresh Holds looks like a friendly bulletin board for a local gym. The screen is a soft off-white card stock, dotted with a faint pinpoint pattern, onto which the day's gym recommendations are stuck like five colorful, slightly-rotated stickers. Each sticker (the tier badge) wears its mood plainly: an emoji, a casual climber phrase ('sending hot', 'slim pickings'), and a stacked drop shadow that pretends to be a die-cut edge. Hover any control and it lifts a single pixel off the board. Press it and it presses back in. The voice is climber-native and casual. The product is a verdict, not a dashboard, so the loudest element on any screen is the tier label in lowercase extra-bold. Numbers are intentionally smaller and monospace-tabular, in the role of supporting evidence. Cards lean on warm tinted surfaces, a 2px colored stroke-shadow that reads as a pressed sticker edge, and a soft deep ambient shadow underneath.",
+    "keyCharacteristics": [
+      "A small palette of warm neutrals on a 0.99-lightness off-white, with five tier color systems (coral, amber, sage, lavender-slate, unknown-cloud) carrying the product's main signal.",
+      "Pressed-sticker depth: every surface has a flat 2px colored stroke-shadow plus a soft 0 12px 32px -12px ambient shadow underneath. No raised drop-shadows, no glassmorphism except the dialog overlay.",
+      "Squircle corners everywhere via the custom squircle-* utilities, graded across 7 steps from sm to 4xl.",
+      "Tilted, bobbing tier badges in the -2°/+1.5°/-1°/+2°/-1.5° range. Hero badges animate with the badge-bob keyframe under motion-safe.",
+      "Heading typography in Baloo 2 (font-heading), bold and tightly tracked. Body in Geist; numerics in Geist Mono with tabular figures.",
+      "Tier color is never carried alone: every tier also has a unique emoji, a unique label phrase, and a unique rotation. Color-blind safe by structural redundancy, not by accident."
+    ],
+    "rules": [
+      { "name": "The Five-Sticker Rule", "body": "Only the five tier palettes carry product meaning. New colors do not get added to communicate state — extend the tier semantic instead. If a state doesn't map to a tier, it doesn't deserve a hue: use muted neutrals plus an icon or label.", "section": "colors" },
+      { "name": "The No-Pure-Anything Rule", "body": "No #000, no #fff, no flat greys. Every neutral is tinted toward the warm off-white hue (chroma 0.002–0.015) so the page reads as paper, not screen. The dot-pattern background reinforces this.", "section": "colors" },
+      { "name": "The Color-Plus-Shape Rule", "body": "No tier is communicated by hue alone. Every tier carries an emoji, a label phrase, a rotation, and (except UNKNOWN) a colored stroke. Color blindness must not erase the verdict.", "section": "colors" },
+      { "name": "The Lowercase Verdict Rule", "body": "Tier labels are lowercase. Always. 'sending hot', not 'Sending Hot', and definitely not 'SENDING HOT'. The lowercase is the climber-native voice in typography form.", "section": "typography" },
+      { "name": "The Verdict-Loudest Rule", "body": "On any surface that carries a tier, the tier label is the largest semantic element. Numeric scores, dates, and counts are smaller and quieter. The product translates math into a verdict; typography enforces it.", "section": "typography" },
+      { "name": "The Heading-Belongs-To-Names Rule", "body": "font-heading (Baloo 2) is reserved for proper nouns and tier titles — gym names, dialog titles, card titles. UI labels, table headers, button text, and helper copy stay in Geist.", "section": "typography" },
+      { "name": "The Pressed-Sticker Rule", "body": "Surfaces sit on the page. They do not float above it. Drop shadows of the form 0 N px Mpx rgba(0,0,0,…) (the SaaS hover-card shadow) are forbidden. If you need depth, use the Sticker Edge + Card Underglow combination.", "section": "elevation" },
+      { "name": "The Lift-Don't-Glow Rule", "body": "Hover state moves the surface (translateY + deeper edge), never adds a glow or a halo. Focus state does the same. The motion is the affordance; color halos are not the system's language.", "section": "elevation" },
+      { "name": "The Unknown-Is-Dashed Rule", "body": "When the system genuinely doesn't know, the visual language must show it. No solid stroke, no stacked shadow — a dashed border and a flat surface. Confidence has weight; uncertainty has none.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do use the Sticker Edge + Underglow combination (box-shadow: 0 2px 0 0 var(--surface-stroke), 0 12px 32px -12px var(--surface-shadow)) on any new card or elevated surface.",
+      "Do tilt and bob tier badges when introducing a new tier or tier-adjacent badge. The rotation is part of the language — don't render them straight.",
+      "Do reach for font-heading (Baloo 2) only on proper nouns and verdicts, not on UI labels or helper copy.",
+      "Do wire tier color via the tier-bg / tier-fg / tier-ring token triplet from src/lib/tier.ts. Never hand-pick a new tier hue at the component level.",
+      "Do show uncertainty as the dashed border + flat surface (the UNKNOWN tier treatment) — make the absence of confidence look like an intentional absence.",
+      "Do prefer the squircle-* utilities over default rounded-* everywhere. Both must always be present together: squircle-3xl rounded-2xl, never one without the other.",
+      "Do keep tier labels lowercase, in font-extrabold (Geist 800), with the climber-native phrasing. No title case, no all caps."
+    ],
+    "donts": [
+      "Don't render a Generic SaaS dashboard. No hero-metric cards, no gradient text, no background-clip: text accents, no faux-glass cards. Fresh Holds is not Mixpanel.",
+      "Don't render a Fitness-app aesthetic. No neon gradients, no athletic stock imagery, no gamified XP bars, no streaks/levels. This is not Strava.",
+      "Don't render an Outdoorsy-brand template. No kraft paper, no earth-tone moss/clay/rust palette, no rugged sans-serif + slab pairing. This is not Patagonia.",
+      "Don't render Corporate utility. No Material/iOS-HIG default radii, no platform-default greys, no anonymous filled buttons.",
+      "Don't use #000, #fff, or flat untinted greys. Every neutral is tinted toward the warm off-white hue.",
+      "Don't use side-stripe borders (border-left > 1px as a colored accent). Use full borders, surface tints, or the tier system.",
+      "Don't use gradient text. Solid colors only; emphasis comes from weight and size.",
+      "Don't use glassmorphism on cards. The dialog overlay is the only backdrop-blur in the system.",
+      "Don't introduce a new semantic color outside the five tiers + destructive + success. If a state matters, map it to an existing tier; if it doesn't fit, use muted neutrals with a label.",
+      "Don't make tier badges work as color-only signals. Always pair color with the tier's emoji and lowercase label phrase.",
+      "Don't replace the Pressed-Sticker shadow with a generic drop-shadow. No shadow-md, no shadow-lg on product surfaces (the only exception is shadow-lg on the modal dialog).",
+      "Don't capitalize verdict words or restate them in title case. The lowercase is the voice.",
+      "Don't use em dashes in UI copy. Commas, colons, periods, parentheses. Also not --."
+    ]
+  }
+}
