@@ -1,6 +1,5 @@
-import { HugeiconsIcon } from "@hugeicons/react";
 import { Globe02Icon, InstagramIcon, MapingIcon } from "@hugeicons/core-free-icons";
-import { Button } from "@/components/ui/button";
+import { IconLink } from "@/components/ui/icon-link";
 import { instagramUrl, mapsUrl } from "@/lib/gymLinks";
 import type { Gym } from "@/lib/types";
 
@@ -13,39 +12,24 @@ export function GymExternalLinks({ gym }: Props) {
 
   return (
     <div className="flex gap-2">
-      <Button asChild variant="outline" size="icon-sm" className="rounded-full">
-        <a
-          href={mapsUrl(gym)}
-          target="_blank"
-          rel="noreferrer"
-          aria-label={`Open ${gym.name} in Google Maps`}
-        >
-          <HugeiconsIcon icon={MapingIcon} strokeWidth={2} />
-        </a>
-      </Button>
+      <IconLink
+        href={mapsUrl(gym)}
+        icon={MapingIcon}
+        label={`Open ${gym.name} in Google Maps`}
+      />
       {gym.website_url && (
-        <Button asChild variant="outline" size="icon-sm" className="rounded-full">
-          <a
-            href={gym.website_url}
-            target="_blank"
-            rel="noreferrer"
-            aria-label={`Open ${gym.name} website`}
-          >
-            <HugeiconsIcon icon={Globe02Icon} strokeWidth={2} />
-          </a>
-        </Button>
+        <IconLink
+          href={gym.website_url}
+          icon={Globe02Icon}
+          label={`Open ${gym.name} website`}
+        />
       )}
       {ig && (
-        <Button asChild variant="outline" size="icon-sm" className="rounded-full">
-          <a
-            href={ig}
-            target="_blank"
-            rel="noreferrer"
-            aria-label={`Open ${gym.name} on Instagram`}
-          >
-            <HugeiconsIcon icon={InstagramIcon} strokeWidth={2} />
-          </a>
-        </Button>
+        <IconLink
+          href={ig}
+          icon={InstagramIcon}
+          label={`Open ${gym.name} on Instagram`}
+        />
       )}
     </div>
   );

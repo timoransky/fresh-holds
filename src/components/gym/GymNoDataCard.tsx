@@ -15,7 +15,7 @@ export function GymNoDataCard({ gym }: Props) {
   return (
     <li
       style={surfaceStyle}
-      className="squircle-3xl flex items-center justify-between gap-3 rounded-2xl border-2 border-(--surface-stroke) bg-background p-4 sm:px-5 shadow-[0_2px_0_0_var(--surface-stroke),0_12px_32px_-12px_var(--surface-shadow)]"
+      className="sticker-surface squircle-3xl flex items-center justify-between gap-3 rounded-2xl bg-background p-4 sm:px-5"
     >
       <div className="min-w-0">
         <h2 className="font-bold tracking-tight text-foreground truncate text-lg">{gym.name}</h2>

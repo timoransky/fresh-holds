@@ -6,6 +6,7 @@ import { rankGyms, type GymRanking } from "@/lib/freshness";
 import type { GymWithSections } from "@/lib/types";
 import { GymCard } from "@/components/GymCard";
 import { GymNoDataCard } from "@/components/gym/GymNoDataCard";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 type Props = {
   gyms: GymWithSections[];
@@ -37,12 +38,11 @@ export function GymList({ gyms, authed, initialRanking }: Props) {
   return (
     <div className="flex flex-col gap-10">
       {writeError && (
-        <p
-          role="alert"
-          className="rounded-2xl border-2 border-red-300 bg-red-50 px-4 py-3 text-sm text-red-800"
-        >
-          Couldn&rsquo;t save your visit — your browser may be blocking storage or out of space.
-        </p>
+        <Alert variant="destructive">
+          <AlertDescription>
+            Couldn&rsquo;t save your visit, your browser may be blocking storage or out of space.
+          </AlertDescription>
+        </Alert>
       )}
 
       <section aria-label="Top pick" className="flex flex-col gap-4">

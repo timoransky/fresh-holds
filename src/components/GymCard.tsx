@@ -34,8 +34,7 @@ export function GymCard({ scored, variant, visitedDates, onChangeVisits }: Props
     <article
       style={surfaceStyle}
       className={cn(
-        "group squircle-4xl relative flex flex-col rounded-3xl border-2 border-(--surface-stroke) bg-(--surface-tint) backdrop-blur-sm transition-all",
-        "shadow-[0_2px_0_0_var(--surface-stroke),0_12px_32px_-12px_var(--surface-shadow)]",
+        "group sticker-surface squircle-4xl relative flex flex-col rounded-3xl bg-(--surface-tint) backdrop-blur-sm transition-all",
         "p-4 sm:p-5",
         isHero ? "min-h-44" : "min-h-40 sm:min-h-37",
       )}
