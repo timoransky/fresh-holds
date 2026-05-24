@@ -28,7 +28,7 @@ export function relativeDay(isoDate: string): string {
   if (days <= 0) return "today";
   if (days === 1) return "yesterday";
   if (days < 7) return `${days} days ago`;
-  if (days < 30) {
+  if (days < 45) {
     const weeks = Math.round(days / 7);
     return weeks === 1 ? "1 week ago" : `${weeks} weeks ago`;
   }
