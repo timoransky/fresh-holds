@@ -5,6 +5,7 @@ export function describeFreshness(
   label: FreshLabel | null,
   lastVisitedISO: string | null,
   mostRecentFreshISO: string | null,
+  oldestFreshISO: string | null,
   freshResetCount: number,
 ): string {
   if (label === null) return "No reset data - you have to check for yourself.";
@@ -23,9 +24,22 @@ export function describeFreshness(
   const resetWord = pluralize(freshResetCount, "reset");
 
   if (lastVisitedISO === null) {
+    if (freshResetCount >= 2 && oldestFreshISO !== null) {
+      return `Never visited - ${freshResetCount} ${resetWord} logged in the ${pastSpan(oldestFreshISO)}, ${lastReset}.`;
+    }
     return `Never visited - ${freshResetCount} ${resetWord} logged, ${lastReset}.`;
   }
   return `${freshResetCount} new ${resetWord} since your last visit, ${lastReset}.`;
+}
+
+function pastSpan(oldestISO: string): string {
+  const days = daysSince(oldestISO);
+  if (days <= 7) return "past week";
+  if (days <= 14) return "past 2 weeks";
+  if (days <= 30) return "past month";
+  if (days <= 60) return "past 2 months";
+  if (days <= 365) return `past ${Math.round(days / 30)} months`;
+  return "past year";
 }
 
 export function badgeCountLabel(label: FreshLabel): string {

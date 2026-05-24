@@ -21,6 +21,7 @@ export type FreshnessResult = {
   noveltyScore: number;
   daysSinceVisit: number | null;
   mostRecentFreshISO: string | null;
+  oldestFreshISO: string | null;
   hasResetData: boolean;
   label: FreshLabel | null;
 };
@@ -38,6 +39,7 @@ export function gymFreshness(gym: GymWithSections, lastVisitedISO: string | null
       noveltyScore: 0,
       daysSinceVisit,
       mostRecentFreshISO: null,
+      oldestFreshISO: null,
       hasResetData: false,
       label: null,
     };
@@ -47,6 +49,7 @@ export function gymFreshness(gym: GymWithSections, lastVisitedISO: string | null
 
   let freshResetCount = 0;
   let mostRecentFreshISO: string | null = null;
+  let oldestFreshISO: string | null = null;
   let countedBoulders = 0;
   let hasUncountedResets = false;
 
@@ -62,6 +65,9 @@ export function gymFreshness(gym: GymWithSections, lastVisitedISO: string | null
         }
         if (mostRecentFreshISO === null || reset.reset_on > mostRecentFreshISO) {
           mostRecentFreshISO = reset.reset_on;
+        }
+        if (oldestFreshISO === null || reset.reset_on < oldestFreshISO) {
+          oldestFreshISO = reset.reset_on;
         }
         sectionHasFresh = true;
       }
@@ -86,6 +92,7 @@ export function gymFreshness(gym: GymWithSections, lastVisitedISO: string | null
     noveltyScore,
     daysSinceVisit,
     mostRecentFreshISO,
+    oldestFreshISO,
     hasResetData: true,
     label,
   };
