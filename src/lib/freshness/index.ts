@@ -73,7 +73,6 @@ export function scoreGym(gym: GymWithSections, lastVisited: string | null): Scor
       freshness.label,
       lastVisited,
       freshness.mostRecentFreshISO,
-      freshness.oldestFreshISO,
       freshness.freshResetCount,
     ),
     badgeText: freshness.label === null ? "" : badgeCountLabel(freshness.label),
