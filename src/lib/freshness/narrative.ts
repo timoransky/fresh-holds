@@ -5,10 +5,11 @@ export function describeFreshness(
   label: FreshLabel | null,
   lastVisitedISO: string | null,
   mostRecentFreshISO: string | null,
+  freshResetCount: number,
 ): string {
   if (label === null) return "No reset data - you have to check for yourself.";
 
-  if (label.freshSections === 0) {
+  if (freshResetCount === 0) {
     if (lastVisitedISO === null) {
       return "Resets logged, but nothing new yet.";
     }
@@ -18,15 +19,29 @@ export function describeFreshness(
     return `Nothing new since your last visit ${relativeDay(lastVisitedISO)}.`;
   }
 
-  const recent = relativeDay(mostRecentFreshISO!);
-  const primary = primaryClause(label);
-  const lastReset = `last reset ${recent}`;
+  const lastReset = `last reset ${relativeDay(mostRecentFreshISO!)}`;
+  const resetWord = pluralize(freshResetCount, "reset");
 
   if (lastVisitedISO === null) {
-    return `Never visited - ${primary}, ${lastReset}.`;
+    // TODO: revisit wording for never-visited span clause (see PR #75).
+    // if (freshResetCount >= 2 && oldestFreshISO !== null) {
+    //   return `Never visited - ${freshResetCount} ${resetWord} logged in the ${pastSpan(oldestFreshISO)}, ${lastReset}.`;
+    // }
+    return `Never visited - ${freshResetCount} ${resetWord} logged, ${lastReset}.`;
   }
-  return `${capitalize(primary)}, ${lastReset}.`;
+  return `${freshResetCount} new ${resetWord} since your last visit, ${lastReset}.`;
 }
+
+// TODO: revisit wording for never-visited span clause (see PR #75).
+// function pastSpan(oldestISO: string): string {
+//   const days = daysSince(oldestISO);
+//   if (days <= 7) return "past week";
+//   if (days <= 14) return "past 2 weeks";
+//   if (days <= 30) return "past month";
+//   if (days <= 60) return "past 2 months";
+//   if (days <= 365) return `past ${Math.round(days / 30)} months`;
+//   return "past year";
+// }
 
 export function badgeCountLabel(label: FreshLabel): string {
   if (showBouldersFirst(label)) {
@@ -41,34 +56,6 @@ export function badgeCountNumber(label: FreshLabel): number {
 
 function showBouldersFirst(label: FreshLabel): boolean {
   return label.totalSections === 1 && label.countedBoulders > 0;
-}
-
-function primaryClause(label: FreshLabel): string {
-  if (label.totalSections === 1) {
-    if (label.countedBoulders > 0) {
-      return `${boulderCount(label)} new ${pluralize(label.countedBoulders, "boulder")}`;
-    }
-    return "some boulders are fresh";
-  }
-
-  const sectorsClause =
-    label.freshSections === label.totalSections
-      ? `all ${label.totalSections} sectors fresh`
-      : `${label.freshSections} of ${label.totalSections} sectors fresh`;
-
-  if (label.countedBoulders > 0) {
-    const count = `${boulderCount(label)} new ${pluralize(label.countedBoulders, "boulder")}`;
-    return `${sectorsClause} · ${count}`;
-  }
-  return sectorsClause;
-}
-
-function boulderCount(label: FreshLabel): string {
-  return label.hasUncountedResets ? `${label.countedBoulders}+` : `${label.countedBoulders}`;
-}
-
-function capitalize(s: string): string {
-  return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
 function pluralize(n: number, word: string): string {

@@ -69,7 +69,12 @@ export function scoreGym(gym: GymWithSections, lastVisited: string | null): Scor
     sectionsByDisplay: sortSectionsByDisplay(gym.sections),
     sectionsByRecent: sortSectionsByRecent(gym.sections),
 
-    narrative: describeFreshness(freshness.label, lastVisited, freshness.mostRecentFreshISO),
+    narrative: describeFreshness(
+      freshness.label,
+      lastVisited,
+      freshness.mostRecentFreshISO,
+      freshness.freshResetCount,
+    ),
     badgeText: freshness.label === null ? "" : badgeCountLabel(freshness.label),
   };
 }
