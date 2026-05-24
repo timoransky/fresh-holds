@@ -386,17 +386,17 @@ describe("scoreGym — narrative", () => {
     expect(scoreGym(a, null).narrative).toBe("No reset data - you have to check for yourself.");
   });
 
-  it("never-visited + multi-section → 'all N sectors fresh'", () => {
+  it("never-visited + multi-section → 'N resets logged'", () => {
     const a = makeGym({
       slug: "a",
       sections: { Slab: [daysAgo(2)], Overhang: [daysAgo(3)] },
     });
     expect(scoreGym(a, null).narrative).toBe(
-      "Never visited - all 2 sectors fresh, last reset 2 days ago.",
+      "Never visited - 2 resets logged, last reset 2 days ago.",
     );
   });
 
-  it("never-visited + single section + counted boulders → 'N new boulders'", () => {
+  it("never-visited + single section + multiple resets → counts resets, not boulders", () => {
     const a = makeGym({
       slug: "a",
       sections: {
@@ -407,14 +407,14 @@ describe("scoreGym — narrative", () => {
       },
     });
     expect(scoreGym(a, null).narrative).toBe(
-      "Never visited - 12 new boulders, last reset 1 day ago.",
+      "Never visited - 2 resets logged, last reset 1 day ago.",
     );
   });
 
-  it("never-visited + single section + uncounted only → 'some boulders are fresh'", () => {
+  it("never-visited + single reset → singular 'reset'", () => {
     const a = makeGym({ slug: "a", sections: { All: [daysAgo(2)] } });
     expect(scoreGym(a, null).narrative).toBe(
-      "Never visited - some boulders are fresh, last reset 2 days ago.",
+      "Never visited - 1 reset logged, last reset 2 days ago.",
     );
   });
 
@@ -430,17 +430,17 @@ describe("scoreGym — narrative", () => {
     );
   });
 
-  it("visited + multi-section + uncounted fresh resets → 'X of Y sectors fresh, last reset ...'", () => {
+  it("visited + one fresh reset → singular 'new reset since your last visit'", () => {
     const a = makeGym({
       slug: "a",
       sections: { Slab: [daysAgo(1)], Overhang: [daysAgo(5)] },
     });
     expect(scoreGym(a, daysAgo(3)).narrative).toBe(
-      "1 of 2 sectors fresh, last reset 1 day ago.",
+      "1 new reset since your last visit, last reset 1 day ago.",
     );
   });
 
-  it("visited + multi-section + mixed counted/uncounted → appends 'N+ new boulders'", () => {
+  it("visited + multi-section + multiple fresh resets → counts all resets across sections", () => {
     const a = makeGym({
       slug: "a",
       sections: {
@@ -452,11 +452,11 @@ describe("scoreGym — narrative", () => {
       },
     });
     expect(scoreGym(a, daysAgo(7)).narrative).toBe(
-      "All 2 sectors fresh · 11+ new boulders, last reset 1 day ago.",
+      "3 new resets since your last visit, last reset 1 day ago.",
     );
   });
 
-  it("visited + single section + counted only → 'N new boulders, last reset ...'", () => {
+  it("visited + single section + counted only → counts reset events, ignores boulder totals", () => {
     const a = makeGym({
       slug: "a",
       sections: {
@@ -467,17 +467,16 @@ describe("scoreGym — narrative", () => {
         ],
       },
     });
-    // visited 5 days ago → resets from days 1+2 are fresh (7 boulders),
-    // day 8 is stale.
+    // visited 5 days ago → resets from days 1+2 are fresh, day 8 is stale.
     expect(scoreGym(a, daysAgo(5)).narrative).toBe(
-      "7 new boulders, last reset 1 day ago.",
+      "2 new resets since your last visit, last reset 1 day ago.",
     );
   });
 
-  it("visited + single section + uncounted only → 'some boulders are fresh, last reset ...'", () => {
+  it("visited + single section + uncounted only → 'N new reset(s) since your last visit'", () => {
     const a = makeGym({ slug: "a", sections: { All: [daysAgo(1), daysAgo(5)] } });
     expect(scoreGym(a, daysAgo(3)).narrative).toBe(
-      "Some boulders are fresh, last reset 1 day ago.",
+      "1 new reset since your last visit, last reset 1 day ago.",
     );
   });
 });
