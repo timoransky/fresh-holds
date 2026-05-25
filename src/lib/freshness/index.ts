@@ -9,9 +9,16 @@ import {
   sortSectionsByRecent,
 } from "@/lib/freshness/sort";
 import { bindTier } from "@/lib/freshness/tier-binding";
+import {
+  isCompactSectorGym,
+  recentResets,
+  type RecentReset,
+} from "@/lib/freshness/recent-resets";
 
 export { mostRecentReset } from "@/lib/freshness/sort";
+export { isCompactSectorGym } from "@/lib/freshness/recent-resets";
 export type { FreshLabel } from "@/lib/freshness/scoring";
+export type { RecentReset } from "@/lib/freshness/recent-resets";
 
 export type ScoredGym = {
   gym: GymWithSections;
@@ -31,6 +38,8 @@ export type ScoredGym = {
 
   sectionsByDisplay: Section[];
   sectionsByRecent: Section[];
+  recentResets: RecentReset[];
+  isCompactSectors: boolean;
 
   narrative: string;
   badgeText: string;
@@ -68,6 +77,8 @@ export function scoreGym(gym: GymWithSections, lastVisited: string | null): Scor
 
     sectionsByDisplay: sortSectionsByDisplay(gym.sections),
     sectionsByRecent: sortSectionsByRecent(gym.sections),
+    recentResets: recentResets(gym.sections, lastVisited),
+    isCompactSectors: isCompactSectorGym(gym.sections),
 
     narrative: describeFreshness(
       freshness.label,

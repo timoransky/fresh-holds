@@ -8,6 +8,7 @@ import { VisitedButton } from "@/components/VisitedButton";
 import { FreshnessBadge } from "@/components/FreshnessBadge";
 import { GymExternalLinks } from "@/components/gym/GymExternalLinks";
 import { GymResetTable } from "@/components/gym/GymResetTable";
+import { GymRecentResetsList } from "@/components/gym/GymRecentResetsList";
 import { tierCardStyle } from "@/lib/tier-style";
 import { cn } from "@/lib/utils";
 
@@ -85,10 +86,17 @@ export function GymCard({ scored, variant, visitedDates, onChangeVisits }: Props
             )}
           >
             <div className="pt-3">
-              <GymResetTable
-                sections={scored.sectionsByRecent}
-                freshSectionIds={freshSectionIds}
-              />
+              {scored.isCompactSectors ? (
+                <GymRecentResetsList
+                  resets={scored.recentResets}
+                  showSectorColumn={scored.sectionsByDisplay.length > 1}
+                />
+              ) : (
+                <GymResetTable
+                  sections={scored.sectionsByRecent}
+                  freshSectionIds={freshSectionIds}
+                />
+              )}
             </div>
           </div>
         </>

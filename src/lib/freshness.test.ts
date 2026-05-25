@@ -301,7 +301,12 @@ describe("rankGyms — weekly rotation scenario", () => {
     });
     const spot = makeGym({
       slug: "spot",
-      sections: { "Whole gym": [[daysAgo(4), 15], [daysAgo(11), 20]] },
+      sections: {
+        "Whole gym": [
+          [daysAgo(4), 15],
+          [daysAgo(11), 20],
+        ],
+      },
     });
     const vertigo = makeGym({
       slug: "vertigo",
@@ -476,9 +481,7 @@ describe("scoreGym — narrative", () => {
 
   it("visited days ago with no fresh resets → 'nothing new since your last visit ...'", () => {
     const a = makeGym({ slug: "a", sections: { Slab: [daysAgo(5)] } });
-    expect(scoreGym(a, daysAgo(3)).narrative).toBe(
-      "Nothing new since your last visit 3 days ago.",
-    );
+    expect(scoreGym(a, daysAgo(3)).narrative).toBe("Nothing new since your last visit 3 days ago.");
   });
 
   it("visited + one fresh reset → singular 'new reset since your last visit'", () => {
@@ -623,5 +626,83 @@ describe("scoreGym — ordering invariants", () => {
     const s = scoreGym(a, daysAgo(0));
     expect(s.mostRecentFreshISO).toBeNull();
     expect(s.mostRecentResetISO).toBe(daysAgo(1));
+  });
+});
+
+describe("scoreGym — recentResets (compact-sector gym view)", () => {
+  it("flags compact-sector gyms (1 or 2 sectors)", () => {
+    const one = makeGym({ slug: "one", sections: { All: [daysAgo(1)] } });
+    const two = makeGym({
+      slug: "two",
+      sections: { Main: [daysAgo(1)], Small: [daysAgo(2)] },
+    });
+    const three = makeGym({
+      slug: "three",
+      sections: { A: [daysAgo(1)], B: [daysAgo(2)], C: [daysAgo(3)] },
+    });
+
+    expect(scoreGym(one, null).isCompactSectors).toBe(true);
+    expect(scoreGym(two, null).isCompactSectors).toBe(true);
+    expect(scoreGym(three, null).isCompactSectors).toBe(false);
+  });
+
+  it("never-visited: returns resets within the 60-day fallback window, sorted newest-first", () => {
+    const a = makeGym({
+      slug: "a",
+      sections: {
+        All: [daysAgo(1), daysAgo(30), daysAgo(59), daysAgo(70)],
+      },
+    });
+    const s = scoreGym(a, null);
+    expect(s.recentResets.map((r) => r.reset_on)).toEqual([daysAgo(1), daysAgo(30), daysAgo(59)]);
+    // never visited → every reset in the window is fresh
+    expect(s.recentResets.every((r) => r.isFresh)).toBe(true);
+  });
+
+  it("visited: returns resets after lastVisited only", () => {
+    const a = makeGym({
+      slug: "a",
+      sections: {
+        All: [daysAgo(1), daysAgo(3), daysAgo(10), daysAgo(20)],
+      },
+    });
+    const s = scoreGym(a, daysAgo(5));
+    expect(s.recentResets.map((r) => r.reset_on)).toEqual([daysAgo(1), daysAgo(3)]);
+    expect(s.recentResets.every((r) => r.isFresh)).toBe(true);
+  });
+
+  it("just-visited user with no fresh resets gets an empty list (option 2 fallback only on never-visited)", () => {
+    const a = makeGym({ slug: "a", sections: { All: [daysAgo(5), daysAgo(20)] } });
+    const s = scoreGym(a, daysAgo(1));
+    expect(s.recentResets).toEqual([]);
+  });
+
+  it("two-sector gym: interleaves resets from both sectors, newest-first, with section labels", () => {
+    const a = makeGym({
+      slug: "a",
+      sections: {
+        Main: [daysAgo(1), daysAgo(8)],
+        Small: [daysAgo(3), daysAgo(10)],
+      },
+    });
+    const s = scoreGym(a, null);
+    expect(s.recentResets.map((r) => [r.section_name, r.reset_on])).toEqual([
+      ["Main", daysAgo(1)],
+      ["Small", daysAgo(3)],
+      ["Main", daysAgo(8)],
+      ["Small", daysAgo(10)],
+    ]);
+  });
+
+  it("caps the list at 10 rows", () => {
+    const a = makeGym({
+      slug: "a",
+      sections: {
+        All: Array.from({ length: 15 }, (_, i) => daysAgo(i + 1)),
+      },
+    });
+    const s = scoreGym(a, null);
+    expect(s.recentResets.length).toBe(10);
+    expect(s.recentResets[0].reset_on).toBe(daysAgo(1));
   });
 });
