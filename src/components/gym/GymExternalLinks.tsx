@@ -1,14 +1,15 @@
-import { Globe02Icon, InstagramIcon, MapingIcon } from "@hugeicons/core-free-icons";
+import { Globe02Icon, InstagramIcon, MapingIcon, QrCodeIcon } from "@hugeicons/core-free-icons";
 import { IconLink } from "@/components/ui/icon-link";
-import { instagramUrl, mapsUrl } from "@/lib/gymLinks";
+import { iclubUrl, instagramUrl, mapsUrl } from "@/lib/gymLinks";
 import type { Gym } from "@/lib/types";
 
 type Props = {
-  gym: Pick<Gym, "name" | "neighborhood" | "website_url" | "instagram_handle">;
+  gym: Pick<Gym, "name" | "neighborhood" | "website_url" | "instagram_handle" | "iclub_slug">;
 };
 
 export function GymExternalLinks({ gym }: Props) {
   const ig = instagramUrl(gym);
+  const iclub = iclubUrl(gym);
 
   return (
     <div className="flex gap-2">
@@ -29,6 +30,13 @@ export function GymExternalLinks({ gym }: Props) {
           href={ig}
           icon={InstagramIcon}
           label={`Open ${gym.name} on Instagram`}
+        />
+      )}
+      {iclub && (
+        <IconLink
+          href={iclub}
+          icon={QrCodeIcon}
+          label={`Open ${gym.name} on iclub`}
         />
       )}
     </div>
