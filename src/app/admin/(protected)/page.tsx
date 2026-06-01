@@ -24,9 +24,11 @@ export default async function AdminPage({ searchParams }: Props) {
 
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] items-start">
         <div className="flex flex-col gap-3 lg:sticky top-6">
-          <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            Log a reset
-          </h2>
+          <div className="flex h-8 items-center">
+            <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+              Log a reset
+            </h2>
+          </div>
           <Card>
             <CardContent>
               <Suspense fallback={<ResetFormFallback />}>
@@ -37,7 +39,7 @@ export default async function AdminPage({ searchParams }: Props) {
         </div>
 
         <div className="flex flex-col gap-3">
-          <div className="flex items-center justify-between gap-2">
+          <div className="flex h-8 items-center justify-between gap-2">
             <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
               Recent resets
             </h2>
@@ -70,14 +72,11 @@ async function RecentResetsSection({ sortBy }: { sortBy: RecentResetSortKey }) {
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-2">
       {recentResets.map((r) => (
-        <Card key={r.id}>
+        <Card key={r.id} size="sm">
           <CardContent>
-            <div className="flex items-baseline justify-between gap-2">
-              <span className="font-medium">{r.gym_name}</span>
-              <span className="tabular-nums text-xs text-muted-foreground">{r.reset_on}</span>
-            </div>
+            <div className="font-medium">{r.gym_name}</div>
             <div className="mt-0.5 text-muted-foreground">
               {r.section_name}
               {r.boulders_reset !== null && (
@@ -85,11 +84,26 @@ async function RecentResetsSection({ sortBy }: { sortBy: RecentResetSortKey }) {
               )}
             </div>
             {r.notes && <div className="mt-1 text-xs text-muted-foreground/70">{r.notes}</div>}
+            <div className="mt-2 flex flex-wrap gap-x-3 gap-y-0.5 text-xs tabular-nums text-muted-foreground">
+              <span>Reset at: {r.reset_on}</span>
+              <span>Logged at: {formatLoggedAt(r.created_at)}</span>
+            </div>
           </CardContent>
         </Card>
       ))}
     </div>
   );
+}
+
+function formatLoggedAt(iso: string): string {
+  return new Intl.DateTimeFormat("sv-SE", {
+    timeZone: "Europe/Bratislava",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(iso));
 }
 
 function ResetFormFallback() {
