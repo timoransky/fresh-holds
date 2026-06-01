@@ -26,7 +26,7 @@ const siteUrl = "https://freshholds.janci.dev";
 const siteName = "Fresh Holds";
 const siteTitle = "Fresh Holds - where's the fresh climbing in Bratislava?";
 const siteDescription =
-  "Log your visits to get the best recommendation for your next climbing session based on the recent gym resets. Sorted by what’s new since you were last there.";
+  "Log your visits to get the best recommendation for your next climbing session in Bratislava, based on the recent gym resets. Sorted by what’s new since you were last there.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
