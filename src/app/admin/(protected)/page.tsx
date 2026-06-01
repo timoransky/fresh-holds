@@ -1,14 +1,23 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { getGymsForAdmin, getRecentResets } from "@/lib/db/admin";
+import { parseRecentResetSort, type RecentResetSortKey } from "@/lib/db/admin-sort";
 import { ResetForm } from "@/components/admin/ResetForm";
+import { RecentResetsSort } from "@/components/admin/RecentResetsSort";
 import { Card, CardContent } from "@/components/ui/card";
 
 export const metadata: Metadata = {
   title: "Admin · Fresh Holds",
 };
 
-export default function AdminPage() {
+type Props = {
+  searchParams: Promise<{ sort?: string }>;
+};
+
+export default async function AdminPage({ searchParams }: Props) {
+  const { sort } = await searchParams;
+  const sortBy = parseRecentResetSort(sort);
+
   return (
     <main className="mx-auto max-w-4xl px-4 py-10">
       <h1 className="mb-8 text-2xl font-extrabold tracking-tight">Reset log</h1>
@@ -28,12 +37,15 @@ export default function AdminPage() {
         </div>
 
         <div className="flex flex-col gap-3">
-          <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            Recent resets
-          </h2>
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+              Recent resets
+            </h2>
+            <RecentResetsSort value={sortBy} />
+          </div>
 
-          <Suspense fallback={<RecentResetsFallback />}>
-            <RecentResetsSection />
+          <Suspense key={sortBy} fallback={<RecentResetsFallback />}>
+            <RecentResetsSection sortBy={sortBy} />
           </Suspense>
         </div>
       </div>
@@ -46,8 +58,8 @@ async function ResetFormSection() {
   return <ResetForm gyms={gyms} />;
 }
 
-async function RecentResetsSection() {
-  const recentResets = await getRecentResets();
+async function RecentResetsSection({ sortBy }: { sortBy: RecentResetSortKey }) {
+  const recentResets = await getRecentResets({ sortBy });
 
   if (recentResets.length === 0) {
     return (
