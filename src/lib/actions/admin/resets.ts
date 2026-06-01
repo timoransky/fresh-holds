@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidateTag } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
 import { fail, ok, type ActionResult } from "@/lib/actions/result";
 
@@ -54,6 +54,7 @@ export async function submitReset(
     return fail(error.message);
   }
 
+  revalidatePath("/admin");
   revalidateTag("gyms", "max");
   return ok(`Logged ${sectionIds.length} section reset${sectionIds.length > 1 ? "s" : ""}`);
 }
