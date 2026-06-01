@@ -95,10 +95,10 @@ export function FreshnessBadge({
         <path
           d={shape.path}
           fill={isUnknown ? "transparent" : "var(--tier-bg)"}
-          stroke={isUnknown ? "var(--tier-ring)" : "none"}
-          strokeWidth={isUnknown ? 2 : 0}
+          stroke="var(--tier-ring)"
+          strokeWidth={2}
           strokeDasharray={isUnknown ? "4 4" : undefined}
-          vectorEffect={isUnknown ? "non-scaling-stroke" : undefined}
+          vectorEffect="non-scaling-stroke"
         />
       </svg>
       <span
