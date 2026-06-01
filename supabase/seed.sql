@@ -10,17 +10,18 @@ on conflict (slug) do nothing;
 
 -- Gyms -----------------------------------------------------------------------
 -- Upsert so re-running the seed updates names / neighborhoods / order.
-insert into gyms (city_id, name, slug, neighborhood, website_url, instagram_handle, display_order) values
-  ((select id from cities where slug = 'bratislava'), 'Spot',       'spot',                  'Devínska Nová Ves', 'https://spot.sk',       'spotbouldering', 1),
-  ((select id from cities where slug = 'bratislava'), 'Block Dock - Rača',      'block-dock-raca',       'Rača',              'https://blockdock.sk',  'blockdock',      2),
-  ((select id from cities where slug = 'bratislava'), 'Block Dock - Petržalka', 'block-dock-petrzalka',  'Petržalka',         'https://blockdock.sk',  'blockdock',      3),
-  ((select id from cities where slug = 'bratislava'), 'K2',         'k2',                    'Petržalka',          null,                   null,             4),
-  ((select id from cities where slug = 'bratislava'), 'Vertigo',    'vertigo',               'Trenčianska',        null,                   null,             5)
+insert into gyms (city_id, name, slug, neighborhood, website_url, instagram_handle, iclub_slug, display_order) values
+  ((select id from cities where slug = 'bratislava'), 'Spot',       'spot',                  'Devínska Nová Ves', 'https://spot.sk',       'spotbouldering', 'spot-climbing-gym-ba', 1),
+  ((select id from cities where slug = 'bratislava'), 'Block Dock - Rača',      'block-dock-raca',       'Rača',              'https://blockdock.sk',  'blockdock',      'blockdock-ba',         2),
+  ((select id from cities where slug = 'bratislava'), 'Block Dock - Petržalka', 'block-dock-petrzalka',  'Petržalka',         'https://blockdock.sk',  'blockdock',      'blockdock-ba',         3),
+  ((select id from cities where slug = 'bratislava'), 'K2',         'k2',                    'Petržalka',          null,                   null,             'k2-ba',                4),
+  ((select id from cities where slug = 'bratislava'), 'Vertigo',    'vertigo',               'Trenčianska',        null,                   null,             'vertigo-ba',           5)
 on conflict (slug) do update set
   name             = excluded.name,
   neighborhood     = excluded.neighborhood,
   website_url      = excluded.website_url,
   instagram_handle = excluded.instagram_handle,
+  iclub_slug       = excluded.iclub_slug,
   display_order    = excluded.display_order;
 
 -- Drop the legacy 'block-dock' slug from a prior seed run, if present.

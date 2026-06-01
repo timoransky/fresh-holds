@@ -20,7 +20,7 @@ export const getActiveGymsWithSections = unstable_cache(
       .from("gyms")
       .select(
         `
-        id, slug, name, neighborhood, website_url, instagram_handle, city_id,
+        id, slug, name, neighborhood, website_url, instagram_handle, iclub_slug, city_id,
         sections!inner (
           id, name, display_order, is_active,
           resets ( id, reset_on, notes, boulders_reset )

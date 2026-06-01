@@ -20,6 +20,7 @@ export type Gym = {
   neighborhood: string | null;
   website_url: string | null;
   instagram_handle: string | null;
+  iclub_slug: string | null;
   city_id: string | null;
 };
 

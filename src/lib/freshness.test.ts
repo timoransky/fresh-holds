@@ -62,6 +62,7 @@ function makeGym({ slug, sections }: GymInput): GymWithSections {
     neighborhood: null,
     website_url: null,
     instagram_handle: null,
+    iclub_slug: null,
     city_id: null,
     sections: sectionList,
   };
@@ -588,6 +589,7 @@ describe("scoreGym — ordering invariants", () => {
       neighborhood: null,
       website_url: null,
       instagram_handle: null,
+      iclub_slug: null,
       city_id: null,
       sections: [
         makeSection("B", [makeReset(daysAgo(1))], 2),
@@ -606,6 +608,7 @@ describe("scoreGym — ordering invariants", () => {
       neighborhood: null,
       website_url: null,
       instagram_handle: null,
+      iclub_slug: null,
       city_id: null,
       sections: [
         makeSection("Old", [makeReset(daysAgo(10))], 0),
