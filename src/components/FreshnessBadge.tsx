@@ -86,7 +86,7 @@ export function FreshnessBadge({
       <svg
         viewBox={shape.viewBox}
         preserveAspectRatio="none"
-        className="pointer-events-none absolute inset-0 h-full w-full overflow-visible"
+        className="pointer-events-none absolute -inset-4 h-[calc(100%+2rem)] w-[calc(100%+2rem)] overflow-visible"
         aria-hidden
       >
         {!isUnknown && (
