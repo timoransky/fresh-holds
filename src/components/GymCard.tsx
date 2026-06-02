@@ -43,8 +43,8 @@ export function GymCard({ scored, variant, visitedDates, onChangeVisits }: Props
       <header className="flex relative items-start justify-between gap-4">
         <h2
           className={cn(
-            "font-heading font-bold tracking-tight leading-tight text-foreground text-balance max-w-[calc(100%-var(--badge-width))] min-w-0 flex-1",
-            isHero ? "min-h-12 text-3xl sm:text-4xl" : "text-2xl",
+            "font-heading font-bold flex items-center tracking-tight leading-tight text-foreground text-balance max-w-[calc(100%-var(--badge-width))] min-w-0 flex-1",
+            isHero ? "min-h-12 text-3xl sm:text-4xl" : "min-h-10 text-2xl",
           )}
         >
           {gym.name}

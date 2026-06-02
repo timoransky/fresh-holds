@@ -69,7 +69,7 @@ export function GymList({ gyms, authed, initialRanking }: Props) {
               grows its own column — the sibling column stays put. Indexes
               alternate between columns so the z-shape reading order matches
               the ranking (rank 1 top-left, rank 2 top-right, rank 3 mid-left). */}
-          <div className="flex flex-col gap-6 sm:hidden">
+          <div className="flex flex-col gap-8 sm:hidden">
             {runnersUp.map((scored) => (
               <GymCard
                 key={scored.gym.id}
@@ -80,9 +80,9 @@ export function GymList({ gyms, authed, initialRanking }: Props) {
               />
             ))}
           </div>
-          <div className="hidden sm:grid sm:grid-cols-2 sm:items-start sm:gap-6">
+          <div className="hidden sm:grid sm:grid-cols-2 sm:items-start sm:gap-8">
             {[0, 1].map((col) => (
-              <div key={col} className="flex flex-col gap-6">
+              <div key={col} className="flex flex-col gap-8">
                 {runnersUp
                   .filter((_, i) => i % 2 === col)
                   .map((scored) => (

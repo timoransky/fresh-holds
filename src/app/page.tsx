@@ -17,7 +17,7 @@ export default async function Home() {
   const { gyms, ranking } = await getRankedGyms(visitsCookieRaw, todayISO());
 
   return (
-    <main className="mx-auto min-h-dvh w-full max-w-4xl px-4 py-6 sm:pt-10 sm:pb-14 overflow-hidden">
+    <main className="mx-auto min-h-dvh w-full max-w-4xl px-4 py-6 sm:pt-10 sm:pb-14 overflow-hidden lg:overflow-visible">
       <header className="mb-10 sm:mb-14">
         <div className="flex items-center justify-between gap-2">
           {/* Slot div keeps HeaderAuth flush right when OfflineIndicator returns null (online). */}
