@@ -22,8 +22,8 @@ const SLIM_SHAPE: Shape = {
 };
 
 const STALE_SHAPE: Shape = {
-  viewBox: "0 0 130 75",
-  path: "M61.6237 0.47078C63.7981 -0.156917 66.1057 -0.156919 68.2801 0.470779L121.232 15.7567C126.368 17.2393 129.904 21.9403 129.904 27.2859V46.7341C129.904 52.0797 126.368 56.7807 121.232 58.2633L68.2801 73.5492C66.1057 74.1769 63.7981 74.1769 61.6237 73.5492L8.6718 58.2633C3.53592 56.7807 0 52.0797 0 46.7341V27.2859C0 21.9403 3.53591 17.2393 8.6718 15.7567L61.6237 0.47078Z",
+  viewBox: "0 0 130 63",
+  path: "M61.0994 0.374522C63.6435 -0.124869 66.2603 -0.124871 68.8044 0.37452L120.215 10.4664C125.844 11.5714 129.904 16.5055 129.904 22.2417V39.9949C129.904 45.7311 125.844 50.6652 120.215 51.7701L68.8044 61.8621C66.2603 62.3614 63.6435 62.3614 61.0994 61.8621L9.68853 51.7701C4.05971 50.6652 0 45.7311 0 39.9949V22.2417C0 16.5055 4.05971 11.5714 9.68852 10.4664L61.0994 0.374522Z",
 };
 
 const SHAPES: Record<TierKey, Shape> = {
@@ -68,7 +68,7 @@ export function FreshnessBadge({
     : "font-mono text-xl font-semibold tabular-nums leading-none";
   const descriptorClass = isCompact ? "text-xs font-semibold" : "text-sm font-semibold";
 
-  const dropOffset = isCompact ? 2 : 3;
+  const dropOffset = isCompact ? 3 : 4;
 
   return (
     <div
@@ -77,16 +77,19 @@ export function FreshnessBadge({
       className={cn(
         "relative inline-flex flex-col items-center justify-center origin-center select-none text-(--tier-fg)",
         isCompact
-          ? "gap-0.5 px-5 py-2.5 absolute -top-7 -right-7 md:-top-8 md:-right-8"
-          : "gap-1 px-7 py-3 md:px-8 md:py-3.5 absolute -top-8 -right-8",
+          ? "gap-0.5 px-5 pt-2 pb-3 absolute -top-7 -right-7 md:-top-8 md:-right-8"
+          : "gap-1 px-7 py-3 md:px-8 md:pt-3 md:pb-4 absolute -top-8 -right-8",
         !isCompact && bob && "motion-safe:animate-[badge-bob_3.6s_ease-in-out_infinite]",
+
         className,
       )}
     >
       <svg
         viewBox={shape.viewBox}
         preserveAspectRatio="none"
-        className="pointer-events-none absolute -inset-4 h-[calc(100%+2rem)] w-[calc(100%+2rem)] overflow-visible"
+        className={cn(
+          "pointer-events-none absolute -inset-2 h-[calc(100%+1rem)] w-[calc(100%+1rem)] overflow-visible",
+        )}
         aria-hidden
       >
         {!isUnknown && (
