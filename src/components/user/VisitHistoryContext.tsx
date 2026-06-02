@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext } from "react";
+import { createContext, use } from "react";
 
 export type VisitHistoryContextValue = {
   open: boolean;
@@ -11,7 +11,7 @@ export type VisitHistoryContextValue = {
 export const VisitHistoryContext = createContext<VisitHistoryContextValue | null>(null);
 
 export function useVisitHistory(): VisitHistoryContextValue {
-  const ctx = useContext(VisitHistoryContext);
+  const ctx = use(VisitHistoryContext);
   if (!ctx) {
     throw new Error("useVisitHistory must be used inside <VisitHistoryContext>");
   }

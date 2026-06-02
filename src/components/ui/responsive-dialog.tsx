@@ -22,7 +22,7 @@ import { useMediaQuery } from "@/hooks/useMediaQuery";
 const ResponsiveDialogContext = React.createContext<boolean | null>(null);
 
 function useIsDesktop(): boolean {
-  const ctx = React.useContext(ResponsiveDialogContext);
+  const ctx = React.use(ResponsiveDialogContext);
   if (ctx === null) {
     throw new Error("ResponsiveDialog.* must be used inside <ResponsiveDialog>");
   }

@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext } from "react";
+import { createContext, use } from "react";
 
 export type SuggestResetContextValue = {
   open: boolean;
@@ -11,7 +11,7 @@ export type SuggestResetContextValue = {
 export const SuggestResetContext = createContext<SuggestResetContextValue | null>(null);
 
 export function useSuggestReset(): SuggestResetContextValue {
-  const ctx = useContext(SuggestResetContext);
+  const ctx = use(SuggestResetContext);
   if (!ctx) {
     throw new Error("useSuggestReset must be used inside <SuggestResetContext>");
   }
