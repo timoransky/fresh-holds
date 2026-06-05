@@ -28,10 +28,10 @@ export default async function Home() {
             <HeaderAuthSection />
           </Suspense>
         </div>
-        <h1 className="mt-6 sm:mt-10 font-heading text-balance text-4xl font-bold leading-[1.02] tracking-tight text-foreground sm:text-6xl">
+        <h1 className="mt-6 sm:mt-10 font-heading text-balance text-4xl font-bold leading-[1.02] tracking-tight text-foreground sm:text-6xl motion-safe:animate-[fade-up-in_550ms_cubic-bezier(0.22,1,0.36,1)_60ms_both]">
           where are the <span className="text-brand">fresh holds</span> right now?
         </h1>
-        <p className="mt-6 max-w-prose text-base text-balance text-muted-foreground sm:text-lg">
+        <p className="mt-6 max-w-prose text-base text-balance text-muted-foreground sm:text-lg motion-safe:animate-[fade-up-in_550ms_cubic-bezier(0.22,1,0.36,1)_180ms_both]">
           Log your visits to get the best recommendation for your next climbing session in{" "}
           <strong className="font-semibold text-foreground">Bratislava</strong>, based on the recent
           gym resets. Sorted by what&rsquo;s new since you were last there.

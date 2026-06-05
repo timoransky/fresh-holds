@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { motion } from "motion/react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { HelpCircleIcon } from "@hugeicons/core-free-icons";
 import type { ScoredGym } from "@/lib/freshness";
@@ -19,9 +20,10 @@ type Props = {
   variant: Variant;
   visitedDates: string[];
   onChangeVisits: (isoDates: string[]) => void;
+  index?: number;
 };
 
-export function GymCard({ scored, variant, visitedDates, onChangeVisits }: Props) {
+export function GymCard({ scored, variant, visitedDates, onChangeVisits, index = 0 }: Props) {
   const { gym, tier, label, badgeNumber, badgeText, narrative, freshSectionIds } = scored;
   const isHero = variant === "hero";
 
@@ -32,10 +34,15 @@ export function GymCard({ scored, variant, visitedDates, onChangeVisits }: Props
   const detailsId = `gym-details-${gym.id}`;
 
   return (
-    <article
-      style={surfaceStyle}
+    <motion.article
+      layout
+      layoutId={`gym-${gym.id}`}
+      transition={{ layout: { type: "spring", stiffness: 280, damping: 32, mass: 0.7 } }}
+      style={{ ...surfaceStyle, animationDelay: `${index * 60}ms` }}
       className={cn(
-        "group sticker-surface squircle-4xl relative flex flex-col rounded-3xl bg-(--surface-tint) backdrop-blur-sm transition-all",
+        "group sticker-surface squircle-4xl relative flex flex-col rounded-3xl bg-(--surface-tint) backdrop-blur-sm",
+        "transition-[background-color,border-color,box-shadow] duration-500 ease-out",
+        "motion-safe:animate-[fade-up-in_500ms_cubic-bezier(0.22,1,0.36,1)_both]",
         "p-4 sm:p-5",
         isHero ? "min-h-44" : "min-h-40 sm:min-h-37",
       )}
@@ -108,6 +115,6 @@ export function GymCard({ scored, variant, visitedDates, onChangeVisits }: Props
         <GymExternalLinks gym={gym} />
         <VisitedButton visitedDates={visitedDates} onChangeVisits={onChangeVisits} />
       </footer>
-    </article>
+    </motion.article>
   );
 }
