@@ -36,6 +36,12 @@ export function VisitedButton({ visitedDates, onChangeVisits }: Props) {
 
   const selectedDates = useMemo(() => pendingDates.map(dateFromISO), [pendingDates]);
 
+  const isDirty = useMemo(() => {
+    if (pendingDates.length !== visitedDates.length) return true;
+    const original = new Set(visitedDates);
+    return pendingDates.some((date) => !original.has(date));
+  }, [pendingDates, visitedDates]);
+
   return (
     <ResponsiveDialog open={open} onOpenChange={handleOpenChange}>
       <ResponsiveDialogTrigger asChild>
@@ -77,7 +83,7 @@ export function VisitedButton({ visitedDates, onChangeVisits }: Props) {
               type="button"
               size="sm"
               onClick={handleConfirm}
-              disabled={pendingDates.length === 0}
+              disabled={!isDirty}
             >
               Done
             </Button>
