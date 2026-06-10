@@ -37,7 +37,7 @@ export const WORTH: Tier = {
   tokens: {
     badge: { bg: "oklch(0.94 0.13 92)", fg: "oklch(0.36 0.10 70)", ring: "oklch(0.62 0.16 80)" },
     card: {
-      badgeWidth: "110px",
+      badgeWidth: "150px",
       tint: "oklch(0.97 0.07 92 / 0.7)",
       stroke: "oklch(0.88 0.09 85)",
       shadow: "oklch(0.62 0.16 80 / 0.18)",
@@ -53,7 +53,7 @@ export const SLIM: Tier = {
   tokens: {
     badge: { bg: "oklch(0.93 0.07 165)", fg: "oklch(0.36 0.10 165)", ring: "oklch(0.58 0.13 165)" },
     card: {
-      badgeWidth: "110px",
+      badgeWidth: "150px",
       tint: "oklch(0.97 0.04 165 / 0.7)",
       stroke: "oklch(0.87 0.06 165)",
       shadow: "oklch(0.58 0.13 165 / 0.16)",
@@ -73,7 +73,7 @@ export const STALE: Tier = {
       ring: "oklch(0.65 0.05 285)",
     },
     card: {
-      badgeWidth: "110px",
+      badgeWidth: "125px",
       tint: "oklch(0.96 0.015 285 / 0.7)",
       stroke: "oklch(0.86 0.03 285)",
       shadow: "oklch(0.65 0.05 285 / 0.14)",
@@ -89,7 +89,7 @@ export const UNKNOWN: Tier = {
   tokens: {
     badge: { bg: "transparent", fg: "oklch(0.5 0 0)", ring: "oklch(0.78 0 0)" },
     card: {
-      badgeWidth: "110px",
+      badgeWidth: "135px",
       tint: "oklch(1 0 0 / 0.7)",
       stroke: "oklch(0.86 0 0)",
       shadow: "oklch(0.55 0 0 / 0.10)",

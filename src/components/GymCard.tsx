@@ -66,7 +66,7 @@ export function GymCard({ scored, variant, visitedDates, onChangeVisits }: Props
             onClick={() => setIsOpen((prev) => !prev)}
             aria-expanded={isOpen}
             aria-controls={detailsId}
-            className="mt-1 w-full text-left text-sm text-muted-foreground outline-none! cursor-pointer hover:text-foreground/80 transition-colors"
+            className="mt-2 w-full text-left text-sm text-muted-foreground outline-none! cursor-pointer hover:text-foreground/80 transition-colors"
           >
             <span>{narrative}</span>
             <span
