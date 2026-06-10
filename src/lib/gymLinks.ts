@@ -1,6 +1,7 @@
 import type { Gym } from "@/lib/types";
 
-type LinkableGym = Pick<Gym, "name" | "neighborhood" | "instagram_handle" | "iclub_slug">;
+type LinkableGym = Pick<Gym, "name" | "neighborhood" | "instagram_handle"> &
+  Partial<Pick<Gym, "iclub_slug">>;
 
 export function mapsUrl(gym: LinkableGym): string {
   const query = [gym.name, gym.neighborhood, "Bratislava"].filter(Boolean).join(" ");
