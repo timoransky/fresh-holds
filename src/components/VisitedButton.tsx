@@ -36,6 +36,12 @@ export function VisitedButton({ visitedDates, onChangeVisits }: Props) {
 
   const selectedDates = useMemo(() => pendingDates.map(dateFromISO), [pendingDates]);
 
+  const isDirty = useMemo(() => {
+    if (pendingDates.length !== visitedDates.length) return true;
+    const original = new Set(visitedDates);
+    return pendingDates.some((date) => !original.has(date));
+  }, [pendingDates, visitedDates]);
+
   return (
     <ResponsiveDialog open={open} onOpenChange={handleOpenChange}>
       <ResponsiveDialogTrigger asChild>
@@ -66,13 +72,19 @@ export function VisitedButton({ visitedDates, onChangeVisits }: Props) {
               disabled={{ after: new Date() }}
               autoFocus
               className="p-0 [--cell-size:--spacing(9.5)]"
+              classNames={{ today: "" }}
             />
           </div>
           <div className="flex justify-end gap-2 pt-1">
             <Button type="button" variant="outline" size="sm" onClick={() => setOpen(false)}>
               Cancel
             </Button>
-            <Button type="button" size="sm" onClick={handleConfirm}>
+            <Button
+              type="button"
+              size="sm"
+              onClick={handleConfirm}
+              disabled={!isDirty}
+            >
               Done
             </Button>
           </div>
