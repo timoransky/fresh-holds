@@ -66,13 +66,19 @@ export function VisitedButton({ visitedDates, onChangeVisits }: Props) {
               disabled={{ after: new Date() }}
               autoFocus
               className="p-0 [--cell-size:--spacing(9.5)]"
+              classNames={{ today: "" }}
             />
           </div>
           <div className="flex justify-end gap-2 pt-1">
             <Button type="button" variant="outline" size="sm" onClick={() => setOpen(false)}>
               Cancel
             </Button>
-            <Button type="button" size="sm" onClick={handleConfirm}>
+            <Button
+              type="button"
+              size="sm"
+              onClick={handleConfirm}
+              disabled={pendingDates.length === 0}
+            >
               Done
             </Button>
           </div>
