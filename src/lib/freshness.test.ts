@@ -161,13 +161,52 @@ describe("rankGyms — with a recent visit", () => {
 
 describe("rankGyms — tiebreakers", () => {
   it("equal novelty scores: most recent fresh reset date wins", () => {
+    // Two visited gyms both at the MAX_VISIT_FACTOR cap with identical substance
+    // → genuinely equal scores → tiebreak falls to the most recent fresh date.
     const a = makeGym({ slug: "a", sections: { Slab: [daysAgo(5)] } });
     const b = makeGym({ slug: "b", sections: { Slab: [daysAgo(1)] } });
 
-    const r = rankGyms([a, b], {});
+    const r = rankGyms([a, b], { a: daysAgo(40), b: daysAgo(40) });
 
-    expect(r.hero?.gym.slug).toBe("b");
+    expect(r.hero?.noveltyScore).toBeCloseTo(r.runnersUp[0].noveltyScore, 5);
+    expect(r.hero?.gym.slug).toBe("b"); // newer fresh reset (1d vs 5d) wins
     expect(r.runnersUp.map((g) => g.gym.slug)).toEqual(["a"]);
+  });
+});
+
+describe("rankGyms — no-visit freshness (reset recency)", () => {
+  it("same substance, more recent reset ranks higher and earns a higher tier", () => {
+    // Both single-sector, 1 uncounted reset (substance 0.70). On the first-open
+    // page the recency decay is the only differentiator.
+    const recent = makeGym({ slug: "recent", sections: { All: [daysAgo(1)] } });
+    const stale = makeGym({ slug: "stale", sections: { All: [daysAgo(30)] } });
+
+    const r = rankGyms([stale, recent], {});
+
+    expect(r.hero?.gym.slug).toBe("recent");
+    expect(r.hero?.noveltyScore).toBeGreaterThan(r.runnersUp[0].noveltyScore);
+    // recent: 0.70 × 0.95 = 0.665 → WORTH; stale: 0.70 × 0.50 (floor) = 0.35 → SLIM
+    expect(r.hero?.tier.key).toBe("worth");
+    expect(r.runnersUp[0].tier.key).toBe("slim");
+  });
+
+  it("a substantial, just-dropped reset binds to 'looking fresh' on first open", () => {
+    // Big counted drop (substance 0.95) reset today → 0.95 × 1.0 = 0.95 ≥ 0.85.
+    const big = makeGym({ slug: "big", sections: { All: [[daysAgo(0), 22]] } });
+    // Typical single uncounted drop today → 0.70 × 1.0 = 0.70 → WORTH.
+    const small = makeGym({ slug: "small", sections: { All: [daysAgo(0)] } });
+
+    expect(scoreGym(big, null).tier.key).toBe("fresh");
+    expect(scoreGym(small, null).tier.key).toBe("worth");
+  });
+
+  it("'looking fresh' decays back to 'worth' as the big drop ages (−0.05/day)", () => {
+    // Same big drop (0.95). Today → fresh; 4 days old → 0.95 × 0.80 = 0.76 → worth.
+    const today = makeGym({ slug: "today", sections: { All: [[daysAgo(0), 22]] } });
+    const aged = makeGym({ slug: "aged", sections: { All: [[daysAgo(4), 22]] } });
+
+    expect(scoreGym(today, null).tier.key).toBe("fresh");
+    expect(scoreGym(aged, null).tier.key).toBe("worth");
   });
 });
 
@@ -337,8 +376,10 @@ describe("rankGyms — weekly rotation scenario", () => {
     expect(r.hero?.tier.key).toBe("hot");
     const vertigoScored = r.runnersUp.find((g) => g.gym.slug === "vertigo")!;
     expect(vertigoScored.tier.key).toBe("slim");
+    // Spot: 24d gap × 0.95 substance (35 boulders) = 1.63 → between WORTH and HOT,
+    // so it lands in the "looking fresh" band.
     const spotScored = r.runnersUp.find((g) => g.gym.slug === "spot")!;
-    expect(["worth", "hot"]).toContain(spotScored.tier.key);
+    expect(spotScored.tier.key).toBe("fresh");
   });
 });
 

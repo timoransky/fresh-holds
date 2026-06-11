@@ -1,4 +1,4 @@
-export type TierKey = "hot" | "worth" | "slim" | "stale" | "unknown";
+export type TierKey = "hot" | "fresh" | "worth" | "slim" | "stale" | "unknown";
 
 export type TierTokens = {
   badge: { bg: string; fg: string; ring: string };
@@ -25,6 +25,25 @@ export const HOT: Tier = {
       tint: "oklch(0.97 0.04 30 / 0.7)",
       stroke: "oklch(0.86 0.07 30)",
       shadow: "oklch(0.55 0.20 30 / 0.18)",
+    },
+  },
+};
+
+// Amber tier sitting between HOT (hue 30) and WORTH (hue 92). Reachable without a
+// visit gap — it's how a recent, substantial reset stands out on the first-open
+// page. See ADR-0002 (never-visited recency model).
+export const FRESH: Tier = {
+  key: "fresh",
+  label: "looking fresh",
+  emoji: "✨",
+  rotateDeg: 2.5,
+  tokens: {
+    badge: { bg: "oklch(0.93 0.11 65)", fg: "oklch(0.37 0.13 55)", ring: "oklch(0.60 0.17 60)" },
+    card: {
+      badgeWidth: "150px",
+      tint: "oklch(0.97 0.06 65 / 0.7)",
+      stroke: "oklch(0.88 0.08 62)",
+      shadow: "oklch(0.60 0.17 60 / 0.18)",
     },
   },
 };

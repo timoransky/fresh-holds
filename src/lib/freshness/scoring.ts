@@ -6,7 +6,16 @@ import { daysSince } from "@/lib/date";
 // long-abandoned gym caps at 2.5 (~35 days) so it doesn't drown out everything.
 const VISIT_RAMP_DAYS = 14;
 const MAX_VISIT_FACTOR = 2.5;
-const NEVER_VISITED_FACTOR = 1.0;
+
+// Never-visited gyms have no visit-gap signal, so we differentiate them by how
+// recently their freshest reset landed. The factor starts at the neutral anchor
+// (1.0) the day of the reset and decays NEVER_VISITED_DECAY_PER_DAY each day,
+// down to NEVER_VISITED_FLOOR. With Bratislava's ~weekly reset cadence the
+// freshest reset is almost always 0-7 days old, so this daily decay — not a
+// flat constant — is what orders the first-open page. See ADR-0002.
+const NEVER_VISITED_PEAK = 1.0;
+const NEVER_VISITED_FLOOR = 0.5;
+const NEVER_VISITED_DECAY_PER_DAY = 0.05;
 
 export type FreshLabel = {
   freshSections: number;
@@ -82,7 +91,9 @@ export function gymFreshness(gym: GymWithSections, lastVisitedISO: string | null
     hasUncountedResets,
   };
 
-  const visitFactor = computeVisitFactor(daysSinceVisit);
+  const daysSinceFreshReset =
+    mostRecentFreshISO === null ? null : Math.max(0, daysSince(mostRecentFreshISO));
+  const visitFactor = computeVisitFactor(daysSinceVisit, daysSinceFreshReset);
   const substance = computeSubstance(label, freshResetCount);
   const noveltyScore = visitFactor * substance;
 
@@ -98,9 +109,20 @@ export function gymFreshness(gym: GymWithSections, lastVisitedISO: string | null
   };
 }
 
-function computeVisitFactor(daysSinceVisit: number | null): number {
-  if (daysSinceVisit === null) return NEVER_VISITED_FACTOR;
+function computeVisitFactor(
+  daysSinceVisit: number | null,
+  daysSinceFreshReset: number | null,
+): number {
+  if (daysSinceVisit === null) return computeNeverVisitedFactor(daysSinceFreshReset);
   return Math.min(daysSinceVisit / VISIT_RAMP_DAYS, MAX_VISIT_FACTOR);
+}
+
+function computeNeverVisitedFactor(daysSinceFreshReset: number | null): number {
+  // No fresh reset means substance is 0 and the score is 0 regardless; fall back
+  // to the neutral anchor so the factor is well-defined.
+  if (daysSinceFreshReset === null) return NEVER_VISITED_PEAK;
+  const decayed = NEVER_VISITED_PEAK - NEVER_VISITED_DECAY_PER_DAY * daysSinceFreshReset;
+  return Math.max(NEVER_VISITED_FLOOR, decayed);
 }
 
 function computeSubstance(label: FreshLabel, freshResetCount: number): number {
