@@ -1,41 +1,49 @@
 import type { CSSProperties } from "react";
-import type { FreshLabel } from "@/lib/freshness";
 import type { Tier } from "@/lib/tier";
 import { tierBadgeStyle } from "@/lib/tier-style";
 import { cn } from "@/lib/utils";
 
 type Props = {
   tier: Tier;
-  label: FreshLabel | null;
-  badgeNumber: number;
-  badgeText: string;
+  // Stable identifier (gym slug) the badge's tilt is derived from. A real
+  // Math.random() would break SSR hydration and re-roll on every render;
+  // hashing the seed gives each gym a fixed, "random-looking" tilt instead.
+  seed: string;
   size?: "hero" | "compact";
-  bob?: boolean;
   className?: string;
 };
 
-export function FreshnessBadge({
-  tier,
-  label,
-  badgeNumber,
-  badgeText,
-  size = "hero",
-  bob = false,
-  className,
-}: Props) {
+// Tilt magnitude stays inside [MIN, MAX] in either direction: a near-0° badge
+// among tilted ones reads as a rendering bug, not as randomness.
+const MIN_TILT_DEG = 0.8;
+const MAX_TILT_DEG = 3;
+
+function tiltFromSeed(seed: string): number {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    hash = (hash * 31 + seed.charCodeAt(i)) | 0;
+  }
+  const span = (MAX_TILT_DEG - MIN_TILT_DEG) * 100;
+  const magnitude = MIN_TILT_DEG + (Math.abs(hash) % span) / 100;
+  // Sign from a mid hash bit — low-bit parity clumped the directions.
+  return ((hash >> 5) & 1) === 0 ? magnitude : -magnitude;
+}
+
+// Emoji + tier title only. The exact "how much / how recent" lives in the card's
+// narrative line right below — see ADR-0003 "Display language".
+// The idle animation is graded by tier (hot buzzes, slim barely sways, stale
+// sleeps) and damped on compact badges so runners-up stay calm.
+export function FreshnessBadge({ tier, seed, size = "hero", className }: Props) {
   const isUnknown = tier.key === "unknown";
+  const isCompact = size === "compact";
+  const tiltDeg = tiltFromSeed(seed);
 
   const baseStyle: CSSProperties = {
     ...tierBadgeStyle(tier),
-    ["--rot" as string]: `${tier.rotateDeg}deg`,
-    transform: `rotate(${tier.rotateDeg}deg)`,
+    ["--rot" as string]: `${tiltDeg}deg`,
+    ...(isCompact && { ["--anim-amp" as string]: 0.6 }),
+    transform: `rotate(${tiltDeg}deg)`,
   };
-
-  const isCompact = size === "compact";
-  const numberClass = isCompact
-    ? "font-mono text-md font-semibold tabular-nums leading-none"
-    : "font-mono text-xl font-semibold tabular-nums leading-none";
-  const descriptorClass = isCompact ? "text-xs font-semibold" : "text-sm font-semibold";
 
   return (
     <div
@@ -47,33 +55,21 @@ export function FreshnessBadge({
           : "inline-flex items-center gap-2 sm:gap-2.5 origin-center select-none rounded-2xl squircle-3xl border-2 px-3 pl-2.5 py-2.5 md:px-4 md:pl-3 md:py-3 shadow-[0_3px_0_0_var(--tier-ring)] absolute -top-8 -right-8",
         "bg-(--tier-bg) text-(--tier-fg) border-(--tier-ring)",
         isUnknown && "border-dashed shadow-none",
-        !isCompact && bob && "motion-safe:animate-[badge-bob_3.6s_ease-in-out_infinite]",
+        tier.anim !== null && "badge-animate",
         className,
       )}
     >
       <span className={isCompact ? "text-md leading-none" : "text-2xl leading-none"} aria-hidden>
         {tier.emoji}
       </span>
-      <div className={cn("flex flex-col", isCompact ? "gap-0.5" : "gap-1")}>
-        <span
-          className={cn(
-            "font-extrabold tracking-tight lowercase leading-none",
-            isCompact ? "text-sm" : "text-base",
-          )}
-        >
-          {tier.label}
-        </span>
-        <div className="flex items-baseline gap-1">
-          {label === null ? (
-            <span className={numberClass}>—</span>
-          ) : (
-            <>
-              <span className={numberClass}>{badgeNumber}</span>
-              <span className={descriptorClass}>{badgeText}</span>
-            </>
-          )}
-        </div>
-      </div>
+      <span
+        className={cn(
+          "font-extrabold tracking-tight lowercase leading-none",
+          isCompact ? "text-sm" : "text-base",
+        )}
+      >
+        {tier.label}
+      </span>
     </div>
   );
 }

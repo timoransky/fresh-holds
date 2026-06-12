@@ -1,7 +1,20 @@
 import { daysSince, relativeDay } from "@/lib/date";
 import type { FreshLabel } from "@/lib/freshness/scoring";
+import type { TierKey } from "@/lib/tier";
 
+// The card line speaks two voices (see ADR-0003):
+//
+// - Returning (a visit is logged for this gym): anchored to "since your visit" —
+//   the counts and dates are personal and exact.
+// - Anon (no visit logged for this gym): there is no personal anchor, so the
+//   line describes the gym's activity instead - when it last reset and how busy
+//   the month was. It never says "fresh for you" or "never visited"; we don't
+//   actually know either.
+//
+// Each line is data first, then the tier's punchline, so the badge and the
+// sentence tell one story.
 export function describeFreshness(
+  tier: TierKey,
   label: FreshLabel | null,
   lastVisitedISO: string | null,
   mostRecentFreshISO: string | null,
@@ -9,53 +22,59 @@ export function describeFreshness(
 ): string {
   if (label === null) return "No reset data - you have to check for yourself.";
 
-  if (freshResetCount === 0) {
-    if (lastVisitedISO === null) {
-      return "Resets logged, but nothing new yet.";
-    }
+  return lastVisitedISO === null
+    ? describeForAnon(tier, mostRecentFreshISO)
+    : describeForReturning(tier, lastVisitedISO, mostRecentFreshISO, freshResetCount);
+}
+
+function describeForAnon(
+  tier: TierKey,
+  mostRecentFreshISO: string | null,
+): string {
+  if (tier === "stale" || mostRecentFreshISO === null) {
+    return "Quiet lately - no resets in the last month. Running on old plastic.";
+  }
+
+  const latest = `Last reset ${relativeDay(mostRecentFreshISO)}`;
+
+  switch (tier) {
+    case "hot":
+      return `${latest} - get on it before the chalk builds up.`;
+    case "fresh":
+      return `${latest} - plenty of fresh plastic.`;
+    case "worth":
+      return `${latest} - worth a session.`;
+    default:
+      return `${latest} - slim pickings right now.`;
+  }
+}
+
+function describeForReturning(
+  tier: TierKey,
+  lastVisitedISO: string,
+  mostRecentFreshISO: string | null,
+  freshResetCount: number,
+): string {
+  if (freshResetCount === 0 || mostRecentFreshISO === null) {
     if (daysSince(lastVisitedISO) <= 0) {
       return "Nothing new since you visited today.";
     }
     return `Nothing new since your last visit ${relativeDay(lastVisitedISO)}.`;
   }
 
-  const lastReset = `last reset ${relativeDay(mostRecentFreshISO!)}`;
-  const resetWord = pluralize(freshResetCount, "reset");
+  const latest = relativeDay(mostRecentFreshISO);
+  const resets = `${freshResetCount} ${pluralize(freshResetCount, "reset")}`;
 
-  if (lastVisitedISO === null) {
-    // TODO: revisit wording for never-visited span clause (see PR #75).
-    // if (freshResetCount >= 2 && oldestFreshISO !== null) {
-    //   return `Never visited - ${freshResetCount} ${resetWord} logged in the ${pastSpan(oldestFreshISO)}, ${lastReset}.`;
-    // }
-    return `Never visited - ${freshResetCount} ${resetWord} logged, ${lastReset}.`;
+  switch (tier) {
+    case "hot":
+      return `${resets} piled up since your visit, the latest ${latest} - practically a new gym.`;
+    case "fresh":
+      return `${resets} since your visit, the latest ${latest} - it's stacking up.`;
+    case "worth":
+      return `${resets} since your visit, the latest ${latest} - decent pickings.`;
+    default:
+      return `${resets} since your visit, the latest ${latest} - thin, but it's something.`;
   }
-  return `${freshResetCount} new ${resetWord} since your last visit, ${lastReset}.`;
-}
-
-// TODO: revisit wording for never-visited span clause (see PR #75).
-// function pastSpan(oldestISO: string): string {
-//   const days = daysSince(oldestISO);
-//   if (days <= 7) return "past week";
-//   if (days <= 14) return "past 2 weeks";
-//   if (days <= 30) return "past month";
-//   if (days <= 60) return "past 2 months";
-//   if (days <= 365) return `past ${Math.round(days / 30)} months`;
-//   return "past year";
-// }
-
-export function badgeCountLabel(label: FreshLabel): string {
-  if (showBouldersFirst(label)) {
-    return `new ${pluralize(label.countedBoulders, "boulder")}`;
-  }
-  return `fresh ${pluralize(label.freshSections, "sector")}`;
-}
-
-export function badgeCountNumber(label: FreshLabel): number {
-  return showBouldersFirst(label) ? label.countedBoulders : label.freshSections;
-}
-
-function showBouldersFirst(label: FreshLabel): boolean {
-  return label.totalSections === 1 && label.countedBoulders > 0;
 }
 
 function pluralize(n: number, word: string): string {

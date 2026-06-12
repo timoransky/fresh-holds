@@ -19,7 +19,7 @@ export function GymNoDataCard({ gym }: Props) {
     >
       <div className="min-w-0">
         <h2 className="font-bold tracking-tight text-foreground truncate text-lg">{gym.name}</h2>
-        <p className="text-xs text-muted-foreground">No reset data — check for yourself</p>
+        <p className="text-xs text-muted-foreground">No reset data - check for yourself</p>
       </div>
 
       <div className="shrink-0">

@@ -26,7 +26,7 @@ function makeReset(reset_on: string, boulders_reset: number | null = null): Rese
 }
 
 function makeSection(name: string, resets: Reset[], display_order = 0): Section {
-  // mostRecentReset reads resets[0] — the server query returns them ordered
+  // mostRecentReset reads resets[0] - the server query returns them ordered
   // newest-first, so the fixture mirrors that.
   const sorted = [...resets].sort((a, b) => b.reset_on.localeCompare(a.reset_on));
   return {
@@ -70,21 +70,43 @@ function makeGym({ slug, sections }: GymInput): GymWithSections {
 
 // ---------- scenarios ----------
 
-describe("rankGyms — no visits", () => {
-  it("ranks gyms by total fresh reset count (no visit ⇒ everything is fresh)", () => {
-    const a = makeGym({ slug: "a", sections: { Slab: [daysAgo(1), daysAgo(3), daysAgo(5)] } });
-    const b = makeGym({ slug: "b", sections: { Slab: [daysAgo(2)] } });
-    const c = makeGym({ slug: "c", sections: { Slab: [daysAgo(4), daysAgo(6)] } });
+describe("rankGyms - anon (no visits)", () => {
+  it("turnover saturates on weekly gyms, so recency orders the page", () => {
+    // Both have 4 unseen resets inside the 28-day anon window → turnover 1.0.
+    // The only differentiator left is how recently each one dropped.
+    const recent = makeGym({
+      slug: "recent",
+      sections: { Wall: [daysAgo(0), daysAgo(7), daysAgo(14), daysAgo(21)] },
+    });
+    const older = makeGym({
+      slug: "older",
+      sections: { Wall: [daysAgo(5), daysAgo(12), daysAgo(19), daysAgo(26)] },
+    });
 
-    const r = rankGyms([b, a, c], {});
+    const r = rankGyms([older, recent], {});
 
-    expect(r.hero?.gym.slug).toBe("a"); // 3 fresh resets
-    expect(r.heroHasData).toBe(true);
-    expect(r.runnersUp.map((g) => g.gym.slug)).toEqual(["c", "b"]); // 2, then 1
-    expect(r.noDataExtras).toEqual([]);
+    expect(r.hero?.gym.slug).toBe("recent");
+    expect(r.runnersUp.map((g) => g.gym.slug)).toEqual(["older"]);
+    expect(r.hero?.tier.key).toBe("hot"); // reset today: 1.0 × 1.0
+    expect(r.runnersUp[0].tier.key).toBe("worth"); // reset 5d ago: 1.0 × 0.61
   });
 
-  it("a never-visited gym gets a label with all sections fresh", () => {
+  it("a gym with no reset inside the 28-day window reads as stale", () => {
+    const active = makeGym({
+      slug: "active",
+      sections: { Wall: [daysAgo(1), daysAgo(8), daysAgo(15), daysAgo(22)] },
+    });
+    const stalled = makeGym({ slug: "stalled", sections: { Wall: [daysAgo(40)] } });
+
+    const r = rankGyms([stalled, active], {});
+
+    expect(r.hero?.gym.slug).toBe("active");
+    expect(r.runnersUp.map((g) => g.gym.slug)).toEqual(["stalled"]);
+    expect(r.runnersUp[0].noveltyScore).toBe(0); // 0 unseen resets in the window
+    expect(r.runnersUp[0].tier.key).toBe("stale");
+  });
+
+  it("sections reset within the window are all counted as fresh", () => {
     const a = makeGym({
       slug: "a",
       sections: { Slab: [daysAgo(1)], Overhang: [daysAgo(2)] },
@@ -102,8 +124,8 @@ describe("rankGyms — no visits", () => {
   });
 });
 
-describe("rankGyms — with a recent visit", () => {
-  it("a gym you visited AFTER its last reset drops below an unvisited gym with fresh resets", () => {
+describe("rankGyms - returning visitor", () => {
+  it("a gym you visited after its last reset drops below a gym with unseen resets", () => {
     const a = makeGym({
       slug: "a",
       sections: { Slab: [daysAgo(3), daysAgo(4), daysAgo(5)] },
@@ -112,7 +134,7 @@ describe("rankGyms — with a recent visit", () => {
 
     const r = rankGyms([a, b], { a: daysAgo(1) });
 
-    expect(r.hero?.gym.slug).toBe("b");
+    expect(r.hero?.gym.slug).toBe("b"); // a: 0 unseen → 0; b: 1 unseen → 0.25
     expect(r.runnersUp.map((g) => g.gym.slug)).toEqual(["a"]);
   });
 
@@ -128,17 +150,34 @@ describe("rankGyms — with a recent visit", () => {
     expect(r.hero?.label?.totalSections).toBe(1);
   });
 
-  it("visit within JUST_VISITED_DAYS (≤2) forces tier STALE even if there are fresh resets", () => {
-    const a = makeGym({ slug: "a", sections: { Slab: [daysAgo(0)] } });
+  it("visited yesterday but a reset landed today → there IS something new (not stale)", () => {
+    // The old model force-marked any visit within 2 days as STALE. Now a reset
+    // after your visit is simply unseen: 1 unseen (turnover 1/3) × recency 1.0 =
+    // 0.33 → slim, not stale. There's a little something new, and it ranks > 0.
+    const a = makeGym({ slug: "a", sections: { Wall: [daysAgo(0)] } });
     const r = rankGyms([a], { a: daysAgo(1) });
+    expect(r.hero?.noveltyScore).toBeGreaterThan(0);
+    expect(r.hero?.tier.key).toBe("slim");
+  });
+
+  it("visited after the gym's most recent reset → nothing new → stale", () => {
+    const a = makeGym({ slug: "a", sections: { Wall: [daysAgo(3)] } });
+    const r = rankGyms([a], { a: daysAgo(1) });
+    expect(r.hero?.noveltyScore).toBe(0);
     expect(r.hero?.tier.key).toBe("stale");
   });
 
-  it("longer visit gap outranks shorter gap when substance is comparable", () => {
-    // Two single-sector gyms with identical fresh content (1 uncounted reset).
-    // The user has avoided 'a' for 3 weeks and 'b' for 1 week → 'a' should win.
-    const a = makeGym({ slug: "a", sections: { Slab: [daysAgo(2)] } });
-    const b = makeGym({ slug: "b", sections: { Slab: [daysAgo(1)] } });
+  it("a longer visit gap accumulates more unseen resets and outranks a shorter gap", () => {
+    // Identical weekly gyms. The user avoided 'a' for 3 weeks (3 unseen) and 'b'
+    // for 1 week (1 unseen), so 'a' has more piled up.
+    const a = makeGym({
+      slug: "a",
+      sections: { Wall: [daysAgo(2), daysAgo(9), daysAgo(16), daysAgo(23)] },
+    });
+    const b = makeGym({
+      slug: "b",
+      sections: { Wall: [daysAgo(1), daysAgo(8), daysAgo(15), daysAgo(22)] },
+    });
 
     const r = rankGyms([a, b], { a: daysAgo(21), b: daysAgo(7) });
 
@@ -146,104 +185,85 @@ describe("rankGyms — with a recent visit", () => {
     expect(r.runnersUp.map((g) => g.gym.slug)).toEqual(["b"]);
   });
 
-  it("visit ramp caps at MAX_VISIT_FACTOR (~35d) so very long gaps don't blow out", () => {
-    // 'a' visited 35d ago (at cap), 'b' visited 100d ago (still at cap).
-    // Same substance → tied score → tiebreak by most recent fresh date.
-    const a = makeGym({ slug: "a", sections: { Slab: [daysAgo(1)] } });
-    const b = makeGym({ slug: "b", sections: { Slab: [daysAgo(5)] } });
+  it("turnover saturates at SATURATION_RESETS so extra unseen resets don't keep climbing", () => {
+    const four = makeGym({
+      slug: "four",
+      sections: { Wall: [daysAgo(1), daysAgo(8), daysAgo(15), daysAgo(22)] },
+    });
+    const many = makeGym({
+      slug: "many",
+      sections: {
+        Wall: [daysAgo(1), daysAgo(8), daysAgo(15), daysAgo(22), daysAgo(29), daysAgo(36)],
+      },
+    });
 
-    const r = rankGyms([a, b], { a: daysAgo(35), b: daysAgo(100) });
+    const r = rankGyms([four, many], { four: daysAgo(60), many: daysAgo(60) });
 
-    expect(r.hero?.gym.slug).toBe("a");
+    // 4 unseen vs 6 unseen, same newest reset → both saturate at turnover 1.0.
     expect(r.hero?.noveltyScore).toBeCloseTo(r.runnersUp[0].noveltyScore, 5);
+    expect(r.hero?.tier.key).toBe("hot");
   });
 });
 
-describe("rankGyms — tiebreakers", () => {
-  it("equal novelty scores: most recent fresh reset date wins", () => {
-    const a = makeGym({ slug: "a", sections: { Slab: [daysAgo(5)] } });
-    const b = makeGym({ slug: "b", sections: { Slab: [daysAgo(1)] } });
+describe("rankGyms - tiebreakers", () => {
+  it("equal scores: the gym whose newest reset is more recent wins", () => {
+    // x: 1 unseen today → 1/3 × 1.0 = 0.33.  y: 2 unseen, newest a week old →
+    // 2/3 × 0.5 = 0.33. Same score; tiebreak falls to the most recent fresh date.
+    const x = makeGym({ slug: "x", sections: { Wall: [daysAgo(0)] } });
+    const y = makeGym({ slug: "y", sections: { Wall: [daysAgo(7), daysAgo(14)] } });
 
-    const r = rankGyms([a, b], {});
+    const r = rankGyms([y, x], {});
 
-    expect(r.hero?.gym.slug).toBe("b");
-    expect(r.runnersUp.map((g) => g.gym.slug)).toEqual(["a"]);
+    expect(r.hero?.noveltyScore).toBeCloseTo(r.runnersUp[0].noveltyScore, 5);
+    expect(r.hero?.gym.slug).toBe("x");
+    expect(r.runnersUp.map((g) => g.gym.slug)).toEqual(["y"]);
   });
 });
 
-describe("rankGyms — substance per gym shape", () => {
-  it("single-sector gym: more uncounted fresh rows ⇒ higher substance", () => {
-    // Spot-style gym: one section ("whole gym"), uncounted resets. Each fresh
-    // row roughly maps to one weekly reset event.
+describe("rankGyms - every reset row counts as one chunk", () => {
+  it("more unseen reset rows ⇒ higher turnover ⇒ higher score (recency equal)", () => {
     const three = makeGym({
       slug: "three",
-      sections: { "Whole gym": [daysAgo(2), daysAgo(7), daysAgo(12)] },
+      sections: { Whole: [daysAgo(1), daysAgo(2), daysAgo(3)] },
     });
-    const one = makeGym({
-      slug: "one",
-      sections: { "Whole gym": [daysAgo(2)] },
-    });
+    const one = makeGym({ slug: "one", sections: { Whole: [daysAgo(1)] } });
 
-    const visits = { three: daysAgo(14), one: daysAgo(14) };
-    const r = rankGyms([three, one], visits);
+    const r = rankGyms([one, three], {});
 
-    expect(r.hero?.gym.slug).toBe("three");
+    expect(r.hero?.gym.slug).toBe("three"); // 3 unseen (turnover 1.0) vs 1 (0.33)
     expect(r.hero!.noveltyScore).toBeGreaterThan(r.runnersUp[0].noveltyScore);
   });
 
-  it("single-sector gym with counted boulders outranks one with only uncounted rows", () => {
-    // Boulder count beats raw row count when we have it.
-    const counted = makeGym({
-      slug: "counted",
-      sections: { "Whole gym": [[daysAgo(2), 25]] },
+  it("a named-sector gym and an unnamed gym count each reset row the same", () => {
+    // 3 named sectors reset once vs one "whole gym" section reset 3 times - both
+    // 3 rows, same newest date → identical score. Sector naming is irrelevant.
+    const named = makeGym({
+      slug: "named",
+      sections: { S1: [daysAgo(1)], S2: [daysAgo(1)], S3: [daysAgo(1)] },
     });
-    const uncounted = makeGym({
-      slug: "uncounted",
-      sections: { "Whole gym": [daysAgo(2)] },
+    const unnamed = makeGym({
+      slug: "unnamed",
+      sections: { Whole: [daysAgo(1), daysAgo(2), daysAgo(3)] },
     });
 
-    const visits = { counted: daysAgo(14), uncounted: daysAgo(14) };
-    const r = rankGyms([counted, uncounted], visits);
+    const r = rankGyms([named, unnamed], {});
 
-    expect(r.hero?.gym.slug).toBe("counted");
+    expect(r.hero?.noveltyScore).toBeCloseTo(r.runnersUp[0].noveltyScore, 5);
   });
 
-  it("multi-sector gym: coverage drives substance (more sectors fresh ⇒ higher)", () => {
-    const wide = makeGym({
-      slug: "wide",
-      sections: {
-        S1: [daysAgo(2)],
-        S2: [daysAgo(3)],
-        S3: [daysAgo(4)],
-        S4: [],
-        S5: [],
-        S6: [],
-        S7: [],
-        S8: [],
-      },
-    });
-    const narrow = makeGym({
-      slug: "narrow",
-      sections: {
-        S1: [daysAgo(2)],
-        S2: [],
-        S3: [],
-        S4: [],
-        S5: [],
-        S6: [],
-        S7: [],
-        S8: [],
-      },
-    });
+  it("boulder counts are display-only and never affect the score", () => {
+    const counted = makeGym({ slug: "counted", sections: { Whole: [[daysAgo(1), 25]] } });
+    const uncounted = makeGym({ slug: "uncounted", sections: { Whole: [daysAgo(1)] } });
 
-    const visits = { wide: daysAgo(14), narrow: daysAgo(14) };
-    const r = rankGyms([wide, narrow], visits);
-
-    expect(r.hero?.gym.slug).toBe("wide");
+    expect(scoreGym(counted, null).noveltyScore).toBeCloseTo(
+      scoreGym(uncounted, null).noveltyScore,
+      5,
+    );
+    expect(scoreGym(counted, null).label?.countedBoulders).toBe(25); // still shown to the user
   });
 });
 
-describe("rankGyms — mixed reset data", () => {
+describe("rankGyms - mixed reset data", () => {
   it("gyms with no reset data go to noDataExtras, never to runnersUp", () => {
     const a = makeGym({ slug: "a", sections: { Slab: [daysAgo(1)] } });
     const empty = makeGym({ slug: "empty", sections: { Slab: [] } });
@@ -268,81 +288,54 @@ describe("rankGyms — mixed reset data", () => {
   });
 });
 
-describe("rankGyms — weekly rotation scenario", () => {
-  // Mirrors the real Bratislava rotation: user climbs ~1×/week, rotating
-  // between four gyms. The one they've been avoiding longest (with content
-  // waiting) should rise to the top and be tier HOT, while the one they
-  // just climbed should be STALE.
-  it("longest-avoided gym with fresh content rises to HOT, just-climbed gym is STALE", () => {
+describe("rankGyms - weekly rotation scenario", () => {
+  // Mirrors the real Bratislava rotation: user climbs ~1×/week across four gyms.
+  // The gym they've avoided longest (and that keeps resetting) piles up unseen
+  // resets and rises to HOT; the one they climbed yesterday has nothing new and
+  // is STALE. Both deciding factors - visit gap and reset recency - are in play.
+  it("longest-avoided active gym rises to HOT, just-climbed gym is STALE", () => {
     const raca = makeGym({
       slug: "raca",
-      sections: {
-        S1: [daysAgo(3)],
-        S2: [daysAgo(10)],
-        S3: [daysAgo(17)],
-        S4: [],
-        S5: [],
-        S6: [],
-        S7: [],
-        S8: [],
-      },
-    });
-    const petrzalka = makeGym({
-      slug: "petrzalka",
-      sections: {
-        S1: [daysAgo(2)],
-        S2: [daysAgo(9)],
-        S3: [],
-        S4: [],
-        S5: [],
-        S6: [],
-        S7: [],
-        S8: [],
-      },
+      sections: { Wall: [daysAgo(1), daysAgo(8), daysAgo(15), daysAgo(22), daysAgo(29)] },
     });
     const spot = makeGym({
       slug: "spot",
-      sections: {
-        "Whole gym": [
-          [daysAgo(4), 15],
-          [daysAgo(11), 20],
-        ],
-      },
+      sections: { Wall: [daysAgo(2), daysAgo(9)] },
+    });
+    const petrzalka = makeGym({
+      slug: "petrzalka",
+      sections: { Wall: [daysAgo(3)] },
     });
     const vertigo = makeGym({
       slug: "vertigo",
-      sections: { Main: [daysAgo(2)], Small: [] },
+      sections: { Wall: [daysAgo(4)] },
     });
 
     // Visit history (today = NOW = 2026-05-11 in this file):
-    //   raca: 39d ago      → longest gap, should be HOT
-    //   spot: 24d ago      → medium gap
-    //   petrzalka: 12d ago → recent
-    //   vertigo: 3d ago    → just climbed
+    //   raca: 35d ago → 5 unseen, newest 1d  → 1.0 × 0.91 = 0.91  HOT
+    //   spot: 14d ago → 2 unseen, newest 2d  → 0.5 × 0.82 = 0.41  WORTH
+    //   petrzalka: 10d → 1 unseen, newest 3d → 0.25 × 0.74 = 0.19 SLIM
+    //   vertigo: 1d ago → reset (4d) predates visit → 0 unseen → 0  STALE
     const visits = {
-      raca: daysAgo(39),
-      spot: daysAgo(24),
-      petrzalka: daysAgo(12),
-      vertigo: daysAgo(3),
+      raca: daysAgo(35),
+      spot: daysAgo(14),
+      petrzalka: daysAgo(10),
+      vertigo: daysAgo(1),
     };
 
     const r = rankGyms([vertigo, petrzalka, spot, raca], visits);
 
-    // Ordering: Rača (longest gap + content) at the top, then Spot, then
-    // Petržalka, then Vertigo.
     expect(r.hero?.gym.slug).toBe("raca");
     expect(r.runnersUp.map((g) => g.gym.slug)).toEqual(["spot", "petrzalka", "vertigo"]);
 
-    // Tier check: Rača HOT, the recently-climbed one not.
     expect(r.hero?.tier.key).toBe("hot");
     const vertigoScored = r.runnersUp.find((g) => g.gym.slug === "vertigo")!;
-    expect(vertigoScored.tier.key).toBe("slim");
-    const spotScored = r.runnersUp.find((g) => g.gym.slug === "spot")!;
-    expect(["worth", "hot"]).toContain(spotScored.tier.key);
+    expect(vertigoScored.noveltyScore).toBe(0);
+    expect(vertigoScored.tier.key).toBe("stale");
   });
 });
 
-describe("scoreGym — label aggregates per-reset counts", () => {
+describe("scoreGym - label aggregates per-reset counts", () => {
   it("sums boulders_reset across fresh resets and tracks uncounted ones", () => {
     // Vertigo-style: main area + small area, mixed counted/uncounted announcements.
     const vertigo = makeGym({
@@ -386,94 +379,44 @@ describe("scoreGym — label aggregates per-reset counts", () => {
   });
 });
 
-describe("scoreGym — narrative", () => {
+describe("scoreGym - narrative (tier punchlines, two voices)", () => {
   it("no reset data → check-yourself line", () => {
     const a = makeGym({ slug: "a", sections: { Slab: [] } });
     expect(scoreGym(a, null).narrative).toBe("No reset data - you have to check for yourself.");
   });
 
-  it("never-visited + multi-section → 'N resets logged'", () => {
-    const a = makeGym({
-      slug: "a",
-      sections: { Slab: [daysAgo(2)], Overhang: [daysAgo(3)] },
-    });
+  // ---- anon voice: describes the gym's activity, never "you" or "never visited" ----
+
+  it("anon + hot → last-reset + chalk punchline", () => {
+    const a = makeGym({ slug: "a", sections: { All: [daysAgo(1), daysAgo(8), daysAgo(15)] } });
     expect(scoreGym(a, null).narrative).toBe(
-      "Never visited - 2 resets logged, last reset 2 days ago.",
+      "Last reset yesterday - get on it before the chalk builds up.",
     );
   });
 
-  it("never-visited + single section + multiple resets → counts resets, not boulders", () => {
-    const a = makeGym({
-      slug: "a",
-      sections: {
-        All: [
-          [daysAgo(1), 7],
-          [daysAgo(3), 5],
-        ],
-      },
-    });
-    expect(scoreGym(a, null).narrative).toBe(
-      "Never visited - 2 resets logged, last reset 1 day ago.",
-    );
+  it("anon + fresh → fresh-plastic punchline", () => {
+    const a = makeGym({ slug: "a", sections: { All: [daysAgo(2), daysAgo(9), daysAgo(16)] } });
+    expect(scoreGym(a, null).narrative).toBe("Last reset 2 days ago - plenty of fresh plastic.");
   });
 
-  it("never-visited + single reset → singular 'reset'", () => {
+  it("anon + worth → worth a session", () => {
+    const a = makeGym({ slug: "a", sections: { All: [daysAgo(5), daysAgo(12), daysAgo(19)] } });
+    expect(scoreGym(a, null).narrative).toBe("Last reset 5 days ago - worth a session.");
+  });
+
+  it("anon + slim → slim pickings right now", () => {
     const a = makeGym({ slug: "a", sections: { All: [daysAgo(2)] } });
+    expect(scoreGym(a, null).narrative).toBe("Last reset 2 days ago - slim pickings right now.");
+  });
+
+  it("anon + stale (nothing in the month window) → old plastic", () => {
+    const a = makeGym({ slug: "a", sections: { All: [daysAgo(40)] } });
     expect(scoreGym(a, null).narrative).toBe(
-      "Never visited - 1 reset logged, last reset 2 days ago.",
+      "Quiet lately - no resets in the last month. Running on old plastic.",
     );
   });
 
-  // TODO: revisit wording for never-visited span clause (see PR #75).
-  it.skip("never-visited + span ~1 week → 'past week'", () => {
-    const a = makeGym({
-      slug: "a",
-      sections: { Slab: [daysAgo(2)], Overhang: [daysAgo(3)] },
-    });
-    expect(scoreGym(a, null).narrative).toBe(
-      "Never visited - 2 resets logged in the past week, last reset 2 days ago.",
-    );
-  });
-
-  it.skip("never-visited + span ~2 weeks → 'past 2 weeks'", () => {
-    const a = makeGym({
-      slug: "a",
-      sections: { All: [daysAgo(1), daysAgo(13)] },
-    });
-    expect(scoreGym(a, null).narrative).toBe(
-      "Never visited - 2 resets logged in the past 2 weeks, last reset 1 day ago.",
-    );
-  });
-
-  it.skip("never-visited + span ~1 month → 'past month'", () => {
-    const a = makeGym({
-      slug: "a",
-      sections: { All: [daysAgo(1), daysAgo(28)] },
-    });
-    expect(scoreGym(a, null).narrative).toBe(
-      "Never visited - 2 resets logged in the past month, last reset 1 day ago.",
-    );
-  });
-
-  it.skip("never-visited + span ~2 months → 'past 2 months'", () => {
-    const a = makeGym({
-      slug: "a",
-      sections: { All: [daysAgo(1), daysAgo(55)] },
-    });
-    expect(scoreGym(a, null).narrative).toBe(
-      "Never visited - 2 resets logged in the past 2 months, last reset 1 day ago.",
-    );
-  });
-
-  it.skip("never-visited + span ~6 months → 'past N months'", () => {
-    const a = makeGym({
-      slug: "a",
-      sections: { All: [daysAgo(1), daysAgo(180)] },
-    });
-    expect(scoreGym(a, null).narrative).toBe(
-      "Never visited - 2 resets logged in the past 6 months, last reset 1 day ago.",
-    );
-  });
+  // ---- returning voice: anchored to "since your visit" ----
 
   it("visited today with no fresh resets → 'nothing new since you visited today'", () => {
     const a = makeGym({ slug: "a", sections: { Slab: [daysAgo(2)] } });
@@ -485,17 +428,35 @@ describe("scoreGym — narrative", () => {
     expect(scoreGym(a, daysAgo(3)).narrative).toBe("Nothing new since your last visit 3 days ago.");
   });
 
-  it("visited + one fresh reset → singular 'new reset since your last visit'", () => {
-    const a = makeGym({
-      slug: "a",
-      sections: { Slab: [daysAgo(1)], Overhang: [daysAgo(5)] },
-    });
+  it("returning + slim → thin-but-something, singular reset", () => {
+    const a = makeGym({ slug: "a", sections: { All: [daysAgo(1)] } });
     expect(scoreGym(a, daysAgo(3)).narrative).toBe(
-      "1 new reset since your last visit, last reset 1 day ago.",
+      "1 reset since your visit, the latest yesterday - thin, but it's something.",
     );
   });
 
-  it("visited + multi-section + multiple fresh resets → counts all resets across sections", () => {
+  it("returning + worth → decent pickings", () => {
+    const a = makeGym({ slug: "a", sections: { All: [daysAgo(1), daysAgo(8)] } });
+    expect(scoreGym(a, daysAgo(14)).narrative).toBe(
+      "2 resets since your visit, the latest yesterday - decent pickings.",
+    );
+  });
+
+  it("returning + fresh → stacking up", () => {
+    const a = makeGym({ slug: "a", sections: { All: [daysAgo(3), daysAgo(10), daysAgo(17)] } });
+    expect(scoreGym(a, daysAgo(21)).narrative).toBe(
+      "3 resets since your visit, the latest 3 days ago - it's stacking up.",
+    );
+  });
+
+  it("returning + hot → practically a new gym", () => {
+    const a = makeGym({ slug: "a", sections: { All: [daysAgo(1), daysAgo(8), daysAgo(15)] } });
+    expect(scoreGym(a, daysAgo(21)).narrative).toBe(
+      "3 resets piled up since your visit, the latest yesterday - practically a new gym.",
+    );
+  });
+
+  it("counts reset events across sections, ignoring boulder totals", () => {
     const a = makeGym({
       slug: "a",
       sections: {
@@ -506,81 +467,11 @@ describe("scoreGym — narrative", () => {
         Small: [[daysAgo(2), null]],
       },
     });
-    expect(scoreGym(a, daysAgo(7)).narrative).toBe(
-      "3 new resets since your last visit, last reset 1 day ago.",
-    );
-  });
-
-  it("visited + single section + counted only → counts reset events, ignores boulder totals", () => {
-    const a = makeGym({
-      slug: "a",
-      sections: {
-        All: [
-          [daysAgo(1), 4],
-          [daysAgo(2), 3],
-          [daysAgo(8), 9],
-        ],
-      },
-    });
-    // visited 5 days ago → resets from days 1+2 are fresh, day 8 is stale.
-    expect(scoreGym(a, daysAgo(5)).narrative).toBe(
-      "2 new resets since your last visit, last reset 1 day ago.",
-    );
-  });
-
-  it("visited + single section + uncounted only → 'N new reset(s) since your last visit'", () => {
-    const a = makeGym({ slug: "a", sections: { All: [daysAgo(1), daysAgo(5)] } });
-    expect(scoreGym(a, daysAgo(3)).narrative).toBe(
-      "1 new reset since your last visit, last reset 1 day ago.",
-    );
+    expect(scoreGym(a, daysAgo(7)).narrative).toContain("3 resets");
   });
 });
 
-describe("scoreGym — badge", () => {
-  it("multi-section gym → badge counts sectors", () => {
-    const a = makeGym({
-      slug: "a",
-      sections: { Slab: [daysAgo(1)], Overhang: [daysAgo(2)] },
-    });
-    const s = scoreGym(a, null);
-    expect(s.badgeNumber).toBe(2);
-    expect(s.badgeText).toBe("fresh sectors");
-  });
-
-  it("multi-section gym with one fresh sector → singular", () => {
-    const a = makeGym({
-      slug: "a",
-      sections: { Slab: [daysAgo(1)], Overhang: [daysAgo(8)] },
-    });
-    // Visited 5 days ago → only Slab is fresh.
-    const s = scoreGym(a, daysAgo(5));
-    expect(s.badgeNumber).toBe(1);
-    expect(s.badgeText).toBe("fresh sector");
-  });
-
-  it("single-section gym + counted boulders → badge counts boulders", () => {
-    const a = makeGym({ slug: "a", sections: { All: [[daysAgo(1), 5]] } });
-    const s = scoreGym(a, null);
-    expect(s.badgeNumber).toBe(5);
-    expect(s.badgeText).toBe("new boulders");
-  });
-
-  it("single-section gym + uncounted resets → falls back to sector count", () => {
-    const a = makeGym({ slug: "a", sections: { All: [daysAgo(1)] } });
-    const s = scoreGym(a, null);
-    expect(s.badgeNumber).toBe(1);
-    expect(s.badgeText).toBe("fresh sector");
-  });
-
-  it("no reset data → badgeText empty (badge renders em-dash from label=null)", () => {
-    const a = makeGym({ slug: "a", sections: { Slab: [] } });
-    const s = scoreGym(a, null);
-    expect(s.label).toBeNull();
-    expect(s.badgeText).toBe("");
-  });
-});
-
-describe("scoreGym — ordering invariants", () => {
+describe("scoreGym - ordering invariants", () => {
   it("sectionsByDisplay is sorted by display_order ascending", () => {
     const gym: GymWithSections = {
       id: "g",
@@ -632,7 +523,7 @@ describe("scoreGym — ordering invariants", () => {
   });
 });
 
-describe("scoreGym — recentResets (compact-sector gym view)", () => {
+describe("scoreGym - recentResets (compact-sector gym view)", () => {
   it("flags compact-sector gyms (1 or 2 sectors)", () => {
     const one = makeGym({ slug: "one", sections: { All: [daysAgo(1)] } });
     const two = makeGym({
@@ -649,17 +540,17 @@ describe("scoreGym — recentResets (compact-sector gym view)", () => {
     expect(scoreGym(three, null).isCompactSectors).toBe(false);
   });
 
-  it("never-visited: returns resets within the 60-day fallback window, sorted newest-first", () => {
+  it("anon: returns resets within the 28-day window the scorer uses, sorted newest-first", () => {
+    // List window == scoring window, so the expanded list shows exactly what
+    // the badge and narrative count.
     const a = makeGym({
       slug: "a",
       sections: {
-        All: [daysAgo(1), daysAgo(30), daysAgo(59), daysAgo(70)],
+        All: [daysAgo(1), daysAgo(20), daysAgo(27), daysAgo(40)],
       },
     });
     const s = scoreGym(a, null);
-    expect(s.recentResets.map((r) => r.reset_on)).toEqual([daysAgo(1), daysAgo(30), daysAgo(59)]);
-    // never visited → every reset in the window is fresh
-    expect(s.recentResets.every((r) => r.isFresh)).toBe(true);
+    expect(s.recentResets.map((r) => r.reset_on)).toEqual([daysAgo(1), daysAgo(20), daysAgo(27)]);
   });
 
   it("visited: returns resets after lastVisited only", () => {
@@ -671,7 +562,6 @@ describe("scoreGym — recentResets (compact-sector gym view)", () => {
     });
     const s = scoreGym(a, daysAgo(5));
     expect(s.recentResets.map((r) => r.reset_on)).toEqual([daysAgo(1), daysAgo(3)]);
-    expect(s.recentResets.every((r) => r.isFresh)).toBe(true);
   });
 
   it("just-visited user with no fresh resets gets an empty list (option 2 fallback only on never-visited)", () => {
