@@ -1,6 +1,10 @@
 # ADR-0002 — Visit-gap-dominant gym scoring model
 
-Status: Accepted (2026-05-20) · Amended (2026-06-11)
+Status: **Superseded by [ADR-0003](0003-turnover-times-recency-scoring.md) (2026-06-12).** Accepted (2026-05-20) · Amended (2026-06-11)
+
+> This model (and its 2026-06-11 amendment) is kept for history. The live scoring model is
+> ADR-0003 — `noveltyScore = turnover × recency`. The `looking fresh` / `FRESH` tier
+> introduced in the amendment below survives; the scoring math described here does not.
 
 > **Amendment (2026-06-11) — never-visited recency + the `looking fresh` tier.**
 > The original model gave every never-visited gym a flat `visitFactor = 1.0`, so on the

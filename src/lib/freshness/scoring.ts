@@ -1,21 +1,25 @@
 import type { GymWithSections } from "@/lib/types";
 import { daysSince } from "@/lib/date";
 
-// Visit-gap ramp: visitFactor scales from 0 at a fresh visit to MAX_VISIT_FACTOR
-// once the user has been away long enough. 14 days = full weight (1.0), and a
-// long-abandoned gym caps at 2.5 (~35 days) so it doesn't drown out everything.
-const VISIT_RAMP_DAYS = 14;
-const MAX_VISIT_FACTOR = 2.5;
-
-// Never-visited gyms have no visit-gap signal, so we differentiate them by how
-// recently their freshest reset landed. The factor starts at the neutral anchor
-// (1.0) the day of the reset and decays NEVER_VISITED_DECAY_PER_DAY each day,
-// down to NEVER_VISITED_FLOOR. With Bratislava's ~weekly reset cadence the
-// freshest reset is almost always 0-7 days old, so this daily decay — not a
-// flat constant — is what orders the first-open page. See ADR-0002.
-const NEVER_VISITED_PEAK = 1.0;
-const NEVER_VISITED_FLOOR = 0.5;
-const NEVER_VISITED_DECAY_PER_DAY = 0.05;
+// Scoring model (see ADR-0003). noveltyScore = turnover × recency, both in 0..1.
+//
+//   turnover = min(unseenResets / SATURATION_RESETS, 1)
+//     Each reset row (a named sector's drop, or "part of the gym" for unnamed
+//     gyms) is one chunk of climbing that's new to you. Boulder counts are
+//     deliberately ignored — most gyms don't report them. The longer you stay
+//     away, the more chunks accumulate, so visit gap enters here for free.
+//
+//   recency = 0.5 ^ (daysSinceNewestUnseenReset / RECENCY_HALF_LIFE_DAYS)
+//     Freshness halves every week, matching the ~weekly reset cadence.
+//
+// "Unseen" = reset after your last visit. Anonymous users (no visit logged) are
+// treated as if they last visited ANON_VISIT_GAP_DAYS ago — i.e. the page ranks
+// like a once-a-month climber sees it. That single substitution is the only
+// difference between the anon and returning-user paths.
+const ANON_VISIT_GAP_DAYS = 28;
+const SATURATION_RESETS = 4;
+const RECENCY_HALF_LIFE_DAYS = 7;
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 export type FreshLabel = {
   freshSections: number;
@@ -54,7 +58,12 @@ export function gymFreshness(gym: GymWithSections, lastVisitedISO: string | null
     };
   }
 
-  const visitedTime = lastVisitedISO === null ? -Infinity : Date.parse(lastVisitedISO);
+  // Anon users have no logged visit, so anchor them to a once-a-month baseline:
+  // only resets within the last ANON_VISIT_GAP_DAYS count as new to them.
+  const visitedTime =
+    lastVisitedISO === null
+      ? Date.now() - ANON_VISIT_GAP_DAYS * DAY_MS
+      : Date.parse(lastVisitedISO);
 
   let freshResetCount = 0;
   let mostRecentFreshISO: string | null = null;
@@ -91,11 +100,9 @@ export function gymFreshness(gym: GymWithSections, lastVisitedISO: string | null
     hasUncountedResets,
   };
 
-  const daysSinceFreshReset =
-    mostRecentFreshISO === null ? null : Math.max(0, daysSince(mostRecentFreshISO));
-  const visitFactor = computeVisitFactor(daysSinceVisit, daysSinceFreshReset);
-  const substance = computeSubstance(label, freshResetCount);
-  const noveltyScore = visitFactor * substance;
+  const turnover = Math.min(freshResetCount / SATURATION_RESETS, 1);
+  const recency = computeRecency(mostRecentFreshISO);
+  const noveltyScore = turnover * recency;
 
   return {
     freshSectionIds,
@@ -109,40 +116,8 @@ export function gymFreshness(gym: GymWithSections, lastVisitedISO: string | null
   };
 }
 
-function computeVisitFactor(
-  daysSinceVisit: number | null,
-  daysSinceFreshReset: number | null,
-): number {
-  if (daysSinceVisit === null) return computeNeverVisitedFactor(daysSinceFreshReset);
-  return Math.min(daysSinceVisit / VISIT_RAMP_DAYS, MAX_VISIT_FACTOR);
-}
-
-function computeNeverVisitedFactor(daysSinceFreshReset: number | null): number {
-  // No fresh reset means substance is 0 and the score is 0 regardless; fall back
-  // to the neutral anchor so the factor is well-defined.
-  if (daysSinceFreshReset === null) return NEVER_VISITED_PEAK;
-  const decayed = NEVER_VISITED_PEAK - NEVER_VISITED_DECAY_PER_DAY * daysSinceFreshReset;
-  return Math.max(NEVER_VISITED_FLOOR, decayed);
-}
-
-function computeSubstance(label: FreshLabel, freshResetCount: number): number {
-  if (label.freshSections === 0) return 0;
-
-  // Multi-sector gyms: sectors are spatial regions, so coverage is meaningful.
-  // Floor at 0.6 so a small partial reset isn't crushed; ceiling at 1.0.
-  if (label.totalSections > 1) {
-    return 0.6 + 0.4 * (label.freshSections / label.totalSections);
-  }
-
-  // Single-sector gyms (whole gym is one announcement). Boulder count is the
-  // honest signal when we have it.
-  if (label.countedBoulders >= 20) return 0.95;
-  if (label.countedBoulders >= 10) return 0.85;
-  if (label.countedBoulders >= 5) return 0.75;
-
-  // Uncounted reset rows ≈ reset events for single-sector gyms (they typically
-  // log one row per weekly drop), so more rows ⇒ more accumulated novelty.
-  if (freshResetCount >= 3) return 0.90;
-  if (freshResetCount >= 2) return 0.80;
-  return 0.70;
+function computeRecency(mostRecentFreshISO: string | null): number {
+  if (mostRecentFreshISO === null) return 0;
+  const days = Math.max(0, daysSince(mostRecentFreshISO));
+  return Math.pow(0.5, days / RECENCY_HALF_LIFE_DAYS);
 }
