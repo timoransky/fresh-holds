@@ -3,14 +3,16 @@ import { daysSince } from "@/lib/date";
 
 // Scoring model (see ADR-0003). noveltyScore = turnover × recency, both in 0..1.
 //
-//   turnover = unseenResets / (unseenResets + 1)
-//     Each reset row (a named sector's drop, or "part of the gym" for unnamed
-//     gyms) is one chunk of climbing that's new to you. Boulder counts are
-//     deliberately ignored — most gyms don't report them. The longer you stay
-//     away, the more chunks accumulate, so visit gap enters here for free.
-//     The curve never caps: 1 → 0.50, 2 → 0.67, 3 → 0.75, 4 → 0.80, 5 → 0.83…
-//     every extra unseen reset always adds, with diminishing returns, so a gym
-//     with more piled-up resets always outscores one with fewer (recency equal).
+//   turnover — how much unseen climbing piled up. Audience-split:
+//     anon (no visit logged): 1.0 flat. Recency is their whole signal; letting
+//       the logged-row count gate anon tiers made a weekly gym flap between
+//       HOT and FRESH depending on where the month window clipped its rows.
+//     returning: unseenResets / (unseenResets + 0.5) — 1 → 0.67, 2 → 0.80,
+//       3 → 0.86, 4 → 0.89, 5 → 0.91… Each reset row (a named sector's drop,
+//       or "part of the gym" for unnamed gyms) is one chunk of climbing that's
+//       new to you; boulder counts are deliberately ignored. The curve never
+//       caps, so a gym with more piled-up resets always outscores one with
+//       fewer (recency equal).
 //
 //   recency = 0.5 ^ (daysSinceNewestUnseenReset / halfLife)
 //     For anon users the newest drop's age is the whole signal, so freshness
@@ -107,7 +109,8 @@ export function gymFreshness(gym: GymWithSections, lastVisitedISO: string | null
     hasUncountedResets,
   };
 
-  const turnover = freshResetCount / (freshResetCount + 1);
+  const turnover =
+    lastVisitedISO === null ? 1 : freshResetCount / (freshResetCount + 0.5);
   const recency = computeRecency(mostRecentFreshISO, lastVisitedISO !== null);
   const noveltyScore = turnover * recency;
 
