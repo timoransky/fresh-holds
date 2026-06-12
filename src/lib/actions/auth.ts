@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getSupabase } from "@/lib/auth";
 import { fail, okWithData, type ActionResult } from "@/lib/actions/result";
@@ -53,11 +54,16 @@ export async function verifyOtpCode(
     return fail(error.message);
   }
 
+  // Auth state changed — without this, the redirect reuses the client
+  // router's pre-login copy of the destination (stale header, GymList
+  // stuck on authed=false behind the login modal).
+  revalidatePath("/", "layout");
   redirect(next.startsWith("/") ? next : "/");
 }
 
 export async function signOut() {
   const supabase = await getSupabase();
   await supabase.auth.signOut();
+  revalidatePath("/", "layout");
   redirect("/");
 }
