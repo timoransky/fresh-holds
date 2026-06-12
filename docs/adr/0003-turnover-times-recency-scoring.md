@@ -40,8 +40,8 @@ recency  = 0.5 ^ (daysSinceNewestUnseenReset / RECENCY_HALF_LIFE_DAYS)
 
 // src/lib/freshness/tier-binding.ts — fixed cuts of the 0..1 score
 HOT   ≥ 0.85
-FRESH ≥ 0.55   // "looking fresh"
-WORTH ≥ 0.25
+FRESH ≥ 0.70   // "looking fresh"
+WORTH ≥ 0.50
 SLIM  > 0
 STALE = 0
 UNKNOWN = no reset data at all
@@ -57,17 +57,22 @@ UNKNOWN = no reset data at all
   is the substituted visit date. A once-a-month baseline means weekly gyms saturate turnover
   for anon users, so the anon page is effectively ordered by recency — exactly "which gym
   dropped most recently."
+- **The tier cuts are spaced to a week of recency.** For a saturated gym (turnover 1.0 —
+  every anon weekly gym, and any long-gap returning gym) the score _is_ the recency curve, so
+  the cuts slice a week into visible bands: reset **0–1 days → HOT**, **2–3 → FRESH**,
+  **4–7 → WORTH**, **8+ → SLIM**. This is what gives the anon page variance instead of one
+  flat band — see "Why these cuts" below.
 
 ### Constants and why these numbers
 
 | Constant | Value | Rationale |
 |---|---|---|
 | `ANON_VISIT_GAP_DAYS` | 28 | Anon baseline = "once-a-month climber." Long enough that weekly gyms saturate turnover (so anon ranks on recency), short enough that a gym which stopped resetting falls out of the window and reads as stale. |
-| `SATURATION_RESETS` | 4 | ~4 weekly chunks ≈ the gym is effectively all-new to you. This single number does the job the whole ADR-0002 substance system did. |
+| `SATURATION_RESETS` | 3 | ~3 weekly chunks ≈ the gym is effectively all-new to you. Low enough that anon weekly gyms reliably saturate (so recency, not reset _count_, orders the anon page — see "Why 3, not 4"), high enough to still resolve a returning user's visit gap into a few steps. This single number does the job the whole ADR-0002 substance system did. |
 | `RECENCY_HALF_LIFE_DAYS` | 7 | Freshness halves each week, matching the reset cadence. |
-| `HOT_SCORE` | 0.85 | Recent drop **and** near-saturated turnover (you've missed ~a month and one just landed). |
-| `FRESH_SCORE` | 0.55 | Real accumulation + a recent drop. |
-| `WORTH_SCORE` | 0.25 | Something new, but thin or aging. |
+| `HOT_SCORE` | 0.85 | A reset in the last day or so on a saturated gym (recency ≥ 0.85 ⇒ ≤ ~1 day). |
+| `FRESH_SCORE` | 0.70 | Reset ~2–3 days ago on a saturated gym (recency 0.70 ⇒ ~3 days). |
+| `WORTH_SCORE` | 0.50 | Reset within the week on a saturated gym (recency 0.50 ⇒ 7 days). Below this is more than a week stale → SLIM. |
 
 ### What this removes (vs ADR-0002)
 
@@ -97,33 +102,47 @@ UNKNOWN = no reset data at all
   month of logged resets, not a fabricated visit gap.
 - **Boulder volume is invisible to ranking.** A 35-boulder announcement scores like any
   single reset row. Per the constraint above; the count still shows on the card.
-- **Turnover saturates.** Avoiding a gym for 4 weeks vs 8 weeks looks identical (both fully
+- **Turnover saturates.** Avoiding a gym for 3 weeks vs 8 weeks looks identical (both fully
   turned over); past saturation, recency breaks the tie. Acceptable — once it's all new to
   you, "how new" stops mattering.
 - **Hard 28-day edge for anon.** A gym last reset 27 vs 29 days ago flips from a tiny score
   to STALE. Harmless: both sit at the bottom of the ranking.
 - **Single-user / single-city calibration**, same caveat as ADR-0002.
 
+### Why 3, not 4 — and why these cuts
+
+The first cut of this model used `SATURATION_RESETS = 4` and cuts `0.85 / 0.55 / 0.25`. On
+the real anon page every gym came out 👀 _looking fresh_ — no variance — for two reasons:
+
+1. **Reset count was fighting recency.** With saturation at 4, a gym reset _yesterday_ but
+   with only 3 logged resets (turnover 0.75) scored _below_ a gym reset 4 days ago with 4+
+   resets (turnover 1.0). For anon users, reset recency is supposed to be _the_ signal, so
+   the count noise was backwards. Dropping saturation to **3** makes essentially every weekly
+   gym saturate, so the anon score collapses cleanly to recency and the freshest gym wins.
+2. **The cuts didn't slice the week.** A week of recency lives in `[0.50, 1.00]`, but the old
+   `FRESH ≥ 0.55` band swallowed almost all of it. Re-spacing to `0.85 / 0.70 / 0.50` maps
+   reset age onto the tier ladder (0–1 d → HOT, 2–3 → FRESH, 4–7 → WORTH), so four gyms reset
+   on different days of the week land on different tiers.
+
 **Behavioral examples (validation)**
 
-Anon (no visits), weekly gyms saturate turnover → ordered by recency:
+Anon (no visits), weekly gyms saturate turnover → score = recency, sliced by reset age:
 
-| Newest reset | turnover | recency | Score | Tier |
-|---|---|---|---|---|
-| today | 1.0 | 1.00 | 1.00 | 🔥 hot |
-| 5 days | 1.0 | 0.61 | 0.61 | 👀 fresh |
-| 10 days | 1.0 | 0.37 | 0.37 | 💪 worth |
-| 20 days | 1.0 | 0.14 | 0.14 | 🥱 slim |
-| > 28 days | 0 | — | 0 | 💤 stale |
+| Newest reset | recency (= score) | Tier |
+|---|---|---|
+| today / 1 day | 1.00 / 0.91 | 🔥 hot |
+| 2–3 days | 0.82 / 0.74 | 👀 fresh |
+| 4–7 days | 0.67 → 0.50 | 💪 worth |
+| 8–28 days | < 0.50 | 🥱 slim |
+| > 28 days | 0 | 💤 stale |
 
 Returning visitor, a weekly gym that dropped yesterday (recency ≈ 0.91):
 
 | You visited | Unseen | turnover | Score | Tier |
 |---|---|---|---|---|
-| 1 week ago | 1 | 0.25 | 0.23 | 🥱 slim |
-| 2 weeks ago | 2 | 0.50 | 0.45 | 💪 worth |
-| 3 weeks ago | 3 | 0.75 | 0.68 | 👀 fresh |
-| 4+ weeks ago | 4+ | 1.00 | 0.91 | 🔥 hot |
+| 1 week ago | 1 | 0.33 | 0.30 | 🥱 slim |
+| 2 weeks ago | 2 | 0.67 | 0.61 | 💪 worth |
+| 3+ weeks ago | 3+ | 1.00 | 0.91 | 🔥 hot |
 
 Pinned by the "weekly rotation" and per-path tests in `src/lib/freshness.test.ts`.
 

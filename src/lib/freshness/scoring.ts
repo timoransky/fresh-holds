@@ -17,7 +17,7 @@ import { daysSince } from "@/lib/date";
 // like a once-a-month climber sees it. That single substitution is the only
 // difference between the anon and returning-user paths.
 const ANON_VISIT_GAP_DAYS = 28;
-const SATURATION_RESETS = 4;
+const SATURATION_RESETS = 3;
 const RECENCY_HALF_LIFE_DAYS = 7;
 const DAY_MS = 24 * 60 * 60 * 1000;
 

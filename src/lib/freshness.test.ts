@@ -87,8 +87,8 @@ describe("rankGyms — anon (no visits)", () => {
 
     expect(r.hero?.gym.slug).toBe("recent");
     expect(r.runnersUp.map((g) => g.gym.slug)).toEqual(["older"]);
-    expect(r.hero?.tier.key).toBe("hot"); // 1.0 × 1.0
-    expect(r.runnersUp[0].tier.key).toBe("fresh"); // 1.0 × 0.61
+    expect(r.hero?.tier.key).toBe("hot"); // reset today: 1.0 × 1.0
+    expect(r.runnersUp[0].tier.key).toBe("worth"); // reset 5d ago: 1.0 × 0.61
   });
 
   it("a gym with no reset inside the 28-day window reads as stale", () => {
@@ -134,7 +134,7 @@ describe("rankGyms — returning visitor", () => {
 
     const r = rankGyms([a, b], { a: daysAgo(1) });
 
-    expect(r.hero?.gym.slug).toBe("b"); // a: 0 unseen → 0; b: 1 unseen → 0.19
+    expect(r.hero?.gym.slug).toBe("b"); // a: 0 unseen → 0; b: 1 unseen → 0.25
     expect(r.runnersUp.map((g) => g.gym.slug)).toEqual(["a"]);
   });
 
@@ -152,10 +152,12 @@ describe("rankGyms — returning visitor", () => {
 
   it("visited yesterday but a reset landed today → there IS something new (not stale)", () => {
     // The old model force-marked any visit within 2 days as STALE. Now a reset
-    // after your visit is simply unseen: 1 unseen × recency 1.0 = 0.25 → worth.
+    // after your visit is simply unseen: 1 unseen (turnover 1/3) × recency 1.0 =
+    // 0.33 → slim, not stale. There's a little something new, and it ranks > 0.
     const a = makeGym({ slug: "a", sections: { Wall: [daysAgo(0)] } });
     const r = rankGyms([a], { a: daysAgo(1) });
-    expect(r.hero?.tier.key).toBe("worth");
+    expect(r.hero?.noveltyScore).toBeGreaterThan(0);
+    expect(r.hero?.tier.key).toBe("slim");
   });
 
   it("visited after the gym's most recent reset → nothing new → stale", () => {
@@ -205,8 +207,8 @@ describe("rankGyms — returning visitor", () => {
 
 describe("rankGyms — tiebreakers", () => {
   it("equal scores: the gym whose newest reset is more recent wins", () => {
-    // x: 1 unseen today → 0.25 × 1.0 = 0.25.  y: 2 unseen, newest a week old →
-    // 0.5 × 0.5 = 0.25. Same score; tiebreak falls to the most recent fresh date.
+    // x: 1 unseen today → 1/3 × 1.0 = 0.33.  y: 2 unseen, newest a week old →
+    // 2/3 × 0.5 = 0.33. Same score; tiebreak falls to the most recent fresh date.
     const x = makeGym({ slug: "x", sections: { Wall: [daysAgo(0)] } });
     const y = makeGym({ slug: "y", sections: { Wall: [daysAgo(7), daysAgo(14)] } });
 
@@ -228,7 +230,7 @@ describe("rankGyms — every reset row counts as one chunk", () => {
 
     const r = rankGyms([one, three], {});
 
-    expect(r.hero?.gym.slug).toBe("three"); // 3 unseen (0.75) vs 1 (0.25)
+    expect(r.hero?.gym.slug).toBe("three"); // 3 unseen (turnover 1.0) vs 1 (0.33)
     expect(r.hero!.noveltyScore).toBeGreaterThan(r.runnersUp[0].noveltyScore);
   });
 
