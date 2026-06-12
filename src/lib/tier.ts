@@ -35,7 +35,7 @@ export const HOT: Tier = {
 export const FRESH: Tier = {
   key: "fresh",
   label: "looking fresh",
-  emoji: "✨",
+  emoji: "👀",
   rotateDeg: 2.5,
   tokens: {
     badge: { bg: "oklch(0.93 0.11 65)", fg: "oklch(0.37 0.13 55)", ring: "oklch(0.60 0.17 60)" },
