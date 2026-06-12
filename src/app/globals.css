@@ -136,13 +136,23 @@
   }
 }
 
-@keyframes badge-bob {
+/* Tier-graded badge idle animation. Each tier supplies its own amplitude and
+   speed via --anim-* vars (see TierAnim in src/lib/tier.ts); compact badges
+   shrink the lift via --anim-amp. Tiers without an anim never get the class. */
+@keyframes badge-float {
   0%,
   100% {
-    transform: rotate(var(--rot, 0deg)) translateY(0);
+    transform: rotate(var(--rot, 0deg)) translateY(0) scale(1);
   }
   50% {
-    transform: rotate(var(--rot, 0deg)) translateY(-3px);
+    transform: rotate(calc(var(--rot, 0deg) + var(--anim-rot, 0deg)))
+      translateY(calc(var(--anim-y, 0px) * var(--anim-amp, 1))) scale(var(--anim-scale, 1));
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .badge-animate {
+    animation: badge-float var(--anim-dur, 3s) ease-in-out infinite;
   }
 }
 

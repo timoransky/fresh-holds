@@ -5,11 +5,22 @@ export type TierTokens = {
   card: { badgeWidth: string; tint: string; stroke: string; shadow: string };
 };
 
+// Badge idle animation, graded by tier: the hotter the tier, the livelier the
+// badge. One shared keyframe (badge-float in globals.css) reads these as CSS
+// vars. null = perfectly still (stale is asleep, unknown has nothing to say).
+export type TierAnim = {
+  y: string; // peak vertical lift
+  rot: string; // extra rotation at peak, on top of the static rotateDeg
+  scale: number; // peak scale
+  dur: string; // full cycle duration (shorter = more energetic)
+};
+
 export type Tier = {
   key: TierKey;
   label: string;
   emoji: string;
   rotateDeg: number;
+  anim: TierAnim | null;
   tokens: TierTokens;
 };
 
@@ -18,6 +29,7 @@ export const HOT: Tier = {
   label: "sending hot",
   emoji: "🔥",
   rotateDeg: -2,
+  anim: { y: "-4px", rot: "2.5deg", scale: 1.06, dur: "1.6s" },
   tokens: {
     badge: { bg: "oklch(0.93 0.08 30)", fg: "oklch(0.38 0.18 30)", ring: "oklch(0.55 0.20 30)" },
     card: {
@@ -37,6 +49,7 @@ export const FRESH: Tier = {
   label: "looking fresh",
   emoji: "👀",
   rotateDeg: 2.5,
+  anim: { y: "-3px", rot: "1.2deg", scale: 1.02, dur: "3s" },
   tokens: {
     badge: { bg: "oklch(0.93 0.11 65)", fg: "oklch(0.37 0.13 55)", ring: "oklch(0.60 0.17 60)" },
     card: {
@@ -53,6 +66,7 @@ export const WORTH: Tier = {
   label: "worth a climb",
   emoji: "💪",
   rotateDeg: 1.5,
+  anim: { y: "-2px", rot: "0.7deg", scale: 1, dur: "4.5s" },
   tokens: {
     badge: { bg: "oklch(0.94 0.13 92)", fg: "oklch(0.36 0.10 70)", ring: "oklch(0.62 0.16 80)" },
     card: {
@@ -69,6 +83,7 @@ export const SLIM: Tier = {
   label: "slim pickings",
   emoji: "🥱",
   rotateDeg: -1,
+  anim: { y: "-1px", rot: "0.4deg", scale: 1, dur: "6.5s" },
   tokens: {
     badge: { bg: "oklch(0.93 0.07 165)", fg: "oklch(0.36 0.10 165)", ring: "oklch(0.58 0.13 165)" },
     card: {
@@ -85,6 +100,7 @@ export const STALE: Tier = {
   label: "all stale",
   emoji: "💤",
   rotateDeg: 2,
+  anim: null,
   tokens: {
     badge: {
       bg: "oklch(0.93 0.025 285)",
@@ -105,6 +121,7 @@ export const UNKNOWN: Tier = {
   label: "no data yet",
   emoji: "❓",
   rotateDeg: -1.5,
+  anim: null,
   tokens: {
     badge: { bg: "transparent", fg: "oklch(0.5 0 0)", ring: "oklch(0.78 0 0)" },
     card: {

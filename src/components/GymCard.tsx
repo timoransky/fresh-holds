@@ -49,7 +49,7 @@ export function GymCard({ scored, variant, visitedDates, onChangeVisits }: Props
         >
           {gym.name}
         </h2>
-        <FreshnessBadge tier={tier} size={isHero ? "hero" : "compact"} bob={isHero} />
+        <FreshnessBadge tier={tier} size={isHero ? "hero" : "compact"} />
       </header>
 
       {hasDetails ? (

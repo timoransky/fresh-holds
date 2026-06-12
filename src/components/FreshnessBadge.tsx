@@ -6,22 +6,23 @@ import { cn } from "@/lib/utils";
 type Props = {
   tier: Tier;
   size?: "hero" | "compact";
-  bob?: boolean;
   className?: string;
 };
 
 // Emoji + tier title only. The exact "how much / how recent" lives in the card's
 // narrative line right below — see ADR-0003 "Display language".
-export function FreshnessBadge({ tier, size = "hero", bob = false, className }: Props) {
+// The idle animation is graded by tier (hot buzzes, slim barely sways, stale
+// sleeps) and damped on compact badges so runners-up stay calm.
+export function FreshnessBadge({ tier, size = "hero", className }: Props) {
   const isUnknown = tier.key === "unknown";
+  const isCompact = size === "compact";
 
   const baseStyle: CSSProperties = {
     ...tierBadgeStyle(tier),
     ["--rot" as string]: `${tier.rotateDeg}deg`,
+    ...(isCompact && { ["--anim-amp" as string]: 0.6 }),
     transform: `rotate(${tier.rotateDeg}deg)`,
   };
-
-  const isCompact = size === "compact";
 
   return (
     <div
@@ -33,7 +34,7 @@ export function FreshnessBadge({ tier, size = "hero", bob = false, className }: 
           : "inline-flex items-center gap-2 sm:gap-2.5 origin-center select-none rounded-2xl squircle-3xl border-2 px-3 pl-2.5 py-2.5 md:px-4 md:pl-3 md:py-3 shadow-[0_3px_0_0_var(--tier-ring)] absolute -top-8 -right-8",
         "bg-(--tier-bg) text-(--tier-fg) border-(--tier-ring)",
         isUnknown && "border-dashed shadow-none",
-        !isCompact && bob && "motion-safe:animate-[badge-bob_3.6s_ease-in-out_infinite]",
+        tier.anim !== null && "badge-animate",
         className,
       )}
     >
