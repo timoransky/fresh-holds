@@ -90,11 +90,13 @@ export function GymCard({ scored, variant, visitedDates, onChangeVisits }: Props
                 <GymRecentResetsList
                   resets={scored.recentResets}
                   showSectorColumn={scored.sectionsByDisplay.length > 1}
+                  isAnon={scored.lastVisited === null}
                 />
               ) : (
                 <GymResetTable
                   sections={scored.sectionsByRecent}
                   freshSectionIds={freshSectionIds}
+                  isAnon={scored.lastVisited === null}
                 />
               )}
             </div>

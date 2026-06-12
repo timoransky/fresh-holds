@@ -1,7 +1,20 @@
 import { daysSince, relativeDay } from "@/lib/date";
 import type { FreshLabel } from "@/lib/freshness/scoring";
+import type { TierKey } from "@/lib/tier";
 
+// The card line speaks two voices (see ADR-0003):
+//
+// - Returning (a visit is logged for this gym): anchored to "since your visit" —
+//   the counts and dates are personal and exact.
+// - Anon (no visit logged for this gym): there is no personal anchor, so the
+//   line describes the gym's activity instead — when it last reset and how busy
+//   the month was. It never says "fresh for you" or "never visited"; we don't
+//   actually know either.
+//
+// Each line is data first, then the tier's punchline, so the badge and the
+// sentence tell one story.
 export function describeFreshness(
+  tier: TierKey,
   label: FreshLabel | null,
   lastVisitedISO: string | null,
   mostRecentFreshISO: string | null,
@@ -9,49 +22,85 @@ export function describeFreshness(
 ): string {
   if (label === null) return "No reset data - you have to check for yourself.";
 
-  if (freshResetCount === 0) {
-    if (lastVisitedISO === null) {
-      return "Resets logged, but nothing new yet.";
-    }
+  return lastVisitedISO === null
+    ? describeForAnon(tier, mostRecentFreshISO, freshResetCount)
+    : describeForReturning(tier, lastVisitedISO, mostRecentFreshISO, freshResetCount);
+}
+
+function describeForAnon(
+  tier: TierKey,
+  mostRecentFreshISO: string | null,
+  freshResetCount: number,
+): string {
+  if (tier === "stale" || mostRecentFreshISO === null) {
+    return "Quiet lately - no resets in the last month. Running on old plastic.";
+  }
+
+  const latest = relativeDay(mostRecentFreshISO);
+  const drops = `${freshResetCount} ${pluralize(freshResetCount, "drop")}`;
+
+  switch (tier) {
+    case "hot":
+      return `Reset ${latest} after a busy month - go while the holds are fresh.`;
+    case "fresh":
+      return `Reset ${latest}, ${drops} this month - plenty of fresh plastic.`;
+    case "worth":
+      return `Last reset ${latest}, ${drops} this month - solid pickings, not piping hot.`;
+    default:
+      return `A slow stretch - ${drops} this month, the latest ${latest}.`;
+  }
+}
+
+function describeForReturning(
+  tier: TierKey,
+  lastVisitedISO: string,
+  mostRecentFreshISO: string | null,
+  freshResetCount: number,
+): string {
+  if (freshResetCount === 0 || mostRecentFreshISO === null) {
     if (daysSince(lastVisitedISO) <= 0) {
       return "Nothing new since you visited today.";
     }
     return `Nothing new since your last visit ${relativeDay(lastVisitedISO)}.`;
   }
 
-  const lastReset = `last reset ${relativeDay(mostRecentFreshISO!)}`;
-  const resetWord = pluralize(freshResetCount, "reset");
+  const latest = relativeDay(mostRecentFreshISO);
+  const resets = `${freshResetCount} ${pluralize(freshResetCount, "reset")}`;
 
-  if (lastVisitedISO === null) {
-    // TODO: revisit wording for never-visited span clause (see PR #75).
-    // if (freshResetCount >= 2 && oldestFreshISO !== null) {
-    //   return `Never visited - ${freshResetCount} ${resetWord} logged in the ${pastSpan(oldestFreshISO)}, ${lastReset}.`;
-    // }
-    return `Never visited - ${freshResetCount} ${resetWord} logged, ${lastReset}.`;
+  switch (tier) {
+    case "hot":
+      return `${resets} piled up since your visit, the latest ${latest} - practically a new gym.`;
+    case "fresh":
+      return `${resets} since your visit, the latest ${latest} - it's stacking up.`;
+    case "worth":
+      return `${resets} since your visit, the latest ${latest} - decent pickings.`;
+    default:
+      return `${resets} since your visit, the latest ${latest} - thin, but it's something.`;
   }
-  return `${freshResetCount} new ${resetWord} since your last visit, ${lastReset}.`;
 }
 
-// TODO: revisit wording for never-visited span clause (see PR #75).
-// function pastSpan(oldestISO: string): string {
-//   const days = daysSince(oldestISO);
-//   if (days <= 7) return "past week";
-//   if (days <= 14) return "past 2 weeks";
-//   if (days <= 30) return "past month";
-//   if (days <= 60) return "past 2 months";
-//   if (days <= 365) return `past ${Math.round(days / 30)} months`;
-//   return "past year";
-// }
-
-export function badgeCountLabel(label: FreshLabel): string {
+// Badge copy follows the same two voices: "fresh"/"new" implies a personal
+// anchor, so anon badges say "recent" instead. Single-sector gyms count reset
+// events (their sector count is always 1 and says nothing); multi-sector gyms
+// count sectors; a counted boulder drop beats both when present.
+export function badgeCountLabel(
+  label: FreshLabel,
+  freshResetCount: number,
+  isAnon: boolean,
+): string {
   if (showBouldersFirst(label)) {
     return `new ${pluralize(label.countedBoulders, "boulder")}`;
   }
-  return `fresh ${pluralize(label.freshSections, "sector")}`;
+  if (label.totalSections === 1) {
+    return `${isAnon ? "recent" : "new"} ${pluralize(freshResetCount, "reset")}`;
+  }
+  return `${isAnon ? "recent" : "fresh"} ${pluralize(label.freshSections, "sector")}`;
 }
 
-export function badgeCountNumber(label: FreshLabel): number {
-  return showBouldersFirst(label) ? label.countedBoulders : label.freshSections;
+export function badgeCountNumber(label: FreshLabel, freshResetCount: number): number {
+  if (showBouldersFirst(label)) return label.countedBoulders;
+  if (label.totalSections === 1) return freshResetCount;
+  return label.freshSections;
 }
 
 function showBouldersFirst(label: FreshLabel): boolean {

@@ -1,13 +1,10 @@
 import type { Section } from "@/lib/types";
 import { isoFromDate } from "@/lib/date";
+import { ANON_VISIT_GAP_DAYS } from "@/lib/freshness/scoring";
 
 // Compact-sector gyms (≤ 2 sectors) get a per-reset list instead of one row per
 // sector — otherwise weekly drops collapse into a single row and hide activity.
 const COMPACT_SECTOR_LIMIT = 2;
-
-// Fallback window for never-visited users (and an outer bound when the user has
-// been away longer). ~8 weekly drops feels like "recent" without being a wall.
-const RECENT_FALLBACK_DAYS = 60;
 
 // Hard cap on rendered rows. Tune if real gyms regularly exceed this.
 const MAX_RECENT_ROWS = 10;
@@ -20,16 +17,18 @@ export type RecentReset = {
   section_id: string;
   section_name: string;
   boulders_reset: number | null;
-  isFresh: boolean;
 };
 
 export function isCompactSectorGym(sections: Section[]): boolean {
   return sections.length > 0 && sections.length <= COMPACT_SECTOR_LIMIT;
 }
 
+// Every row returned is "new" relative to the same cutoff the scorer uses
+// (your last visit, or the 28-day anon window), so the expanded list shows
+// exactly what the badge and narrative count — no per-row fresh flag needed.
 export function recentResets(sections: Section[], lastVisitedISO: string | null): RecentReset[] {
-  const fallbackISO = isoFromDate(new Date(Date.now() - RECENT_FALLBACK_DAYS * DAY_MS));
-  const cutoffISO = lastVisitedISO ?? fallbackISO;
+  const anonCutoffISO = isoFromDate(new Date(Date.now() - ANON_VISIT_GAP_DAYS * DAY_MS));
+  const cutoffISO = lastVisitedISO ?? anonCutoffISO;
 
   const rows: RecentReset[] = [];
   for (const section of sections) {
@@ -41,7 +40,6 @@ export function recentResets(sections: Section[], lastVisitedISO: string | null)
         section_id: section.id,
         section_name: section.name,
         boulders_reset: reset.boulders_reset,
-        isFresh: lastVisitedISO === null || reset.reset_on > lastVisitedISO,
       });
     }
   }

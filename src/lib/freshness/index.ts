@@ -73,7 +73,8 @@ export function scoreGym(gym: GymWithSections, lastVisited: string | null): Scor
 
     tier,
     label: freshness.label,
-    badgeNumber: freshness.label === null ? 0 : badgeCountNumber(freshness.label),
+    badgeNumber:
+      freshness.label === null ? 0 : badgeCountNumber(freshness.label, freshness.freshResetCount),
 
     sectionsByDisplay: sortSectionsByDisplay(gym.sections),
     sectionsByRecent: sortSectionsByRecent(gym.sections),
@@ -81,12 +82,16 @@ export function scoreGym(gym: GymWithSections, lastVisited: string | null): Scor
     isCompactSectors: isCompactSectorGym(gym.sections),
 
     narrative: describeFreshness(
+      tier.key,
       freshness.label,
       lastVisited,
       freshness.mostRecentFreshISO,
       freshness.freshResetCount,
     ),
-    badgeText: freshness.label === null ? "" : badgeCountLabel(freshness.label),
+    badgeText:
+      freshness.label === null
+        ? ""
+        : badgeCountLabel(freshness.label, freshness.freshResetCount, lastVisited === null),
   };
 }
 

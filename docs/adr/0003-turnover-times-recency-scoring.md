@@ -146,6 +146,27 @@ Returning visitor, a weekly gym that dropped yesterday (recency ≈ 0.91):
 
 Pinned by the "weekly rotation" and per-path tests in `src/lib/freshness.test.ts`.
 
+### Display language: two voices
+
+The scoring change has a display consequence: for anon users, "fresh" / "new" / "never
+visited" copy is dishonest — "fresh" relative to what? The internal 28-day window is
+invisible, and "never visited" is presumptuous (visits live in localStorage; the user may
+climb there weekly and just never logged it). So everything user-facing speaks one of two
+voices, chosen per gym by whether a visit is logged:
+
+- **Returning voice** — anchored to _your visit_: "3 resets piled up since your visit, the
+  latest yesterday - practically a new gym." Badges say "fresh sectors" / "new resets";
+  the sector table keeps its fresh-since-your-visit dots.
+- **Anon voice** — describes the gym's _activity_, never "you": "Reset yesterday after a
+  busy month - go while the holds are fresh." Badges say "recent sectors" / "recent
+  resets"; the sector table shows recently-reset sectors plainly (no dots — they'd mark
+  the invisible window) and folds quiet ones into "+ N more sectors, quiet this past month".
+
+Each narrative line is data first, then the tier's punchline, so the badge and sentence
+tell one story (`src/lib/freshness/narrative.ts`). The compact per-reset list shows only
+rows after the user's cutoff (visit date or the same 28-day anon window the scorer uses),
+which also makes the per-row fresh flag redundant — removed.
+
 ## Implementation pointers
 
 - `src/lib/freshness/scoring.ts` — `gymFreshness`, `computeRecency`. All constants live here.

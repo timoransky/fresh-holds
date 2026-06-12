@@ -379,94 +379,50 @@ describe("scoreGym — label aggregates per-reset counts", () => {
   });
 });
 
-describe("scoreGym — narrative", () => {
+describe("scoreGym — narrative (tier punchlines, two voices)", () => {
   it("no reset data → check-yourself line", () => {
     const a = makeGym({ slug: "a", sections: { Slab: [] } });
     expect(scoreGym(a, null).narrative).toBe("No reset data - you have to check for yourself.");
   });
 
-  it("never-visited + multi-section → 'N resets logged'", () => {
-    const a = makeGym({
-      slug: "a",
-      sections: { Slab: [daysAgo(2)], Overhang: [daysAgo(3)] },
-    });
+  // ---- anon voice: describes the gym's activity, never "you" or "never visited" ----
+
+  it("anon + hot → busy month punchline", () => {
+    const a = makeGym({ slug: "a", sections: { All: [daysAgo(1), daysAgo(8), daysAgo(15)] } });
     expect(scoreGym(a, null).narrative).toBe(
-      "Never visited - 2 resets logged, last reset 2 days ago.",
+      "Reset yesterday after a busy month - go while the holds are fresh.",
     );
   });
 
-  it("never-visited + single section + multiple resets → counts resets, not boulders", () => {
-    const a = makeGym({
-      slug: "a",
-      sections: {
-        All: [
-          [daysAgo(1), 7],
-          [daysAgo(3), 5],
-        ],
-      },
-    });
+  it("anon + fresh → drops-this-month with fresh-plastic punchline", () => {
+    const a = makeGym({ slug: "a", sections: { All: [daysAgo(2), daysAgo(9), daysAgo(16)] } });
     expect(scoreGym(a, null).narrative).toBe(
-      "Never visited - 2 resets logged, last reset 1 day ago.",
+      "Reset 2 days ago, 3 drops this month - plenty of fresh plastic.",
     );
   });
 
-  it("never-visited + single reset → singular 'reset'", () => {
+  it("anon + worth → aging drop, solid pickings", () => {
+    const a = makeGym({ slug: "a", sections: { All: [daysAgo(5), daysAgo(12), daysAgo(19)] } });
+    expect(scoreGym(a, null).narrative).toBe(
+      "Last reset 5 days ago, 3 drops this month - solid pickings, not piping hot.",
+    );
+  });
+
+  it("anon + slim → slow stretch, singular drop", () => {
     const a = makeGym({ slug: "a", sections: { All: [daysAgo(2)] } });
     expect(scoreGym(a, null).narrative).toBe(
-      "Never visited - 1 reset logged, last reset 2 days ago.",
+      "A slow stretch - 1 drop this month, the latest 2 days ago.",
     );
   });
 
-  // TODO: revisit wording for never-visited span clause (see PR #75).
-  it.skip("never-visited + span ~1 week → 'past week'", () => {
-    const a = makeGym({
-      slug: "a",
-      sections: { Slab: [daysAgo(2)], Overhang: [daysAgo(3)] },
-    });
+  it("anon + stale (nothing in the month window) → old plastic", () => {
+    const a = makeGym({ slug: "a", sections: { All: [daysAgo(40)] } });
     expect(scoreGym(a, null).narrative).toBe(
-      "Never visited - 2 resets logged in the past week, last reset 2 days ago.",
+      "Quiet lately - no resets in the last month. Running on old plastic.",
     );
   });
 
-  it.skip("never-visited + span ~2 weeks → 'past 2 weeks'", () => {
-    const a = makeGym({
-      slug: "a",
-      sections: { All: [daysAgo(1), daysAgo(13)] },
-    });
-    expect(scoreGym(a, null).narrative).toBe(
-      "Never visited - 2 resets logged in the past 2 weeks, last reset 1 day ago.",
-    );
-  });
-
-  it.skip("never-visited + span ~1 month → 'past month'", () => {
-    const a = makeGym({
-      slug: "a",
-      sections: { All: [daysAgo(1), daysAgo(28)] },
-    });
-    expect(scoreGym(a, null).narrative).toBe(
-      "Never visited - 2 resets logged in the past month, last reset 1 day ago.",
-    );
-  });
-
-  it.skip("never-visited + span ~2 months → 'past 2 months'", () => {
-    const a = makeGym({
-      slug: "a",
-      sections: { All: [daysAgo(1), daysAgo(55)] },
-    });
-    expect(scoreGym(a, null).narrative).toBe(
-      "Never visited - 2 resets logged in the past 2 months, last reset 1 day ago.",
-    );
-  });
-
-  it.skip("never-visited + span ~6 months → 'past N months'", () => {
-    const a = makeGym({
-      slug: "a",
-      sections: { All: [daysAgo(1), daysAgo(180)] },
-    });
-    expect(scoreGym(a, null).narrative).toBe(
-      "Never visited - 2 resets logged in the past 6 months, last reset 1 day ago.",
-    );
-  });
+  // ---- returning voice: anchored to "since your visit" ----
 
   it("visited today with no fresh resets → 'nothing new since you visited today'", () => {
     const a = makeGym({ slug: "a", sections: { Slab: [daysAgo(2)] } });
@@ -478,17 +434,35 @@ describe("scoreGym — narrative", () => {
     expect(scoreGym(a, daysAgo(3)).narrative).toBe("Nothing new since your last visit 3 days ago.");
   });
 
-  it("visited + one fresh reset → singular 'new reset since your last visit'", () => {
-    const a = makeGym({
-      slug: "a",
-      sections: { Slab: [daysAgo(1)], Overhang: [daysAgo(5)] },
-    });
+  it("returning + slim → thin-but-something, singular reset", () => {
+    const a = makeGym({ slug: "a", sections: { All: [daysAgo(1)] } });
     expect(scoreGym(a, daysAgo(3)).narrative).toBe(
-      "1 new reset since your last visit, last reset 1 day ago.",
+      "1 reset since your visit, the latest yesterday - thin, but it's something.",
     );
   });
 
-  it("visited + multi-section + multiple fresh resets → counts all resets across sections", () => {
+  it("returning + worth → decent pickings", () => {
+    const a = makeGym({ slug: "a", sections: { All: [daysAgo(1), daysAgo(8)] } });
+    expect(scoreGym(a, daysAgo(14)).narrative).toBe(
+      "2 resets since your visit, the latest yesterday - decent pickings.",
+    );
+  });
+
+  it("returning + fresh → stacking up", () => {
+    const a = makeGym({ slug: "a", sections: { All: [daysAgo(3), daysAgo(10), daysAgo(17)] } });
+    expect(scoreGym(a, daysAgo(21)).narrative).toBe(
+      "3 resets since your visit, the latest 3 days ago - it's stacking up.",
+    );
+  });
+
+  it("returning + hot → practically a new gym", () => {
+    const a = makeGym({ slug: "a", sections: { All: [daysAgo(1), daysAgo(8), daysAgo(15)] } });
+    expect(scoreGym(a, daysAgo(21)).narrative).toBe(
+      "3 resets piled up since your visit, the latest yesterday - practically a new gym.",
+    );
+  });
+
+  it("counts reset events across sections, ignoring boulder totals", () => {
     const a = makeGym({
       slug: "a",
       sections: {
@@ -499,48 +473,22 @@ describe("scoreGym — narrative", () => {
         Small: [[daysAgo(2), null]],
       },
     });
-    expect(scoreGym(a, daysAgo(7)).narrative).toBe(
-      "3 new resets since your last visit, last reset 1 day ago.",
-    );
-  });
-
-  it("visited + single section + counted only → counts reset events, ignores boulder totals", () => {
-    const a = makeGym({
-      slug: "a",
-      sections: {
-        All: [
-          [daysAgo(1), 4],
-          [daysAgo(2), 3],
-          [daysAgo(8), 9],
-        ],
-      },
-    });
-    // visited 5 days ago → resets from days 1+2 are fresh, day 8 is stale.
-    expect(scoreGym(a, daysAgo(5)).narrative).toBe(
-      "2 new resets since your last visit, last reset 1 day ago.",
-    );
-  });
-
-  it("visited + single section + uncounted only → 'N new reset(s) since your last visit'", () => {
-    const a = makeGym({ slug: "a", sections: { All: [daysAgo(1), daysAgo(5)] } });
-    expect(scoreGym(a, daysAgo(3)).narrative).toBe(
-      "1 new reset since your last visit, last reset 1 day ago.",
-    );
+    expect(scoreGym(a, daysAgo(7)).narrative).toContain("3 resets");
   });
 });
 
-describe("scoreGym — badge", () => {
-  it("multi-section gym → badge counts sectors", () => {
+describe("scoreGym — badge (two voices)", () => {
+  it("anon multi-section gym → 'recent sectors'", () => {
     const a = makeGym({
       slug: "a",
       sections: { Slab: [daysAgo(1)], Overhang: [daysAgo(2)] },
     });
     const s = scoreGym(a, null);
     expect(s.badgeNumber).toBe(2);
-    expect(s.badgeText).toBe("fresh sectors");
+    expect(s.badgeText).toBe("recent sectors");
   });
 
-  it("multi-section gym with one fresh sector → singular", () => {
+  it("returning multi-section gym → 'fresh sector(s)', counted since the visit", () => {
     const a = makeGym({
       slug: "a",
       sections: { Slab: [daysAgo(1)], Overhang: [daysAgo(8)] },
@@ -551,18 +499,25 @@ describe("scoreGym — badge", () => {
     expect(s.badgeText).toBe("fresh sector");
   });
 
-  it("single-section gym + counted boulders → badge counts boulders", () => {
+  it("single-section gym + counted boulders → 'new boulders' for both voices", () => {
     const a = makeGym({ slug: "a", sections: { All: [[daysAgo(1), 5]] } });
     const s = scoreGym(a, null);
     expect(s.badgeNumber).toBe(5);
     expect(s.badgeText).toBe("new boulders");
   });
 
-  it("single-section gym + uncounted resets → falls back to sector count", () => {
-    const a = makeGym({ slug: "a", sections: { All: [daysAgo(1)] } });
+  it("anon single-section gym + uncounted resets → counts reset events, not sectors", () => {
+    const a = makeGym({ slug: "a", sections: { All: [daysAgo(1), daysAgo(8)] } });
     const s = scoreGym(a, null);
-    expect(s.badgeNumber).toBe(1);
-    expect(s.badgeText).toBe("fresh sector");
+    expect(s.badgeNumber).toBe(2);
+    expect(s.badgeText).toBe("recent resets");
+  });
+
+  it("returning single-section gym + uncounted resets → 'new reset(s)' since the visit", () => {
+    const a = makeGym({ slug: "a", sections: { All: [daysAgo(1), daysAgo(3), daysAgo(8)] } });
+    const s = scoreGym(a, daysAgo(5));
+    expect(s.badgeNumber).toBe(2);
+    expect(s.badgeText).toBe("new resets");
   });
 
   it("no reset data → badgeText empty (badge renders em-dash from label=null)", () => {
@@ -642,17 +597,17 @@ describe("scoreGym — recentResets (compact-sector gym view)", () => {
     expect(scoreGym(three, null).isCompactSectors).toBe(false);
   });
 
-  it("never-visited: returns resets within the 60-day fallback window, sorted newest-first", () => {
+  it("anon: returns resets within the 28-day window the scorer uses, sorted newest-first", () => {
+    // List window == scoring window, so the expanded list shows exactly what
+    // the badge and narrative count.
     const a = makeGym({
       slug: "a",
       sections: {
-        All: [daysAgo(1), daysAgo(30), daysAgo(59), daysAgo(70)],
+        All: [daysAgo(1), daysAgo(20), daysAgo(27), daysAgo(40)],
       },
     });
     const s = scoreGym(a, null);
-    expect(s.recentResets.map((r) => r.reset_on)).toEqual([daysAgo(1), daysAgo(30), daysAgo(59)]);
-    // never visited → every reset in the window is fresh
-    expect(s.recentResets.every((r) => r.isFresh)).toBe(true);
+    expect(s.recentResets.map((r) => r.reset_on)).toEqual([daysAgo(1), daysAgo(20), daysAgo(27)]);
   });
 
   it("visited: returns resets after lastVisited only", () => {
@@ -664,7 +619,6 @@ describe("scoreGym — recentResets (compact-sector gym view)", () => {
     });
     const s = scoreGym(a, daysAgo(5));
     expect(s.recentResets.map((r) => r.reset_on)).toEqual([daysAgo(1), daysAgo(3)]);
-    expect(s.recentResets.every((r) => r.isFresh)).toBe(true);
   });
 
   it("just-visited user with no fresh resets gets an empty list (option 2 fallback only on never-visited)", () => {
