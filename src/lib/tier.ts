@@ -27,11 +27,11 @@ export const HOT: Tier = {
   key: "hot",
   label: "sending hot",
   emoji: "🔥",
-  anim: { y: "-4px", dur: "1.6s" },
+  anim: { y: "-4px", dur: "2s" },
   tokens: {
     badge: { bg: "oklch(0.93 0.08 30)", fg: "oklch(0.38 0.18 30)", ring: "oklch(0.55 0.20 30)" },
     card: {
-      badgeWidth: "140px",
+      badgeWidth: "120px",
       tint: "oklch(0.97 0.04 30 / 0.7)",
       stroke: "oklch(0.86 0.07 30)",
       shadow: "oklch(0.55 0.20 30 / 0.18)",
@@ -50,7 +50,7 @@ export const FRESH: Tier = {
   tokens: {
     badge: { bg: "oklch(0.93 0.11 65)", fg: "oklch(0.37 0.13 55)", ring: "oklch(0.60 0.17 60)" },
     card: {
-      badgeWidth: "150px",
+      badgeWidth: "138px",
       tint: "oklch(0.97 0.06 65 / 0.7)",
       stroke: "oklch(0.88 0.08 62)",
       shadow: "oklch(0.60 0.17 60 / 0.18)",
@@ -66,7 +66,7 @@ export const WORTH: Tier = {
   tokens: {
     badge: { bg: "oklch(0.94 0.13 92)", fg: "oklch(0.36 0.10 70)", ring: "oklch(0.62 0.16 80)" },
     card: {
-      badgeWidth: "150px",
+      badgeWidth: "138px",
       tint: "oklch(0.97 0.07 92 / 0.7)",
       stroke: "oklch(0.88 0.09 85)",
       shadow: "oklch(0.62 0.16 80 / 0.18)",
@@ -82,7 +82,7 @@ export const SLIM: Tier = {
   tokens: {
     badge: { bg: "oklch(0.93 0.07 165)", fg: "oklch(0.36 0.10 165)", ring: "oklch(0.58 0.13 165)" },
     card: {
-      badgeWidth: "150px",
+      badgeWidth: "138px",
       tint: "oklch(0.97 0.04 165 / 0.7)",
       stroke: "oklch(0.87 0.06 165)",
       shadow: "oklch(0.58 0.13 165 / 0.16)",
@@ -102,7 +102,7 @@ export const STALE: Tier = {
       ring: "oklch(0.65 0.05 285)",
     },
     card: {
-      badgeWidth: "125px",
+      badgeWidth: "118px",
       tint: "oklch(0.96 0.015 285 / 0.7)",
       stroke: "oklch(0.86 0.03 285)",
       shadow: "oklch(0.65 0.05 285 / 0.14)",
@@ -118,7 +118,7 @@ export const UNKNOWN: Tier = {
   tokens: {
     badge: { bg: "transparent", fg: "oklch(0.5 0 0)", ring: "oklch(0.78 0 0)" },
     card: {
-      badgeWidth: "135px",
+      badgeWidth: "132px",
       tint: "oklch(1 0 0 / 0.7)",
       stroke: "oklch(0.86 0 0)",
       shadow: "oklch(0.55 0 0 / 0.10)",
