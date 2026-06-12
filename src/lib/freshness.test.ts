@@ -26,7 +26,7 @@ function makeReset(reset_on: string, boulders_reset: number | null = null): Rese
 }
 
 function makeSection(name: string, resets: Reset[], display_order = 0): Section {
-  // mostRecentReset reads resets[0] — the server query returns them ordered
+  // mostRecentReset reads resets[0] - the server query returns them ordered
   // newest-first, so the fixture mirrors that.
   const sorted = [...resets].sort((a, b) => b.reset_on.localeCompare(a.reset_on));
   return {
@@ -70,7 +70,7 @@ function makeGym({ slug, sections }: GymInput): GymWithSections {
 
 // ---------- scenarios ----------
 
-describe("rankGyms — anon (no visits)", () => {
+describe("rankGyms - anon (no visits)", () => {
   it("turnover saturates on weekly gyms, so recency orders the page", () => {
     // Both have 4 unseen resets inside the 28-day anon window → turnover 1.0.
     // The only differentiator left is how recently each one dropped.
@@ -124,7 +124,7 @@ describe("rankGyms — anon (no visits)", () => {
   });
 });
 
-describe("rankGyms — returning visitor", () => {
+describe("rankGyms - returning visitor", () => {
   it("a gym you visited after its last reset drops below a gym with unseen resets", () => {
     const a = makeGym({
       slug: "a",
@@ -205,7 +205,7 @@ describe("rankGyms — returning visitor", () => {
   });
 });
 
-describe("rankGyms — tiebreakers", () => {
+describe("rankGyms - tiebreakers", () => {
   it("equal scores: the gym whose newest reset is more recent wins", () => {
     // x: 1 unseen today → 1/3 × 1.0 = 0.33.  y: 2 unseen, newest a week old →
     // 2/3 × 0.5 = 0.33. Same score; tiebreak falls to the most recent fresh date.
@@ -220,7 +220,7 @@ describe("rankGyms — tiebreakers", () => {
   });
 });
 
-describe("rankGyms — every reset row counts as one chunk", () => {
+describe("rankGyms - every reset row counts as one chunk", () => {
   it("more unseen reset rows ⇒ higher turnover ⇒ higher score (recency equal)", () => {
     const three = makeGym({
       slug: "three",
@@ -235,7 +235,7 @@ describe("rankGyms — every reset row counts as one chunk", () => {
   });
 
   it("a named-sector gym and an unnamed gym count each reset row the same", () => {
-    // 3 named sectors reset once vs one "whole gym" section reset 3 times — both
+    // 3 named sectors reset once vs one "whole gym" section reset 3 times - both
     // 3 rows, same newest date → identical score. Sector naming is irrelevant.
     const named = makeGym({
       slug: "named",
@@ -263,7 +263,7 @@ describe("rankGyms — every reset row counts as one chunk", () => {
   });
 });
 
-describe("rankGyms — mixed reset data", () => {
+describe("rankGyms - mixed reset data", () => {
   it("gyms with no reset data go to noDataExtras, never to runnersUp", () => {
     const a = makeGym({ slug: "a", sections: { Slab: [daysAgo(1)] } });
     const empty = makeGym({ slug: "empty", sections: { Slab: [] } });
@@ -288,11 +288,11 @@ describe("rankGyms — mixed reset data", () => {
   });
 });
 
-describe("rankGyms — weekly rotation scenario", () => {
+describe("rankGyms - weekly rotation scenario", () => {
   // Mirrors the real Bratislava rotation: user climbs ~1×/week across four gyms.
   // The gym they've avoided longest (and that keeps resetting) piles up unseen
   // resets and rises to HOT; the one they climbed yesterday has nothing new and
-  // is STALE. Both deciding factors — visit gap and reset recency — are in play.
+  // is STALE. Both deciding factors - visit gap and reset recency - are in play.
   it("longest-avoided active gym rises to HOT, just-climbed gym is STALE", () => {
     const raca = makeGym({
       slug: "raca",
@@ -335,7 +335,7 @@ describe("rankGyms — weekly rotation scenario", () => {
   });
 });
 
-describe("scoreGym — label aggregates per-reset counts", () => {
+describe("scoreGym - label aggregates per-reset counts", () => {
   it("sums boulders_reset across fresh resets and tracks uncounted ones", () => {
     // Vertigo-style: main area + small area, mixed counted/uncounted announcements.
     const vertigo = makeGym({
@@ -379,7 +379,7 @@ describe("scoreGym — label aggregates per-reset counts", () => {
   });
 });
 
-describe("scoreGym — narrative (tier punchlines, two voices)", () => {
+describe("scoreGym - narrative (tier punchlines, two voices)", () => {
   it("no reset data → check-yourself line", () => {
     const a = makeGym({ slug: "a", sections: { Slab: [] } });
     expect(scoreGym(a, null).narrative).toBe("No reset data - you have to check for yourself.");
@@ -390,29 +390,29 @@ describe("scoreGym — narrative (tier punchlines, two voices)", () => {
   it("anon + hot → last-reset + chalk punchline", () => {
     const a = makeGym({ slug: "a", sections: { All: [daysAgo(1), daysAgo(8), daysAgo(15)] } });
     expect(scoreGym(a, null).narrative).toBe(
-      "Last reset yesterday — get on it before the chalk builds up.",
+      "Last reset yesterday - get on it before the chalk builds up.",
     );
   });
 
   it("anon + fresh → fresh-plastic punchline", () => {
     const a = makeGym({ slug: "a", sections: { All: [daysAgo(2), daysAgo(9), daysAgo(16)] } });
-    expect(scoreGym(a, null).narrative).toBe("Last reset 2 days ago — plenty of fresh plastic.");
+    expect(scoreGym(a, null).narrative).toBe("Last reset 2 days ago - plenty of fresh plastic.");
   });
 
   it("anon + worth → worth a session", () => {
     const a = makeGym({ slug: "a", sections: { All: [daysAgo(5), daysAgo(12), daysAgo(19)] } });
-    expect(scoreGym(a, null).narrative).toBe("Last reset 5 days ago — worth a session.");
+    expect(scoreGym(a, null).narrative).toBe("Last reset 5 days ago - worth a session.");
   });
 
   it("anon + slim → slim pickings right now", () => {
     const a = makeGym({ slug: "a", sections: { All: [daysAgo(2)] } });
-    expect(scoreGym(a, null).narrative).toBe("Last reset 2 days ago — slim pickings right now.");
+    expect(scoreGym(a, null).narrative).toBe("Last reset 2 days ago - slim pickings right now.");
   });
 
   it("anon + stale (nothing in the month window) → old plastic", () => {
     const a = makeGym({ slug: "a", sections: { All: [daysAgo(40)] } });
     expect(scoreGym(a, null).narrative).toBe(
-      "Quiet lately — no resets in the last month. Running on old plastic.",
+      "Quiet lately - no resets in the last month. Running on old plastic.",
     );
   });
 
@@ -431,28 +431,28 @@ describe("scoreGym — narrative (tier punchlines, two voices)", () => {
   it("returning + slim → thin-but-something, singular reset", () => {
     const a = makeGym({ slug: "a", sections: { All: [daysAgo(1)] } });
     expect(scoreGym(a, daysAgo(3)).narrative).toBe(
-      "1 reset since your visit, the latest yesterday — thin, but it's something.",
+      "1 reset since your visit, the latest yesterday - thin, but it's something.",
     );
   });
 
   it("returning + worth → decent pickings", () => {
     const a = makeGym({ slug: "a", sections: { All: [daysAgo(1), daysAgo(8)] } });
     expect(scoreGym(a, daysAgo(14)).narrative).toBe(
-      "2 resets since your visit, the latest yesterday — decent pickings.",
+      "2 resets since your visit, the latest yesterday - decent pickings.",
     );
   });
 
   it("returning + fresh → stacking up", () => {
     const a = makeGym({ slug: "a", sections: { All: [daysAgo(3), daysAgo(10), daysAgo(17)] } });
     expect(scoreGym(a, daysAgo(21)).narrative).toBe(
-      "3 resets since your visit, the latest 3 days ago — it's stacking up.",
+      "3 resets since your visit, the latest 3 days ago - it's stacking up.",
     );
   });
 
   it("returning + hot → practically a new gym", () => {
     const a = makeGym({ slug: "a", sections: { All: [daysAgo(1), daysAgo(8), daysAgo(15)] } });
     expect(scoreGym(a, daysAgo(21)).narrative).toBe(
-      "3 resets piled up since your visit, the latest yesterday — practically a new gym.",
+      "3 resets piled up since your visit, the latest yesterday - practically a new gym.",
     );
   });
 
@@ -471,7 +471,7 @@ describe("scoreGym — narrative (tier punchlines, two voices)", () => {
   });
 });
 
-describe("scoreGym — badge (two voices)", () => {
+describe("scoreGym - badge (two voices)", () => {
   it("anon multi-section gym → 'recent sectors'", () => {
     const a = makeGym({
       slug: "a",
@@ -522,7 +522,7 @@ describe("scoreGym — badge (two voices)", () => {
   });
 });
 
-describe("scoreGym — ordering invariants", () => {
+describe("scoreGym - ordering invariants", () => {
   it("sectionsByDisplay is sorted by display_order ascending", () => {
     const gym: GymWithSections = {
       id: "g",
@@ -574,7 +574,7 @@ describe("scoreGym — ordering invariants", () => {
   });
 });
 
-describe("scoreGym — recentResets (compact-sector gym view)", () => {
+describe("scoreGym - recentResets (compact-sector gym view)", () => {
   it("flags compact-sector gyms (1 or 2 sectors)", () => {
     const one = makeGym({ slug: "one", sections: { All: [daysAgo(1)] } });
     const two = makeGym({

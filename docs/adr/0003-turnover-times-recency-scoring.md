@@ -155,9 +155,9 @@ climb there weekly and just never logged it). So everything user-facing speaks o
 voices, chosen per gym by whether a visit is logged:
 
 - **Returning voice** — anchored to _your visit_: "3 resets piled up since your visit, the
-  latest yesterday — practically a new gym." Badges say "fresh sectors" / "new resets";
+  latest yesterday - practically a new gym." Badges say "fresh sectors" / "new resets";
   the sector table keeps its fresh-since-your-visit dots.
-- **Anon voice** — describes the gym's _activity_, never "you": "Last reset yesterday —
+- **Anon voice** — describes the gym's _activity_, never "you": "Last reset yesterday -
   get on it before the chalk builds up." Badges say "recent sectors" / "recent resets";
   the sector table shows recently-reset sectors plainly (no dots — they'd mark the
   invisible window) and folds quiet ones into "+ N more sectors with older sets".

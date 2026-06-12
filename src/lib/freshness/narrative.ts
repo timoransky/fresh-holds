@@ -7,7 +7,7 @@ import type { TierKey } from "@/lib/tier";
 // - Returning (a visit is logged for this gym): anchored to "since your visit" —
 //   the counts and dates are personal and exact.
 // - Anon (no visit logged for this gym): there is no personal anchor, so the
-//   line describes the gym's activity instead — when it last reset and how busy
+//   line describes the gym's activity instead - when it last reset and how busy
 //   the month was. It never says "fresh for you" or "never visited"; we don't
 //   actually know either.
 //
@@ -32,20 +32,20 @@ function describeForAnon(
   mostRecentFreshISO: string | null,
 ): string {
   if (tier === "stale" || mostRecentFreshISO === null) {
-    return "Quiet lately — no resets in the last month. Running on old plastic.";
+    return "Quiet lately - no resets in the last month. Running on old plastic.";
   }
 
   const latest = `Last reset ${relativeDay(mostRecentFreshISO)}`;
 
   switch (tier) {
     case "hot":
-      return `${latest} — get on it before the chalk builds up.`;
+      return `${latest} - get on it before the chalk builds up.`;
     case "fresh":
-      return `${latest} — plenty of fresh plastic.`;
+      return `${latest} - plenty of fresh plastic.`;
     case "worth":
-      return `${latest} — worth a session.`;
+      return `${latest} - worth a session.`;
     default:
-      return `${latest} — slim pickings right now.`;
+      return `${latest} - slim pickings right now.`;
   }
 }
 
@@ -67,13 +67,13 @@ function describeForReturning(
 
   switch (tier) {
     case "hot":
-      return `${resets} piled up since your visit, the latest ${latest} — practically a new gym.`;
+      return `${resets} piled up since your visit, the latest ${latest} - practically a new gym.`;
     case "fresh":
-      return `${resets} since your visit, the latest ${latest} — it's stacking up.`;
+      return `${resets} since your visit, the latest ${latest} - it's stacking up.`;
     case "worth":
-      return `${resets} since your visit, the latest ${latest} — decent pickings.`;
+      return `${resets} since your visit, the latest ${latest} - decent pickings.`;
     default:
-      return `${resets} since your visit, the latest ${latest} — thin, but it's something.`;
+      return `${resets} since your visit, the latest ${latest} - thin, but it's something.`;
   }
 }
 
