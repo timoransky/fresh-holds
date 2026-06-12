@@ -38,8 +38,7 @@ export function GymResetTable({ sections, freshSectionIds, isAnon }: Props) {
         {hiddenCount > 0 && (
           <tr className="border-t border-foreground/10">
             <td colSpan={2} className="py-1.5 text-muted-foreground/70 italic">
-              + {hiddenCount} more {hiddenCount === 1 ? "sector" : "sectors"}, quiet this past
-              month
+              + {hiddenCount} more {hiddenCount === 1 ? "sector" : "sectors"} with older sets
             </td>
           </tr>
         )}

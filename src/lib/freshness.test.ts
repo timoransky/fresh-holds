@@ -387,38 +387,32 @@ describe("scoreGym — narrative (tier punchlines, two voices)", () => {
 
   // ---- anon voice: describes the gym's activity, never "you" or "never visited" ----
 
-  it("anon + hot → busy month punchline", () => {
+  it("anon + hot → last-reset + chalk punchline", () => {
     const a = makeGym({ slug: "a", sections: { All: [daysAgo(1), daysAgo(8), daysAgo(15)] } });
     expect(scoreGym(a, null).narrative).toBe(
-      "Reset yesterday after a busy month - go while the holds are fresh.",
+      "Last reset yesterday — get on it before the chalk builds up.",
     );
   });
 
-  it("anon + fresh → drops-this-month with fresh-plastic punchline", () => {
+  it("anon + fresh → fresh-plastic punchline", () => {
     const a = makeGym({ slug: "a", sections: { All: [daysAgo(2), daysAgo(9), daysAgo(16)] } });
-    expect(scoreGym(a, null).narrative).toBe(
-      "Reset 2 days ago, 3 drops this month - plenty of fresh plastic.",
-    );
+    expect(scoreGym(a, null).narrative).toBe("Last reset 2 days ago — plenty of fresh plastic.");
   });
 
-  it("anon + worth → aging drop, solid pickings", () => {
+  it("anon + worth → worth a session", () => {
     const a = makeGym({ slug: "a", sections: { All: [daysAgo(5), daysAgo(12), daysAgo(19)] } });
-    expect(scoreGym(a, null).narrative).toBe(
-      "Last reset 5 days ago, 3 drops this month - solid pickings, not piping hot.",
-    );
+    expect(scoreGym(a, null).narrative).toBe("Last reset 5 days ago — worth a session.");
   });
 
-  it("anon + slim → slow stretch, singular drop", () => {
+  it("anon + slim → slim pickings right now", () => {
     const a = makeGym({ slug: "a", sections: { All: [daysAgo(2)] } });
-    expect(scoreGym(a, null).narrative).toBe(
-      "A slow stretch - 1 drop this month, the latest 2 days ago.",
-    );
+    expect(scoreGym(a, null).narrative).toBe("Last reset 2 days ago — slim pickings right now.");
   });
 
   it("anon + stale (nothing in the month window) → old plastic", () => {
     const a = makeGym({ slug: "a", sections: { All: [daysAgo(40)] } });
     expect(scoreGym(a, null).narrative).toBe(
-      "Quiet lately - no resets in the last month. Running on old plastic.",
+      "Quiet lately — no resets in the last month. Running on old plastic.",
     );
   });
 
@@ -437,28 +431,28 @@ describe("scoreGym — narrative (tier punchlines, two voices)", () => {
   it("returning + slim → thin-but-something, singular reset", () => {
     const a = makeGym({ slug: "a", sections: { All: [daysAgo(1)] } });
     expect(scoreGym(a, daysAgo(3)).narrative).toBe(
-      "1 reset since your visit, the latest yesterday - thin, but it's something.",
+      "1 reset since your visit, the latest yesterday — thin, but it's something.",
     );
   });
 
   it("returning + worth → decent pickings", () => {
     const a = makeGym({ slug: "a", sections: { All: [daysAgo(1), daysAgo(8)] } });
     expect(scoreGym(a, daysAgo(14)).narrative).toBe(
-      "2 resets since your visit, the latest yesterday - decent pickings.",
+      "2 resets since your visit, the latest yesterday — decent pickings.",
     );
   });
 
   it("returning + fresh → stacking up", () => {
     const a = makeGym({ slug: "a", sections: { All: [daysAgo(3), daysAgo(10), daysAgo(17)] } });
     expect(scoreGym(a, daysAgo(21)).narrative).toBe(
-      "3 resets since your visit, the latest 3 days ago - it's stacking up.",
+      "3 resets since your visit, the latest 3 days ago — it's stacking up.",
     );
   });
 
   it("returning + hot → practically a new gym", () => {
     const a = makeGym({ slug: "a", sections: { All: [daysAgo(1), daysAgo(8), daysAgo(15)] } });
     expect(scoreGym(a, daysAgo(21)).narrative).toBe(
-      "3 resets piled up since your visit, the latest yesterday - practically a new gym.",
+      "3 resets piled up since your visit, the latest yesterday — practically a new gym.",
     );
   });
 

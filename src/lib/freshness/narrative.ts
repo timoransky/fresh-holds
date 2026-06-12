@@ -23,31 +23,29 @@ export function describeFreshness(
   if (label === null) return "No reset data - you have to check for yourself.";
 
   return lastVisitedISO === null
-    ? describeForAnon(tier, mostRecentFreshISO, freshResetCount)
+    ? describeForAnon(tier, mostRecentFreshISO)
     : describeForReturning(tier, lastVisitedISO, mostRecentFreshISO, freshResetCount);
 }
 
 function describeForAnon(
   tier: TierKey,
   mostRecentFreshISO: string | null,
-  freshResetCount: number,
 ): string {
   if (tier === "stale" || mostRecentFreshISO === null) {
-    return "Quiet lately - no resets in the last month. Running on old plastic.";
+    return "Quiet lately — no resets in the last month. Running on old plastic.";
   }
 
-  const latest = relativeDay(mostRecentFreshISO);
-  const drops = `${freshResetCount} ${pluralize(freshResetCount, "drop")}`;
+  const latest = `Last reset ${relativeDay(mostRecentFreshISO)}`;
 
   switch (tier) {
     case "hot":
-      return `Reset ${latest} after a busy month - go while the holds are fresh.`;
+      return `${latest} — get on it before the chalk builds up.`;
     case "fresh":
-      return `Reset ${latest}, ${drops} this month - plenty of fresh plastic.`;
+      return `${latest} — plenty of fresh plastic.`;
     case "worth":
-      return `Last reset ${latest}, ${drops} this month - solid pickings, not piping hot.`;
+      return `${latest} — worth a session.`;
     default:
-      return `A slow stretch - ${drops} this month, the latest ${latest}.`;
+      return `${latest} — slim pickings right now.`;
   }
 }
 
@@ -69,13 +67,13 @@ function describeForReturning(
 
   switch (tier) {
     case "hot":
-      return `${resets} piled up since your visit, the latest ${latest} - practically a new gym.`;
+      return `${resets} piled up since your visit, the latest ${latest} — practically a new gym.`;
     case "fresh":
-      return `${resets} since your visit, the latest ${latest} - it's stacking up.`;
+      return `${resets} since your visit, the latest ${latest} — it's stacking up.`;
     case "worth":
-      return `${resets} since your visit, the latest ${latest} - decent pickings.`;
+      return `${resets} since your visit, the latest ${latest} — decent pickings.`;
     default:
-      return `${resets} since your visit, the latest ${latest} - thin, but it's something.`;
+      return `${resets} since your visit, the latest ${latest} — thin, but it's something.`;
   }
 }
 
