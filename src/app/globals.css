@@ -136,17 +136,19 @@
   }
 }
 
-/* Tier-graded badge idle animation. Each tier supplies its own amplitude and
-   speed via --anim-* vars (see TierAnim in src/lib/tier.ts); compact badges
-   shrink the lift via --anim-amp. Tiers without an anim never get the class. */
+/* Tier-graded badge idle animation: a plain lift, where each tier supplies its
+   own height and speed via --anim-* vars (see TierAnim in src/lib/tier.ts);
+   compact badges shrink the lift via --anim-amp. Tiers without an anim never
+   get the class. --rot is the badge's static per-gym tilt, preserved across
+   the cycle. */
 @keyframes badge-float {
   0%,
   100% {
-    transform: rotate(var(--rot, 0deg)) translateY(0) scale(1);
+    transform: rotate(var(--rot, 0deg)) translateY(0);
   }
   50% {
-    transform: rotate(calc(var(--rot, 0deg) + var(--anim-rot, 0deg)))
-      translateY(calc(var(--anim-y, 0px) * var(--anim-amp, 1))) scale(var(--anim-scale, 1));
+    transform: rotate(var(--rot, 0deg))
+      translateY(calc(var(--anim-y, 0px) * var(--anim-amp, 1)));
   }
 }
 

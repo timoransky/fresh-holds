@@ -8,8 +8,6 @@ export function tierBadgeStyle(tier: Tier): CSSProperties {
     "--tier-ring": tier.tokens.badge.ring,
     ...(tier.anim && {
       "--anim-y": tier.anim.y,
-      "--anim-rot": tier.anim.rot,
-      "--anim-scale": tier.anim.scale,
       "--anim-dur": tier.anim.dur,
     }),
   } as CSSProperties;

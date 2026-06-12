@@ -5,23 +5,44 @@ import { cn } from "@/lib/utils";
 
 type Props = {
   tier: Tier;
+  // Stable identifier (gym slug) the badge's tilt is derived from. A real
+  // Math.random() would break SSR hydration and re-roll on every render;
+  // hashing the seed gives each gym a fixed, "random-looking" tilt instead.
+  seed: string;
   size?: "hero" | "compact";
   className?: string;
 };
+
+// Tilt magnitude stays inside [MIN, MAX] in either direction: a near-0° badge
+// among tilted ones reads as a rendering bug, not as randomness.
+const MIN_TILT_DEG = 0.8;
+const MAX_TILT_DEG = 3;
+
+function tiltFromSeed(seed: string): number {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    hash = (hash * 31 + seed.charCodeAt(i)) | 0;
+  }
+  const span = (MAX_TILT_DEG - MIN_TILT_DEG) * 100;
+  const magnitude = MIN_TILT_DEG + (Math.abs(hash) % span) / 100;
+  // Sign from a mid hash bit — low-bit parity clumped the directions.
+  return ((hash >> 5) & 1) === 0 ? magnitude : -magnitude;
+}
 
 // Emoji + tier title only. The exact "how much / how recent" lives in the card's
 // narrative line right below — see ADR-0003 "Display language".
 // The idle animation is graded by tier (hot buzzes, slim barely sways, stale
 // sleeps) and damped on compact badges so runners-up stay calm.
-export function FreshnessBadge({ tier, size = "hero", className }: Props) {
+export function FreshnessBadge({ tier, seed, size = "hero", className }: Props) {
   const isUnknown = tier.key === "unknown";
   const isCompact = size === "compact";
+  const tiltDeg = tiltFromSeed(seed);
 
   const baseStyle: CSSProperties = {
     ...tierBadgeStyle(tier),
-    ["--rot" as string]: `${tier.rotateDeg}deg`,
+    ["--rot" as string]: `${tiltDeg}deg`,
     ...(isCompact && { ["--anim-amp" as string]: 0.6 }),
-    transform: `rotate(${tier.rotateDeg}deg)`,
+    transform: `rotate(${tiltDeg}deg)`,
   };
 
   return (
