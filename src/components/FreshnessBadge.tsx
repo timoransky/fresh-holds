@@ -1,28 +1,18 @@
 import type { CSSProperties } from "react";
-import type { FreshLabel } from "@/lib/freshness";
 import type { Tier } from "@/lib/tier";
 import { tierBadgeStyle } from "@/lib/tier-style";
 import { cn } from "@/lib/utils";
 
 type Props = {
   tier: Tier;
-  label: FreshLabel | null;
-  badgeNumber: number;
-  badgeText: string;
   size?: "hero" | "compact";
   bob?: boolean;
   className?: string;
 };
 
-export function FreshnessBadge({
-  tier,
-  label,
-  badgeNumber,
-  badgeText,
-  size = "hero",
-  bob = false,
-  className,
-}: Props) {
+// Emoji + tier title only. The exact "how much / how recent" lives in the card's
+// narrative line right below — see ADR-0003 "Display language".
+export function FreshnessBadge({ tier, size = "hero", bob = false, className }: Props) {
   const isUnknown = tier.key === "unknown";
 
   const baseStyle: CSSProperties = {
@@ -32,10 +22,6 @@ export function FreshnessBadge({
   };
 
   const isCompact = size === "compact";
-  const numberClass = isCompact
-    ? "font-mono text-md font-semibold tabular-nums leading-none"
-    : "font-mono text-xl font-semibold tabular-nums leading-none";
-  const descriptorClass = isCompact ? "text-xs font-semibold" : "text-sm font-semibold";
 
   return (
     <div
@@ -54,26 +40,14 @@ export function FreshnessBadge({
       <span className={isCompact ? "text-md leading-none" : "text-2xl leading-none"} aria-hidden>
         {tier.emoji}
       </span>
-      <div className={cn("flex flex-col", isCompact ? "gap-0.5" : "gap-1")}>
-        <span
-          className={cn(
-            "font-extrabold tracking-tight lowercase leading-none",
-            isCompact ? "text-sm" : "text-base",
-          )}
-        >
-          {tier.label}
-        </span>
-        <div className="flex items-baseline gap-1">
-          {label === null ? (
-            <span className={numberClass}>—</span>
-          ) : (
-            <>
-              <span className={numberClass}>{badgeNumber}</span>
-              <span className={descriptorClass}>{badgeText}</span>
-            </>
-          )}
-        </div>
-      </div>
+      <span
+        className={cn(
+          "font-extrabold tracking-tight lowercase leading-none",
+          isCompact ? "text-sm" : "text-base",
+        )}
+      >
+        {tier.label}
+      </span>
     </div>
   );
 }

@@ -77,34 +77,6 @@ function describeForReturning(
   }
 }
 
-// Badge copy follows the same two voices: "fresh"/"new" implies a personal
-// anchor, so anon badges say "recent" instead. Single-sector gyms count reset
-// events (their sector count is always 1 and says nothing); multi-sector gyms
-// count sectors; a counted boulder drop beats both when present.
-export function badgeCountLabel(
-  label: FreshLabel,
-  freshResetCount: number,
-  isAnon: boolean,
-): string {
-  if (showBouldersFirst(label)) {
-    return `new ${pluralize(label.countedBoulders, "boulder")}`;
-  }
-  if (label.totalSections === 1) {
-    return `${isAnon ? "recent" : "new"} ${pluralize(freshResetCount, "reset")}`;
-  }
-  return `${isAnon ? "recent" : "fresh"} ${pluralize(label.freshSections, "sector")}`;
-}
-
-export function badgeCountNumber(label: FreshLabel, freshResetCount: number): number {
-  if (showBouldersFirst(label)) return label.countedBoulders;
-  if (label.totalSections === 1) return freshResetCount;
-  return label.freshSections;
-}
-
-function showBouldersFirst(label: FreshLabel): boolean {
-  return label.totalSections === 1 && label.countedBoulders > 0;
-}
-
 function pluralize(n: number, word: string): string {
   return n === 1 ? word : `${word}s`;
 }

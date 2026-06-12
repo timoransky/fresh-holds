@@ -471,57 +471,6 @@ describe("scoreGym - narrative (tier punchlines, two voices)", () => {
   });
 });
 
-describe("scoreGym - badge (two voices)", () => {
-  it("anon multi-section gym → 'recent sectors'", () => {
-    const a = makeGym({
-      slug: "a",
-      sections: { Slab: [daysAgo(1)], Overhang: [daysAgo(2)] },
-    });
-    const s = scoreGym(a, null);
-    expect(s.badgeNumber).toBe(2);
-    expect(s.badgeText).toBe("recent sectors");
-  });
-
-  it("returning multi-section gym → 'fresh sector(s)', counted since the visit", () => {
-    const a = makeGym({
-      slug: "a",
-      sections: { Slab: [daysAgo(1)], Overhang: [daysAgo(8)] },
-    });
-    // Visited 5 days ago → only Slab is fresh.
-    const s = scoreGym(a, daysAgo(5));
-    expect(s.badgeNumber).toBe(1);
-    expect(s.badgeText).toBe("fresh sector");
-  });
-
-  it("single-section gym + counted boulders → 'new boulders' for both voices", () => {
-    const a = makeGym({ slug: "a", sections: { All: [[daysAgo(1), 5]] } });
-    const s = scoreGym(a, null);
-    expect(s.badgeNumber).toBe(5);
-    expect(s.badgeText).toBe("new boulders");
-  });
-
-  it("anon single-section gym + uncounted resets → counts reset events, not sectors", () => {
-    const a = makeGym({ slug: "a", sections: { All: [daysAgo(1), daysAgo(8)] } });
-    const s = scoreGym(a, null);
-    expect(s.badgeNumber).toBe(2);
-    expect(s.badgeText).toBe("recent resets");
-  });
-
-  it("returning single-section gym + uncounted resets → 'new reset(s)' since the visit", () => {
-    const a = makeGym({ slug: "a", sections: { All: [daysAgo(1), daysAgo(3), daysAgo(8)] } });
-    const s = scoreGym(a, daysAgo(5));
-    expect(s.badgeNumber).toBe(2);
-    expect(s.badgeText).toBe("new resets");
-  });
-
-  it("no reset data → badgeText empty (badge renders em-dash from label=null)", () => {
-    const a = makeGym({ slug: "a", sections: { Slab: [] } });
-    const s = scoreGym(a, null);
-    expect(s.label).toBeNull();
-    expect(s.badgeText).toBe("");
-  });
-});
-
 describe("scoreGym - ordering invariants", () => {
   it("sectionsByDisplay is sorted by display_order ascending", () => {
     const gym: GymWithSections = {

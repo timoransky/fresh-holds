@@ -2,7 +2,7 @@ import type { GymWithSections, Section } from "@/lib/types";
 import type { Visits } from "@/lib/visit-log";
 import type { Tier } from "@/lib/tier";
 import { gymFreshness, type FreshLabel } from "@/lib/freshness/scoring";
-import { badgeCountLabel, badgeCountNumber, describeFreshness } from "@/lib/freshness/narrative";
+import { describeFreshness } from "@/lib/freshness/narrative";
 import {
   mostRecentReset,
   sortSectionsByDisplay,
@@ -34,7 +34,6 @@ export type ScoredGym = {
 
   tier: Tier;
   label: FreshLabel | null;
-  badgeNumber: number;
 
   sectionsByDisplay: Section[];
   sectionsByRecent: Section[];
@@ -42,7 +41,6 @@ export type ScoredGym = {
   isCompactSectors: boolean;
 
   narrative: string;
-  badgeText: string;
 };
 
 export type RankedGym = ScoredGym;
@@ -73,8 +71,6 @@ export function scoreGym(gym: GymWithSections, lastVisited: string | null): Scor
 
     tier,
     label: freshness.label,
-    badgeNumber:
-      freshness.label === null ? 0 : badgeCountNumber(freshness.label, freshness.freshResetCount),
 
     sectionsByDisplay: sortSectionsByDisplay(gym.sections),
     sectionsByRecent: sortSectionsByRecent(gym.sections),
@@ -88,10 +84,6 @@ export function scoreGym(gym: GymWithSections, lastVisited: string | null): Scor
       freshness.mostRecentFreshISO,
       freshness.freshResetCount,
     ),
-    badgeText:
-      freshness.label === null
-        ? ""
-        : badgeCountLabel(freshness.label, freshness.freshResetCount, lastVisited === null),
   };
 }
 

@@ -155,18 +155,23 @@ climb there weekly and just never logged it). So everything user-facing speaks o
 voices, chosen per gym by whether a visit is logged:
 
 - **Returning voice** — anchored to _your visit_: "3 resets piled up since your visit, the
-  latest yesterday - practically a new gym." Badges say "fresh sectors" / "new resets";
-  the sector table keeps its fresh-since-your-visit dots.
+  latest yesterday - practically a new gym." The sector table keeps its
+  fresh-since-your-visit dots.
 - **Anon voice** — describes the gym's _activity_, never "you": "Last reset yesterday -
-  get on it before the chalk builds up." Badges say "recent sectors" / "recent resets";
-  the sector table shows recently-reset sectors plainly (no dots — they'd mark the
-  invisible window) and folds quiet ones into "+ N more sectors with older sets".
+  get on it before the chalk builds up." The sector table shows recently-reset sectors
+  plainly (no dots — they'd mark the invisible window) and folds quiet ones into
+  "+ N more sectors with older sets".
 
-Each line uses a fixed "Last reset {when}" lead-in plus the tier's punchline, so the badge
-(which already carries the count) and the sentence tell one story without repeating the
-number (`src/lib/freshness/narrative.ts`). The compact per-reset list shows only rows after
-the user's cutoff (visit date or the same 28-day anon window the scorer uses), which also
-makes the per-row fresh flag redundant — removed.
+The **badge carries no count** — just the tier emoji and title (e.g. "🔥 sending hot"). A
+count there was the source of three separate confusions: boulder volume (irrelevant), "N
+fresh sectors" (undercounts a single sector reset repeatedly), and sectors-vs-resets
+framing. The exact "how much / how recent" already lives in the narrative line directly
+below, so the badge stays a clean tier indicator (`src/components/FreshnessBadge.tsx`).
+
+Each narrative line uses a fixed "Last reset {when}" lead-in plus the tier's punchline
+(`src/lib/freshness/narrative.ts`). The compact per-reset list shows only rows after the
+user's cutoff (visit date or the same 28-day anon window the scorer uses), which also makes
+the per-row fresh flag redundant — removed.
 
 ## Implementation pointers
 
