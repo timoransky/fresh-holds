@@ -97,7 +97,11 @@ export function rankGyms(gyms: GymWithSections[], visits: Visits): GymRanking {
       if (byScore !== 0) return byScore;
       const ar = a.mostRecentFreshISO ?? a.mostRecentResetISO ?? "";
       const br = b.mostRecentFreshISO ?? b.mostRecentResetISO ?? "";
-      return br.localeCompare(ar);
+      const byRecent = br.localeCompare(ar);
+      if (byRecent !== 0) return byRecent;
+      // Anon scores are pure recency, so two gyms reset on the same day tie
+      // exactly — the one with more drops this month wins.
+      return b.freshResetCount - a.freshResetCount;
     });
   const withoutData = scored.filter((s) => !s.hasResetData);
 
