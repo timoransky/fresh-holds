@@ -404,7 +404,7 @@ describe("rankGyms - weekly rotation scenario", () => {
     });
 
     // Visit history (today = NOW = 2026-05-11 in this file):
-    //   raca: 35d ago → 5 unseen (1/8/15/22/29) → ≈2.21  FRESH
+    //   raca: 35d ago → 5 unseen (1/8/15/22/29) → ≈2.21  HOT (most of the gym new)
     //   spot: 14d ago → 2 unseen (2/9)           → ≈1.41  WORTH
     //   petrzalka: 10d → 1 unseen (3)            → ≈0.81  SLIM
     //   vertigo: 1d ago → reset (4d) predates visit → 0 unseen → 0  STALE
@@ -420,7 +420,7 @@ describe("rankGyms - weekly rotation scenario", () => {
     expect(r.hero?.gym.slug).toBe("raca");
     expect(r.runnersUp.map((g) => g.gym.slug)).toEqual(["spot", "petrzalka", "vertigo"]);
 
-    expect(r.hero?.tier.key).toBe("fresh");
+    expect(r.hero?.tier.key).toBe("hot");
     const vertigoScored = r.runnersUp.find((g) => g.gym.slug === "vertigo")!;
     expect(vertigoScored.noveltyScore).toBe(0);
     expect(vertigoScored.tier.key).toBe("stale");
@@ -544,9 +544,9 @@ describe("scoreGym - narrative (tier punchlines, two voices)", () => {
   });
 
   it("returning + fresh → stacking up", () => {
-    const a = makeGym({ slug: "a", sections: { All: [daysAgo(0), daysAgo(3), daysAgo(6)] } }); // ≈2.47 → fresh
-    expect(scoreGym(a, daysAgo(10)).narrative).toBe(
-      "3 resets since your visit, the latest today - it's stacking up.",
+    const a = makeGym({ slug: "a", sections: { All: [daysAgo(2), daysAgo(9), daysAgo(16)] } }); // ≈1.74 → fresh
+    expect(scoreGym(a, daysAgo(20)).narrative).toBe(
+      "3 resets since your visit, the latest 2 days ago - it's stacking up.",
     );
   });
 

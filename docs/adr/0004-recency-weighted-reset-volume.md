@@ -67,7 +67,7 @@ sets (`src/lib/freshness/tier-binding.ts`, `bindTier(result, isAnon)`):
 | Lens | Relevant resets | Question | Cuts (HOT / FRESH / WORTH) |
 |------|-----------------|----------|-----------------------------|
 | **Anon** | last `ANON_WINDOW_DAYS` | "Is this gym fresh *right now*?" | **2.0 / 1.75 / 0.9** |
-| **Returning** | after your last visit | "Enough *new-to-me* to bother?" | **3.0 / 2.0 / 1.3** |
+| **Returning** | after your last visit | "Enough *new-to-me* to bother?" | **2.0 / 1.7 / 1.2** |
 
 `SLIM` is any score `> 0`; `STALE` is exactly `0` (a gym with reset data but
 nothing relevant); `UNKNOWN` is no reset data at all.
@@ -82,10 +82,14 @@ nothing relevant); `UNKNOWN` is no reset data at all.
   cut of these cuts (2.2 / 1.4 / 0.7) put HOT *above* what a yesterday-reset
   weekly gym could score (~2.08), so HOT was dead and everything piled into the
   wide FRESH band; re-spacing fixed it without touching the half-life.
-- **Returning cuts sit high** to encode the owner's rule: one unseen reset
-  (weight ≤ 1.0) is `SLIM` ("not a special trip"); two recent unseen (~1.6)
-  cross to `WORTH`; three-plus climb to `FRESH`/`HOT`. Zero unseen scores 0 →
-  `STALE` ("you're caught up") with no special-case override.
+- **Returning cuts encode the owner's rule and stay reachable:** one unseen reset
+  (weight ≤ 1.0) is `SLIM` ("not a special trip"); two recent unseen (~1.5) cross
+  to `WORTH`; three (~1.9) to `FRESH`; four-plus (~2.1+) to `HOT`. Zero unseen
+  scores 0 → `STALE` ("you're caught up") with no special-case override. The
+  first cut (3.0/2.0/1.3) put `HOT` above what steady weekly turnover reaches —
+  a month-long gap at a weekly gym tops out ~2.2–2.6 because older unseen resets
+  decay — so genuine "most of the gym is new to me" cases got stuck at `FRESH`.
+  Re-spacing to 2.0/1.7/1.2 fixes it without touching the half-life.
 
 ### Mixed lenses in one list
 
@@ -106,7 +110,7 @@ abandoned-but-fresh one.)
 | `HALF_LIFE_DAYS` | 10 | Freshness halves every ~1.5 weeks. Between the owner's "1 to 2 week" instinct; the single knob driving both anon cooling and the returning staleness backstop. Tune by feel. |
 | `ANON_WINDOW_DAYS` | 28 | Anon relevance window. Beyond ~28 days the half-life weight is already negligible (`0.5^2.8 ≈ 0.14`), so this mostly keeps the *display* fields honest — a sector last touched months ago shouldn't render as "fresh" — and preserves the invariant that `recentResets` shows exactly what the badge counts. |
 | `ANON_HOT/FRESH/WORTH_SCORE` | 2.0 / 1.75 / 0.9 | Spaced so a weekly gym maps onto reset recency (HOT ≈ today/yesterday, FRESH ≈ 2–3 d, WORTH ≈ 4–~11 d). **The lever for first-open variance** — tune these first if anon HOT goes always-empty or always-full; the gym cards expose `data-novelty-score`/`data-tier` to read live numbers. |
-| `RETURNING_HOT/FRESH/WORTH_SCORE` | 3.0 / 2.0 / 1.3 | `WORTH` between one unseen reset (≤1.0) and two recent (~1.6) → the 1-vs-2 rule; `HOT` needs ~4 recent unseen resets ("practically a new gym"). |
+| `RETURNING_HOT/FRESH/WORTH_SCORE` | 2.0 / 1.7 / 1.2 | `WORTH` between one unseen reset (≤1.0, `SLIM`) and two recent (~1.5) → the 1-vs-2 rule; `HOT` at ~4–5 unseen resets, reachable by a month's steady weekly turnover ("most of the gym is new to you"), not just a burst. |
 
 ### Worked examples (validation — pinned in `src/lib/freshness.test.ts`)
 
@@ -133,6 +137,8 @@ Returning — the 1-vs-2 rule and the blend:
 |---|---|---|---|
 | 2 d ago | 1 today | 1.00 | 🥱 slim |
 | 7 d ago | 2 recent (2d, 4d) | 1.63 | 💪 worth |
+| 3 wk ago | 3 weekly (2/9/16d) | 1.74 | 👀 fresh |
+| ~1 mo ago | 4–5 weekly, latest 1d | 2.08–2.21 | 🔥 hot (most of the gym new) |
 | 35 d ago | 1 fresh (2d) | 0.87 | 🥱 slim — but beats… |
 | 35 d ago | 2 old (25d, 28d) | 0.32 | 🥱 slim — …this |
 
