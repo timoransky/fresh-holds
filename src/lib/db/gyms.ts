@@ -1,12 +1,11 @@
 import { unstable_cache } from "next/cache";
 import { createAnonClient } from "@/utils/supabase/server";
-import { isoFromDate, todayISO } from "@/lib/date";
+import { DAY_MS, isoFromDate, todayISO } from "@/lib/date";
 import type { GymWithSections } from "@/lib/types";
 
 // Resets older than this are excluded — keeps the homepage payload focused on
 // actionable freshness data. Tune if users start asking about older sessions.
 const RESET_HISTORY_DAYS = 240;
-const DAY_MS = 24 * 60 * 60 * 1000;
 const ONE_DAY_SECONDS = 24 * 60 * 60;
 
 export const getActiveGymsWithSections = unstable_cache(

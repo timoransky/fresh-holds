@@ -1,6 +1,6 @@
 export const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
-const DAY_MS = 24 * 60 * 60 * 1000;
+export const DAY_MS = 24 * 60 * 60 * 1000;
 
 export function todayISO(): string {
   return isoFromDate(new Date());

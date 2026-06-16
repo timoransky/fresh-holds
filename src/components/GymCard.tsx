@@ -9,7 +9,7 @@ import { FreshnessBadge } from "@/components/FreshnessBadge";
 import { GymExternalLinks } from "@/components/gym/GymExternalLinks";
 import { GymResetTable } from "@/components/gym/GymResetTable";
 import { GymRecentResetsList } from "@/components/gym/GymRecentResetsList";
-import { tierCardStyle } from "@/lib/tier-style";
+import { tierCardStyle } from "@/lib/tierStyle";
 import { cn } from "@/lib/utils";
 
 type Variant = "hero" | "compact";

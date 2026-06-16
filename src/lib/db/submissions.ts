@@ -61,7 +61,6 @@ export async function listPendingSubmissions(): Promise<PendingSubmission[]> {
       if (s.error) console.error("[listPendingSubmissions] signed url item", s.path, s.error);
       if (s.path && s.signedUrl) signedUrls.set(s.path, s.signedUrl);
     });
-    console.log("[listPendingSubmissions] paths/signed", paths, [...signedUrls.keys()]);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

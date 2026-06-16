@@ -20,8 +20,6 @@ export const getRankedGyms = unstable_cache(
   ): Promise<{ gyms: GymWithSections[]; ranking: GymRanking }> => {
     void todayISO;
 
-    console.log("[ranking] CACHE MISS", { visitsCookieRaw, todayISO });
-
     const gyms = await getActiveGymsWithSections();
     const visits = parseVisitsCookie(visitsCookieRaw || undefined);
     const ranking = rankGyms(gyms, visits);
