@@ -1,6 +1,6 @@
 import type { Section } from "@/lib/types";
 import { DAY_MS, isoFromDate } from "@/lib/date";
-import { ANON_VISIT_GAP_DAYS } from "@/lib/freshness/scoring";
+import { ANON_WINDOW_DAYS } from "@/lib/freshness/scoring";
 
 // Compact-sector gyms (≤ 2 sectors) get a per-reset list instead of one row per
 // sector — otherwise weekly drops collapse into a single row and hide activity.
@@ -25,7 +25,7 @@ export function isCompactSectorGym(sections: Section[]): boolean {
 // (your last visit, or the 28-day anon window), so the expanded list shows
 // exactly what the badge and narrative count — no per-row fresh flag needed.
 export function recentResets(sections: Section[], lastVisitedISO: string | null): RecentReset[] {
-  const anonCutoffISO = isoFromDate(new Date(Date.now() - ANON_VISIT_GAP_DAYS * DAY_MS));
+  const anonCutoffISO = isoFromDate(new Date(Date.now() - ANON_WINDOW_DAYS * DAY_MS));
   const cutoffISO = lastVisitedISO ?? anonCutoffISO;
 
   const rows: RecentReset[] = [];

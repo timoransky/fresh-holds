@@ -23,6 +23,14 @@ type Props = {
 
 export function GymCard({ scored, variant, visitedDates, onChangeVisits }: Props) {
   const { gym, tier, narrative, freshSectionIds } = scored;
+  // Exposed for manual tuning of the scoring cuts (see ADR-0004 / tier-binding.ts):
+  // inspect these in devtools to see the raw score behind each badge.
+  const scoreDebugAttrs = {
+    "data-novelty-score": scored.noveltyScore.toFixed(4),
+    "data-tier": tier.key,
+    "data-lens": scored.lastVisited === null ? "anon" : "returning",
+    "data-fresh-resets": scored.freshResetCount,
+  };
   const isHero = variant === "hero";
 
   const surfaceStyle = tierCardStyle(tier);
@@ -33,6 +41,7 @@ export function GymCard({ scored, variant, visitedDates, onChangeVisits }: Props
 
   return (
     <article
+      {...scoreDebugAttrs}
       style={surfaceStyle}
       className={cn(
         "group sticker-surface squircle-4xl relative flex flex-col rounded-3xl bg-(--surface-tint) backdrop-blur-sm transition-all",

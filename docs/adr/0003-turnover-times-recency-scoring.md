@@ -1,6 +1,6 @@
 # ADR-0003 — Turnover × recency: a two-factor gym scoring model
 
-Status: Accepted (2026-06-12). Supersedes [ADR-0002](0002-gym-scoring-model.md).
+Status: Superseded by [ADR-0004](0004-recency-weighted-reset-volume.md) (2026-06-16). Supersedes [ADR-0002](0002-gym-scoring-model.md).
 
 ## Context
 
