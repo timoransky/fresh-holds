@@ -18,17 +18,16 @@ Supabase email-OTP auth (`src/lib/auth.ts`, `src/lib/actions/auth.ts`; OTP UI vi
 
 ## Freshness model
 
-"Fresh" means _new climbing since you last came_. Computed in `src/lib/freshness/` (entry: `gymFreshness` in `scoring.ts`):
+"Fresh" means _new climbing since you last came_. Computed in `src/lib/freshness/` (entry: `gymFreshness` in `scoring.ts`). One scoring primitive, read through two lenses:
 
-> **`noveltyScore = turnover × recency`**, both in `0..1`.
+> **`noveltyScore = Σ over relevant resets of 0.5 ^ (ageDays / HALF_LIFE_DAYS)`** — an _unbounded_ recency-weighted sum (a reset today adds 1.0, one a half-life old adds 0.5, older ones fade). Volume and cooling in one term; boulder counts never affect scoring (display-only).
 >
-> - `turnover = min(unseenResets / SATURATION_RESETS, 1)` — reset rows logged _after_ your last visit. Boulder counts never affect scoring (display-only).
-> - `recency = 0.5 ^ (daysSinceNewestUnseenReset / RECENCY_HALF_LIFE_DAYS)` — one-week half-life.
-> - **Anon users** are scored as if they last visited `ANON_VISIT_GAP_DAYS` (28) ago — the one branch that differs. Anon pages end up ordered by recency.
+> - **Relevant resets** depend on the lens: **returning** (a visit logged) = resets _after_ your last visit; **anon** (no visit) = resets within the last `ANON_WINDOW_DAYS` (28).
+> - `HALF_LIFE_DAYS` (10) is the one cooling knob — drives both anon variance and the returning staleness backstop.
 
-`bindTier` (`tier-binding.ts`) maps the score to fixed cuts: `HOT` ≥ 0.85, `FRESH` ≥ 0.70, `WORTH` ≥ 0.50, `SLIM` > 0, `STALE` = 0. **No reset data at all** → `hasResetData: false`, tier `UNKNOWN` (UI shows "no data yet"). Tier visuals/animation live in `src/lib/tier.ts`.
+`bindTier(result, isAnon)` (`tier-binding.ts`) reads the same score through **two cut sets**, because anon and returning ask different questions about it: anon `HOT/FRESH/WORTH` = `2.0/1.75/0.9` (spaced so a typical weekly gym maps onto reset recency — HOT ≈ reset today/yesterday, FRESH ≈ 2–3 days, WORTH ≈ 4–~11 days — giving the first-open "wow"); returning = `2.0/1.7/1.2` (1 unseen reset = `SLIM`, 2 recent = `WORTH`, 3 = `FRESH`, 4–5 = `HOT` — reachable by a month's steady weekly turnover, not just a burst). `SLIM` > 0, `STALE` = 0 (reset data but nothing relevant), `UNKNOWN` = no reset data at all. Tier visuals/animation live in `src/lib/tier.ts`.
 
-The formula, the six constants, and tuning guidance live in **[ADR-0003](docs/adr/0003-turnover-times-recency-scoring.md)** (supersedes ADR-0002). Don't touch `SATURATION_RESETS`, `RECENCY_HALF_LIFE_DAYS`, `ANON_VISIT_GAP_DAYS`, or the tier cuts without reading it. Pinned by `src/lib/freshness.test.ts`.
+The formula, the constants, and tuning guidance live in **[ADR-0004](docs/adr/0004-recency-weighted-reset-volume.md)** (supersedes ADR-0003). Don't touch `HALF_LIFE_DAYS`, `ANON_WINDOW_DAYS`, or either set of tier cuts without reading it. Pinned by `src/lib/freshness.test.ts`.
 
 User-facing copy speaks two voices, chosen per gym by whether a visit is logged (`narrative.ts`): **returning** ("…since your visit") vs **anon** (describes the gym's activity, never "you"). The badge carries no count — just emoji + tier title.
 
@@ -51,7 +50,7 @@ Per **[ADR-0001](docs/adr/0001-cache-architecture.md)**: `unstable_cache` (not `
 1. **Gyms with reset data**, by `noveltyScore` descending. Tiebreak: most recent fresh reset date descending.
 2. **Gyms with no reset data** at the bottom (we can't help the user pick).
 
-Visit state does _not_ segregate the list — score blends visit gap and turnover, so a long-abandoned gym with fresh content can outrank a recently-visited busy gym. That's intended; don't reintroduce a visited-first split without a reason.
+Visit state does _not_ segregate the list — score is a recency-weighted sum of resets that are new _to you_ (post-visit, or within the anon window), so a long-abandoned gym with fresh content can outrank a recently-visited busy gym. Lenses mix freely in one list and are compared by raw score. That's intended; don't reintroduce a visited-first split without a reason.
 
 ## Agent skills
 

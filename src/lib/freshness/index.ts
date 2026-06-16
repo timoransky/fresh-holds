@@ -54,7 +54,7 @@ export type GymRanking = {
 
 export function scoreGym(gym: GymWithSections, lastVisited: string | null): ScoredGym {
   const freshness = gymFreshness(gym, lastVisited);
-  const tier = bindTier(freshness);
+  const tier = bindTier(freshness, lastVisited === null);
   const mostRecentResetISO = mostRecentReset(gym.sections)?.reset_on ?? null;
 
   return {

@@ -2,7 +2,7 @@ import { daysSince, relativeDay } from "@/lib/date";
 import type { FreshLabel } from "@/lib/freshness/scoring";
 import type { TierKey } from "@/lib/tier";
 
-// The card line speaks two voices (see ADR-0003):
+// The card line speaks two voices (see ADR-0004):
 //
 // - Returning (a visit is logged for this gym): anchored to "since your visit" —
 //   the counts and dates are personal and exact.
