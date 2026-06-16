@@ -1,5 +1,5 @@
 import type { GymWithSections } from "@/lib/types";
-import { daysSince } from "@/lib/date";
+import { DAY_MS, daysSince } from "@/lib/date";
 
 // Scoring model (see ADR-0003). noveltyScore = turnover × recency, both in 0..1.
 //
@@ -19,7 +19,6 @@ import { daysSince } from "@/lib/date";
 export const ANON_VISIT_GAP_DAYS = 28;
 const SATURATION_RESETS = 3;
 const RECENCY_HALF_LIFE_DAYS = 7;
-const DAY_MS = 24 * 60 * 60 * 1000;
 
 export type FreshLabel = {
   freshSections: number;

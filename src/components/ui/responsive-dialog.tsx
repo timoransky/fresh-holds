@@ -18,6 +18,7 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { cn } from "@/lib/utils";
 
 const ResponsiveDialogContext = React.createContext<boolean | null>(null);
 
@@ -73,13 +74,13 @@ function ResponsiveDialogContent({
   const isDesktop = useIsDesktop();
   if (isDesktop) {
     return (
-      <DialogContent className={[className, desktopClassName].filter(Boolean).join(" ")} {...props}>
+      <DialogContent className={cn(className, desktopClassName)} {...props}>
         {children}
       </DialogContent>
     );
   }
   return (
-    <DrawerContent className={[className, mobileClassName].filter(Boolean).join(" ")} {...props}>
+    <DrawerContent className={cn(className, mobileClassName)} {...props}>
       {children}
     </DrawerContent>
   );
@@ -101,7 +102,7 @@ function ResponsiveDialogHeader({
   const breakpointClassName = isDesktop ? desktopClassName : mobileClassName;
   return (
     <Header
-      className={[srOnly ? "sr-only" : "", className, breakpointClassName].filter(Boolean).join(" ")}
+      className={cn(srOnly && "sr-only", className, breakpointClassName)}
       {...props}
     />
   );
@@ -116,7 +117,7 @@ function ResponsiveDialogTitle({
   const Title = isDesktop ? DialogTitle : DrawerTitle;
   const headingClass = "font-heading text-3xl font-extrabold tracking-tight leading-tight";
   return (
-    <Title className={[headingClass, className].filter(Boolean).join(" ")} {...props}>
+    <Title className={cn(headingClass, className)} {...props}>
       {children}
     </Title>
   );

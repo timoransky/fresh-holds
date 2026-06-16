@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 import type { Tier } from "@/lib/tier";
-import { tierBadgeStyle } from "@/lib/tier-style";
+import { tierBadgeStyle } from "@/lib/tierStyle";
 import { cn } from "@/lib/utils";
 
 type Props = {
