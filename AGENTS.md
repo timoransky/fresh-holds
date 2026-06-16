@@ -25,7 +25,7 @@ Supabase email-OTP auth (`src/lib/auth.ts`, `src/lib/actions/auth.ts`; OTP UI vi
 > - **Relevant resets** depend on the lens: **returning** (a visit logged) = resets _after_ your last visit; **anon** (no visit) = resets within the last `ANON_WINDOW_DAYS` (28).
 > - `HALF_LIFE_DAYS` (10) is the one cooling knob — drives both anon variance and the returning staleness backstop.
 
-`bindTier(result, isAnon)` (`tier-binding.ts`) reads the same score through **two cut sets**, because anon and returning ask different questions about it: anon `HOT/FRESH/WORTH` = `2.2/1.4/0.7` (low, so weekly gyms at different cycle phases spread across tiers — the first-open "wow"); returning = `3.0/2.0/1.3` (high, so 1 unseen reset = `SLIM`, 2 recent = `WORTH`). `SLIM` > 0, `STALE` = 0 (reset data but nothing relevant), `UNKNOWN` = no reset data at all. Tier visuals/animation live in `src/lib/tier.ts`.
+`bindTier(result, isAnon)` (`tier-binding.ts`) reads the same score through **two cut sets**, because anon and returning ask different questions about it: anon `HOT/FRESH/WORTH` = `2.0/1.75/0.9` (spaced so a typical weekly gym maps onto reset recency — HOT ≈ reset today/yesterday, FRESH ≈ 2–3 days, WORTH ≈ 4–~11 days — giving the first-open "wow"); returning = `3.0/2.0/1.3` (high, so 1 unseen reset = `SLIM`, 2 recent = `WORTH`). `SLIM` > 0, `STALE` = 0 (reset data but nothing relevant), `UNKNOWN` = no reset data at all. Tier visuals/animation live in `src/lib/tier.ts`.
 
 The formula, the constants, and tuning guidance live in **[ADR-0004](docs/adr/0004-recency-weighted-reset-volume.md)** (supersedes ADR-0003). Don't touch `HALF_LIFE_DAYS`, `ANON_WINDOW_DAYS`, or either set of tier cuts without reading it. Pinned by `src/lib/freshness.test.ts`.
 

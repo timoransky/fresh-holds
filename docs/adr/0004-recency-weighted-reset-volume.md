@@ -66,16 +66,22 @@ sets (`src/lib/freshness/tier-binding.ts`, `bindTier(result, isAnon)`):
 
 | Lens | Relevant resets | Question | Cuts (HOT / FRESH / WORTH) |
 |------|-----------------|----------|-----------------------------|
-| **Anon** | last `ANON_WINDOW_DAYS` | "Is this gym fresh *right now*?" | **2.2 / 1.4 / 0.7** |
+| **Anon** | last `ANON_WINDOW_DAYS` | "Is this gym fresh *right now*?" | **2.0 / 1.75 / 0.9** |
 | **Returning** | after your last visit | "Enough *new-to-me* to bother?" | **3.0 / 2.0 / 1.3** |
 
 `SLIM` is any score `> 0`; `STALE` is exactly `0` (a gym with reset data but
 nothing relevant); `UNKNOWN` is no reset data at all.
 
-- **Anon cuts sit low** so gyms — caught at different points in their weekly
-  cycle, with accumulated sums around 1.6–2.6 — land on *different* tiers. That
-  spread is the first-open variance the anon page exists for. A gym reset today
-  reads fresh immediately instead of waiting for three resets to pile up.
+- **Anon cuts are spaced to map a typical weekly gym onto reset recency.** Such a
+  gym scores ~2.37 reset today, ~2.08 a day ago, ~1.94 at 2 days, ~1.58 at 5
+  days, ~1.37 at a week — so HOT ≈ reset today/yesterday, FRESH ≈ 2–3 days,
+  WORTH ≈ 4–~11 days, SLIM beyond. Gyms caught at different points in their cycle
+  land on *different* tiers (the first-open "wow"), and a gym cools down the
+  ladder as it ages with no new reset. Volume still modulates — a denser gym
+  scores higher and can stay HOT a touch longer; a sparse one lower. The first
+  cut of these cuts (2.2 / 1.4 / 0.7) put HOT *above* what a yesterday-reset
+  weekly gym could score (~2.08), so HOT was dead and everything piled into the
+  wide FRESH band; re-spacing fixed it without touching the half-life.
 - **Returning cuts sit high** to encode the owner's rule: one unseen reset
   (weight ≤ 1.0) is `SLIM` ("not a special trip"); two recent unseen (~1.6)
   cross to `WORTH`; three-plus climb to `FRESH`/`HOT`. Zero unseen scores 0 →
@@ -99,7 +105,7 @@ abandoned-but-fresh one.)
 |---|---|---|
 | `HALF_LIFE_DAYS` | 10 | Freshness halves every ~1.5 weeks. Between the owner's "1 to 2 week" instinct; the single knob driving both anon cooling and the returning staleness backstop. Tune by feel. |
 | `ANON_WINDOW_DAYS` | 28 | Anon relevance window. Beyond ~28 days the half-life weight is already negligible (`0.5^2.8 ≈ 0.14`), so this mostly keeps the *display* fields honest — a sector last touched months ago shouldn't render as "fresh" — and preserves the invariant that `recentResets` shows exactly what the badge counts. |
-| `ANON_HOT/FRESH/WORTH_SCORE` | 2.2 / 1.4 / 0.7 | Calibrated to the ~1.6–2.6 steady state of a weekly gym so the anon page spreads across tiers. **The lever for first-open variance** — tune these first if anon HOT goes always-empty or always-full. |
+| `ANON_HOT/FRESH/WORTH_SCORE` | 2.0 / 1.75 / 0.9 | Spaced so a weekly gym maps onto reset recency (HOT ≈ today/yesterday, FRESH ≈ 2–3 d, WORTH ≈ 4–~11 d). **The lever for first-open variance** — tune these first if anon HOT goes always-empty or always-full; the gym cards expose `data-novelty-score`/`data-tier` to read live numbers. |
 | `RETURNING_HOT/FRESH/WORTH_SCORE` | 3.0 / 2.0 / 1.3 | `WORTH` between one unseen reset (≤1.0) and two recent (~1.6) → the 1-vs-2 rule; `HOT` needs ~4 recent unseen resets ("practically a new gym"). |
 
 ### Worked examples (validation — pinned in `src/lib/freshness.test.ts`)
@@ -107,13 +113,14 @@ abandoned-but-fresh one.)
 Single-reset contribution by age: today 1.00 · 3d 0.81 · 5d 0.71 · 7d 0.62 ·
 10d 0.50 · 14d 0.38 · 21d 0.23 · 28d 0.14.
 
-Anon — weekly gyms at different cycle phases spread across the ladder:
+Anon — a weekly gym at different cycle phases spreads across the ladder:
 
 | Gym (resets) | Sum | Tier |
 |---|---|---|
-| 0/7/14/21 d | 2.23 | 🔥 hot |
-| 5/12/19/26 d | 1.58 | 👀 fresh |
-| 12/19/26 d | 0.87 | 💪 worth |
+| 0/7/14/21 d (reset today) | 2.23 | 🔥 hot |
+| 2/9/16/23 d (reset 2 d ago) | 1.94 | 👀 fresh |
+| 5/12/19/26 d (reset 5 d ago) | 1.58 | 💪 worth |
+| 12/19/26 d (reset 12 d ago) | 0.87 | 🥱 slim |
 | single, 21 d | 0.23 | 🥱 slim |
 | nothing < 28 d | 0 | 💤 stale |
 

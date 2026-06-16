@@ -104,23 +104,23 @@ describe("rankGyms - anon (no visits)", () => {
     // exactly the variance the anon page exists to show.
     const fresh0 = makeGym({
       slug: "fresh0",
-      sections: { Wall: [daysAgo(0), daysAgo(7), daysAgo(14), daysAgo(21)] }, // 2.23 → HOT
+      sections: { Wall: [daysAgo(0), daysAgo(7), daysAgo(14), daysAgo(21)] }, // ≈2.23, reset today → HOT
     });
-    const mid = makeGym({
-      slug: "mid",
-      sections: { Wall: [daysAgo(5), daysAgo(12), daysAgo(19), daysAgo(26)] }, // 1.58 → FRESH
+    const recent = makeGym({
+      slug: "recent",
+      sections: { Wall: [daysAgo(2), daysAgo(9), daysAgo(16), daysAgo(23)] }, // ≈1.94, reset 2d → FRESH
     });
     const cooling = makeGym({
       slug: "cooling",
-      sections: { Wall: [daysAgo(12), daysAgo(19), daysAgo(26)] }, // 0.87 → WORTH
+      sections: { Wall: [daysAgo(5), daysAgo(12), daysAgo(19), daysAgo(26)] }, // ≈1.58, reset 5d → WORTH
     });
 
-    const r = rankGyms([cooling, mid, fresh0], {});
+    const r = rankGyms([cooling, recent, fresh0], {});
 
     expect(r.hero?.gym.slug).toBe("fresh0");
     expect(r.hero?.tier.key).toBe("hot");
     expect(r.runnersUp.map((g) => [g.gym.slug, g.tier.key])).toEqual([
-      ["mid", "fresh"],
+      ["recent", "fresh"],
       ["cooling", "worth"],
     ]);
   });
@@ -492,7 +492,7 @@ describe("scoreGym - narrative (tier punchlines, two voices)", () => {
   it("anon + fresh → fresh-plastic punchline", () => {
     const a = makeGym({
       slug: "a",
-      sections: { All: [daysAgo(2), daysAgo(9), daysAgo(16)] }, // ≈1.74 → fresh
+      sections: { All: [daysAgo(2), daysAgo(9), daysAgo(16), daysAgo(23)] }, // ≈1.94 → fresh
     });
     expect(scoreGym(a, null).narrative).toBe("Last reset 2 days ago - plenty of fresh plastic.");
   });
