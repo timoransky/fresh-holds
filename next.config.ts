@@ -10,6 +10,21 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "5mb",
     },
   },
+  // HTTP content negotiation: agents that send `Accept: text/markdown` get the
+  // existing markdown digest (`/index.md`) from the same URL that serves HTML
+  // to browsers. `beforeFiles` runs before the filesystem, so `/` is rewritten
+  // before the page is matched. Add one rule per content route as the app grows.
+  async rewrites() {
+    return {
+      beforeFiles: [
+        {
+          source: "/",
+          has: [{ type: "header", key: "accept", value: "(.*)text/markdown(.*)" }],
+          destination: "/index.md",
+        },
+      ],
+    };
+  },
   async headers() {
     return [
       {
