@@ -7,6 +7,10 @@ export async function GET() {
     headers: {
       "content-type": "text/markdown; charset=utf-8",
       "cache-control": "public, max-age=0, s-maxage=300, stale-while-revalidate=600",
+      // This doc also backs `/` via content negotiation (see next.config.ts).
+      // Vary on Accept so a shared cache never serves markdown to a browser
+      // hitting `/`, or cached HTML to an agent.
+      vary: "Accept",
     },
   });
 }
