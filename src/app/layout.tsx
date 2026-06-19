@@ -53,7 +53,10 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/",
     types: {
-      "text/markdown": "/index.md",
+      // Fallback discovery for agents that don't content-negotiate. `/` already
+      // serves this same Markdown when requested with `Accept: text/markdown`
+      // (see next.config.ts rewrites); `/md` is the route handler behind it.
+      "text/markdown": "/md",
     },
   },
   openGraph: {

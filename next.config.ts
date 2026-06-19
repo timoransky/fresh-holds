@@ -10,6 +10,23 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "5mb",
     },
   },
+  async rewrites() {
+    return {
+      // beforeFiles so the Accept check wins before `/` resolves to the HTML
+      // page. Agents sending `Accept: text/markdown` transparently get the
+      // Markdown twin from the same URL (the route handler sets `Vary: Accept`);
+      // browsers send `text/html` and fall through to the page. One rule per
+      // content route — only `/` serves content today, so it gets `/md`; any
+      // future content route would map to its own parallel `/md/...` handler.
+      beforeFiles: [
+        {
+          source: "/",
+          has: [{ type: "header", key: "accept", value: "(.*)text/markdown(.*)" }],
+          destination: "/md",
+        },
+      ],
+    };
+  },
   async headers() {
     return [
       {
