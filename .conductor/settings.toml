@@ -1,0 +1,18 @@
+"$schema" = "https://conductor.build/schemas/settings.repo.schema.json"
+
+[scripts]
+# Install dependencies when a workspace is created. npm matches the repo's
+# package-lock.json (no pnpm/yarn lockfile present).
+setup = "npm install"
+
+# Next.js dev server on the workspace's allocated port so multiple workspaces
+# can run side by side without colliding. `--` forwards the flag to `next dev`.
+run = "npm run dev -- --port $CONDUCTOR_PORT"
+
+# Each workspace runs on its own CONDUCTOR_PORT and the only backend (Supabase)
+# is remote/shared, so parallel run scripts are safe.
+run_mode = "concurrent"
+
+# Reclaim disk from heavy gitignored build artifacts before the workspace is
+# archived. Scoped to the workspace dir, so it's safe and non-destructive.
+archive = "rm -rf node_modules .next"
