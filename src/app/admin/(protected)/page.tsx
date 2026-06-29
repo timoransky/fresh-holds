@@ -4,6 +4,7 @@ import { getGymsForAdmin, getRecentResets } from "@/lib/db/admin";
 import { parseRecentResetSort, type RecentResetSortKey } from "@/lib/db/admin-sort";
 import { ResetForm } from "@/components/admin/ResetForm";
 import { RecentResetsSort } from "@/components/admin/RecentResetsSort";
+import { EditableResetDate } from "@/components/admin/EditableResetDate";
 import { Card, CardContent } from "@/components/ui/card";
 
 export const metadata: Metadata = {
@@ -85,7 +86,7 @@ async function RecentResetsSection({ sortBy }: { sortBy: RecentResetSortKey }) {
             </div>
             {r.notes && <div className="mt-1 text-xs text-muted-foreground/70">{r.notes}</div>}
             <div className="mt-2 flex flex-wrap gap-x-3 gap-y-0.5 text-xs tabular-nums text-muted-foreground">
-              <span>Reset at: {r.reset_on}</span>
+              <EditableResetDate resetId={r.id} resetOn={r.reset_on} />
               <span>Logged at: {formatLoggedAt(r.created_at)}</span>
             </div>
           </CardContent>

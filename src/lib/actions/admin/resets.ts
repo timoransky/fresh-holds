@@ -3,6 +3,7 @@
 import { revalidatePath, revalidateTag } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
 import { fail, ok, type ActionResult } from "@/lib/actions/result";
+import { ISO_DATE_RE, todayISO } from "@/lib/date";
 
 export type SubmitResetResult = ActionResult;
 
@@ -57,4 +58,32 @@ export async function submitReset(
   revalidatePath("/admin");
   revalidateTag("gyms", "max");
   return ok(`Logged ${sectionIds.length} section reset${sectionIds.length > 1 ? "s" : ""}`);
+}
+
+export type UpdateResetDateResult = ActionResult;
+
+export async function updateResetDate(
+  prevState: UpdateResetDateResult,
+  formData: FormData,
+): Promise<UpdateResetDateResult> {
+  const ctx = await requireAdmin();
+  if ("error" in ctx) return fail(ctx.error);
+
+  const resetId = String(formData.get("reset_id") ?? "");
+  if (!resetId) return fail("Missing reset id");
+
+  const resetOn = String(formData.get("reset_on") ?? "");
+  if (!ISO_DATE_RE.test(resetOn)) return fail("Pick a valid date.");
+  if (resetOn > todayISO()) return fail("Reset date can't be in the future.");
+
+  const { error } = await ctx.supabase
+    .from("resets")
+    .update({ reset_on: resetOn })
+    .eq("id", resetId);
+
+  if (error) return fail(error.message);
+
+  revalidatePath("/admin");
+  revalidateTag("gyms", "max");
+  return ok("Reset date updated");
 }
