@@ -55,7 +55,7 @@ export async function approveSubmission(
 
   revalidatePath("/admin/submissions");
   revalidatePath("/admin");
-  revalidateTag("gyms", "max");
+  revalidateTag("gyms", { expire: 0 });
   return ok("Approved");
 }
 

@@ -1,6 +1,6 @@
 # ADR-0001 — Use `unstable_cache`, not `"use cache"` / `cacheComponents`
 
-Status: Accepted (2026-05-17)
+Status: Accepted (2026-05-17); updated 2026-07-02 — see "Update" below.
 
 ## Context
 
@@ -23,6 +23,8 @@ We initially shipped the `"use cache"` version. It built and the route showed as
 
 Disable `cacheComponents` (remove from `next.config.ts`). Use `unstable_cache` for both `getActiveGymsWithSections` and `getRankedGyms`. Drop the `<Suspense>` boundary around the gym list. Use `revalidateTag("gyms", "max")` (not `updateTag`) for admin invalidation.
 
+> **Superseded in part (2026-07-02).** Only `getActiveGymsWithSections` is cached now, and admin writes use `revalidateTag("gyms", { expire: 0 })` for blocking read-your-own-writes. See the **Update** section at the bottom.
+
 ## Consequences
 
 **What we gain**
@@ -36,13 +38,13 @@ Disable `cacheComponents` (remove from `next.config.ts`). Use `unstable_cache` f
 - **Deprecation risk.** `unstable_cache` will be removed at some future Next.js major. Likely v17 at the earliest, given how long it's been the primary caching API. Revisit this ADR when the removal timeline is announced.
 - **No PPR static shell anywhere in the app.** Every route is server-rendered on demand now. For Fresh Holds (one main route + tiny admin pages), this is fine — none of the routes had meaningful static content worth prerendering separately from the dynamic data.
 - **Cached return values must be JSON-serializable.** `unstable_cache` round-trips through JSON (in production). `Set` / `Map` / class instances do not survive. This bit us once already: `ScoredGym.freshSectionIds` was `Set<string>`, came back as `{}`, and threw `a.freshSectionIds.has is not a function` in Vercel logs. Now `string[]`. Anything new in the cached payload must be a primitive, plain object, or array.
-- **`revalidateTag` semantics changed in Next.js 16.** Single-arg form is deprecated; we pass `"max"` for stale-while-revalidate. `updateTag` is a cacheComponents-only API and is not available to us.
+- **`revalidateTag` semantics changed in Next.js 16.** Single-arg form is deprecated. `updateTag` (the blessed read-your-own-writes API) is cacheComponents-only and not available to us, so we pass an explicit profile as the second arg — see the Update below for which one and why.
 
 ## Implementation pointers
 
 - `src/lib/db/gyms.ts` — `getActiveGymsWithSections` wrapped in `unstable_cache`, tagged `["gyms"]`, `revalidate: 86400`.
-- `src/lib/db/ranking.ts` — `getRankedGyms(visitsCookieRaw, todayISO)` wrapped similarly; arguments form the cache key.
-- `src/lib/actions/admin/resets.ts`, `src/lib/actions/admin/submissions.ts` — call `revalidateTag("gyms", "max")` after writes.
+- `src/lib/db/ranking.ts` — `getRankedGyms(visitsCookieRaw)` is now a plain uncached function; see the Update.
+- `src/lib/actions/admin/resets.ts`, `src/lib/actions/admin/submissions.ts` — call `revalidateTag("gyms", { expire: 0 })` after writes.
 - `src/app/page.tsx` — reads `cookies()` + `getCurrentUser()` directly, calls `getRankedGyms`, renders. No `<Suspense>` around the gym list. The auth header keeps its own Suspense for unrelated reasons (auth lookup can be slow; streaming it is still useful).
 
 ## Revisit when
@@ -50,3 +52,35 @@ Disable `cacheComponents` (remove from `next.config.ts`). Use `unstable_cache` f
 - Next.js announces a removal date for `unstable_cache`.
 - A new Next.js version makes Cache Components viable without forcing a Suspense fallback for dynamic content (e.g. cached dynamic components that render synchronously on cache hit).
 - We add routes that would genuinely benefit from a prerendered static shell.
+
+## Update (2026-07-02) — one cache layer + blocking invalidation
+
+The original design cached **two** nested layers, both tagged `["gyms"]`:
+`getRankedGyms(visitsCookieRaw, todayISO)` (per visit-pattern + per day) wrapping
+`getActiveGymsWithSections()` (one global entry). Combined with
+`revalidateTag("gyms", "max")` — which is **stale-while-revalidate**: it marks the
+tag stale and serves the _old_ payload on the next request while refreshing in the
+background — a newly logged reset did not show up on reload. The outer layer's
+background refresh could even re-run against the still-stale inner layer, so a
+plain refresh kept showing the old order until the caches happened to converge (a
+hard refresh was the reliable escape hatch).
+
+Two changes fix it:
+
+1. **One cache layer.** `getRankedGyms` is no longer cached — it's a plain async
+   function that calls the cached `getActiveGymsWithSections()` and runs `rankGyms`
+   (pure CPU over ~a dozen gyms) fresh on every request. Only the DB fetch is
+   cached/tagged. This removes the nested-cache convergence problem and the
+   per-visit-pattern/per-day key fragmentation, and — because `rankGyms` reads the
+   clock through `daysSince()` — the ranking now always reflects the current time
+   instead of freezing at cache-write time. This supersedes goal #2 in Context
+   ("caching keyed per visit pattern + per day"); the per-day key was only there to
+   bound clock drift, which uncached ranking makes moot. Goals #1 (server-side
+   ranking) and #3 (no skeleton flash) are unchanged.
+2. **Blocking invalidation.** Admin writes now call
+   `revalidateTag("gyms", { expire: 0 })` — immediate expiration, so the next
+   request is a blocking cache miss that recomputes fresh (no stale served). We
+   accept a short recompute wait after a write in exchange for read-your-own-writes
+   correctness. `{ expire: 0 }` is the documented immediate-expiration form that
+   works with `unstable_cache` tags; `updateTag` (the API otherwise blessed for
+   this) remains cacheComponents-only and unavailable to us.
