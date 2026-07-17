@@ -3,21 +3,21 @@
 // Rows land in the same moderation queue as human suggestions and only reach
 // the trusted `resets` table when an admin approves them in /admin.
 //
-// Writes with the Supabase service-role key, which bypasses RLS (so the
-// per-user 5-pending cap doesn't apply) — that's why this must NEVER run in
-// the browser or ship in the app bundle. It's an operational script only.
+// Signs in as a DEDICATED, LEAST-PRIVILEGE bot user (email + password) and
+// writes through normal RLS as an ordinary `authenticated` user. That user can
+// only insert its own pending submissions (capped at 5 pending) and upload a
+// photo to its own folder — it cannot approve, update, delete, write `resets`,
+// or read other users' data. No service-role key is used, so a leaked secret
+// can at worst file pending suggestions an admin will reject.
 //
 // Dry-run by default: it prints what it WOULD do. Pass --commit to insert.
 //
 // Required env:
-//   SUPABASE_SERVICE_ROLE_KEY    Project Settings → API → service_role. Bypasses
-//                                RLS so it can insert past the 5-pending cap.
-//   SUPABASE_URL or NEXT_PUBLIC_SUPABASE_URL    your project URL.
+//   SUPABASE_URL or NEXT_PUBLIC_SUPABASE_URL              project URL.
+//   SUPABASE_ANON_KEY or NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY   public anon key.
+//   SUPABASE_BOT_EMAIL, SUPABASE_BOT_PASSWORD             the bot user's login.
 //
-// Optional env:
-//   SUBMITTER_PROFILE_ID         profiles.id to attribute rows to (satisfies the
-//                                submitted_by FK). Defaults to the first admin
-//                                profile found in the DB.
+// The submitter is the bot user itself (submitted_by = its own uid).
 //
 // Input: a JSON array on stdin, or --file <path>. Each item:
 //   {
@@ -40,11 +40,15 @@
 import { readFileSync } from "node:fs";
 
 const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
-const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const anonKey = process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+const botEmail = process.env.SUPABASE_BOT_EMAIL;
+const botPassword = process.env.SUPABASE_BOT_PASSWORD;
 
-if (!url || !serviceKey) {
+if (!url || !anonKey || !botEmail || !botPassword) {
   console.error(
-    "Missing SUPABASE_SERVICE_ROLE_KEY and/or a Supabase URL (SUPABASE_URL or NEXT_PUBLIC_SUPABASE_URL).\n" +
+    "Missing one of: a Supabase URL (SUPABASE_URL / NEXT_PUBLIC_SUPABASE_URL), " +
+      "a public key (SUPABASE_ANON_KEY / NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY), " +
+      "SUPABASE_BOT_EMAIL, SUPABASE_BOT_PASSWORD.\n" +
       "See docs/instagram-stories-pilot.md → Setup.",
   );
   process.exit(1);
@@ -70,27 +74,19 @@ if (!Array.isArray(items)) {
 }
 
 const { createClient } = await import("@supabase/supabase-js");
-const supabase = createClient(url, serviceKey, { auth: { persistSession: false } });
+const supabase = createClient(url, anonKey, { auth: { persistSession: false } });
 
-// Attribute rows to an admin profile (submitted_by FK is non-null). Prefer the
-// env override; otherwise pick the first admin in the DB.
-let submitter = process.env.SUBMITTER_PROFILE_ID;
-if (!submitter) {
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("id")
-    .eq("is_admin", true)
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
-  if (error || !data) {
-    console.error(
-      "No SUBMITTER_PROFILE_ID set and couldn't find an admin profile to attribute submissions to.",
-    );
-    process.exit(1);
-  }
-  submitter = data.id;
+// Sign in as the bot. All subsequent queries run as this authenticated user,
+// bound by RLS — so `submitted_by` is its own uid and it can do nothing else.
+const { data: auth, error: authErr } = await supabase.auth.signInWithPassword({
+  email: botEmail,
+  password: botPassword,
+});
+if (authErr || !auth?.user) {
+  console.error(`Bot sign-in failed: ${authErr?.message ?? "no user returned"}`);
+  process.exit(1);
 }
+const submitter = auth.user.id;
 
 const summary = { inserted: 0, wouldInsert: 0, skippedLowConf: 0, skippedDuplicate: 0, invalid: 0 };
 
@@ -197,6 +193,13 @@ for (const [i, item] of items.entries()) {
   });
 
   if (insErr) {
+    if (insErr.code === "42501") {
+      console.log(
+        `ERR   ${label} — RLS rejected the insert. Likely the 5-pending cap ` +
+          "(clear the queue in /admin) or the bot user isn't set up. Stopping.",
+      );
+      break;
+    }
     console.log(`ERR   ${label} — insert failed: ${insErr.message}`);
     summary.invalid++;
     continue;
