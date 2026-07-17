@@ -87,8 +87,21 @@ if (!Array.isArray(items)) {
   process.exit(1);
 }
 
+// Some actors return one dataset item per story; others (e.g. seemuapps) return
+// one item per user with a nested `stories` array. Flatten both to story level,
+// carrying the parent username down so each story knows its handle.
+const storyItems = items.flatMap((it) => {
+  if (it && Array.isArray(it.stories)) {
+    return it.stories.map((st) => ({
+      ...st,
+      ownerUsername: st.ownerUsername ?? st.username ?? it.username ?? it.ownerUsername,
+    }));
+  }
+  return [it];
+});
+
 const now = Date.now();
-const normalized = items
+const normalized = storyItems
   .map((it) => normalize(it, handleMap))
   .filter((s) => s && s.mediaUrl)
   .filter((s) => {
@@ -99,8 +112,8 @@ const normalized = items
 
 process.stdout.write(JSON.stringify(normalized, null, 2) + "\n");
 console.error(
-  `Handles: ${handles.join(", ")}. Fetched ${items.length} raw item(s); ` +
-    `${normalized.length} story(ies) within ${maxAgeHours}h with media.`,
+  `Handles: ${handles.join(", ")}. ${items.length} dataset item(s) → ${storyItems.length} story(ies); ` +
+    `${normalized.length} kept (within ${maxAgeHours}h, with media).`,
 );
 
 // --- helpers -----------------------------------------------------------------
@@ -144,23 +157,21 @@ function normalize(it, handleMap) {
   if (!it || typeof it !== "object") return null;
 
   const handle = normHandle(
-    it.ownerUsername ?? it.username ?? it.owner?.username ?? it.user?.username ?? "",
+    it.ownerUsername ?? it.username ?? it.owner_username ?? it.owner?.username ?? it.user?.username ?? "",
   );
 
-  const takenAtRaw = it.timestamp ?? it.takenAt ?? it.takenAtTimestamp ?? it.taken_at ?? null;
+  const takenAtRaw =
+    it.timestamp ?? it.takenAt ?? it.takenAtISO ?? it.takenAtTimestamp ?? it.taken_at ?? null;
   const takenAt = toIso(takenAtRaw);
 
-  // Prefer a still image (viewable); fall back to video/any url. Instagram
-  // stories are often video — the extractor can still read the poster frame.
-  const mediaUrl =
-    it.displayUrl ??
-    it.imageUrl ??
-    it.image_url ??
-    it.url ??
-    it.videoUrl ??
-    it.video_url ??
-    (Array.isArray(it.images) ? it.images[0] : null) ??
-    null;
+  const mediaUrl = pickMediaUrl(it);
+
+  const mediaType =
+    typeof it.mediaType === "string"
+      ? it.mediaType.toLowerCase()
+      : it.videoUrl || it.video_url || it.type === "Video" || /\.mp4(\?|$)/i.test(mediaUrl ?? "")
+        ? "video"
+        : "image";
 
   return {
     handle,
@@ -168,12 +179,50 @@ function normalize(it, handleMap) {
     storyId: String(it.id ?? it.storyId ?? it.shortCode ?? it.pk ?? mediaUrl ?? ""),
     takenAt,
     caption: it.caption ?? it.text ?? it.accessibilityCaption ?? null,
-    mediaType: it.videoUrl || it.video_url || it.type === "Video" ? "video" : "image",
+    mediaType,
     mediaUrl,
-    videoUrl: it.videoUrl ?? it.video_url ?? null,
+    videoUrl: it.videoUrl ?? it.video_url ?? (mediaType === "video" ? mediaUrl : null),
     permalink: it.url ?? it.permalink ?? null,
     raw: it, // keep everything so nothing is lost if field names differ
   };
+}
+
+// Find the story's media URL. Try well-known keys first (a still image is
+// preferred — it's viewable), then fall back to any media-looking URL on a
+// media-ish key, so a new actor with different field names still works. Skips
+// profile/avatar/thumbnail keys so we don't grab the poster's avatar.
+function pickMediaUrl(it) {
+  const known =
+    it.displayUrl ??
+    it.imageUrl ??
+    it.image_url ??
+    it.image ??
+    firstUrl(it.images) ??
+    firstUrl(it.allImages) ??
+    it.videoUrl ??
+    it.video_url ??
+    it.video ??
+    firstUrl(it.allVideos) ??
+    it.url;
+  if (isUrl(known)) return known;
+
+  for (const [k, v] of Object.entries(it)) {
+    if (/profile|avatar|thumb/i.test(k)) continue;
+    if (/image|video|media|display|photo|src|url/i.test(k)) {
+      if (isUrl(v)) return v;
+      const f = firstUrl(v);
+      if (f) return f;
+    }
+  }
+  return null;
+}
+
+function isUrl(v) {
+  return typeof v === "string" && /^https?:\/\//.test(v);
+}
+
+function firstUrl(v) {
+  return Array.isArray(v) ? v.find(isUrl) ?? null : null;
 }
 
 function toIso(v) {
