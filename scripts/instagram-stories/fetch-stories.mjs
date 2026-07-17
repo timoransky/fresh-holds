@@ -11,8 +11,10 @@
 //
 // Required env:
 //   APIFY_TOKEN                              Apify API token.
-//   SUPABASE_SERVICE_ROLE_KEY + a URL        (SUPABASE_URL or
-//     NEXT_PUBLIC_SUPABASE_URL) — only when NOT using --handles.
+//   A public Supabase key + URL              (SUPABASE_ANON_KEY /
+//     NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, and SUPABASE_URL /
+//     NEXT_PUBLIC_SUPABASE_URL) — only when NOT using --handles. Gyms are
+//     public-read, so the anon key is enough; no service-role key needed.
 //
 // Optional env:
 //   APIFY_ACTOR_ID      default: igview-owner~instagram-story-viewer
@@ -105,10 +107,10 @@ console.error(
 
 async function handlesFromDb() {
   const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const key = process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
   if (!url || !key) {
     console.error(
-      "Missing Supabase creds to read the gym list (SUPABASE_SERVICE_ROLE_KEY + a URL), " +
+      "Missing Supabase creds to read the gym list (a public key + URL), " +
         "or pass --handles for an ad-hoc fetch.",
     );
     process.exit(1);

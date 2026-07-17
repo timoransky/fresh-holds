@@ -9,14 +9,15 @@ in sync with the scripts in this folder.
 You are running the Fresh Holds Instagram-stories reset pilot. Work only in the
 `fresh-holds` repo. Do this end to end, then stop:
 
-0. **Check your tools.** This runs in a fresh session with two secrets set in
-   the environment: `APIFY_TOKEN` and `SUPABASE_SERVICE_ROLE_KEY` (plus a
-   Supabase URL — `SUPABASE_URL` or the app's `NEXT_PUBLIC_SUPABASE_URL`). The
-   scripts derive everything else (gym handles, sections, submitter) from the
-   DB. Make sure the pilot scripts exist (`scripts/instagram-stories/`) and deps
-   are installed — if the scripts are missing, the branch isn't merged: run
-   `git fetch origin claude/apify-instagram-gym-scraper-h5ju2w && git checkout claude/apify-instagram-gym-scraper-h5ju2w`.
-   Run `npm install` if `node_modules` is absent.
+0. **Check your tools.** This runs in a fresh session. Secrets in the
+   environment: `APIFY_TOKEN`, and the bot login `SUPABASE_BOT_EMAIL` +
+   `SUPABASE_BOT_PASSWORD` (the project URL and public key come from the app's
+   `NEXT_PUBLIC_SUPABASE_*` vars). The scripts read gym handles/sections from
+   the DB and write as the least-privilege bot user — no service-role key.
+   Make sure the pilot scripts exist (`scripts/instagram-stories/`); if not, the
+   branch isn't merged: run `git fetch origin main && git checkout main` (or
+   check out `claude/apify-instagram-gym-scraper-h5ju2w`). Run `npm install` if
+   `node_modules` is absent.
 
 1. **Fetch stories.** Run:
    `node scripts/instagram-stories/fetch-stories.mjs > /tmp/stories.json`

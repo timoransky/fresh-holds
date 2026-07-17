@@ -17,14 +17,17 @@ section).
   `resets` table, and scraping is noisy. Routing through `reset_submissions`
   reuses the existing moderation UI and keeps the trusted table clean
   (`supabase/migrations/0005_reset_submissions.sql`).
-- **Service-role writes.** RLS caps *users* at 5 pending submissions; a bot
-  would hit that instantly. Writing with the service-role key bypasses RLS, so
-  no cap and no fake auth user is needed — rows are attributed to an existing
-  admin `profiles.id` (the `submitted_by` FK is non-null), picked from the DB.
-- **The DB is the source of truth.** Gym handles, sections, and the submitter
-  are all read from Supabase at runtime — there's no hardcoded gym config to
-  keep in sync. Add a gym's `instagram_handle` and it's scraped next run; no
-  code change.
+- **Least-privilege bot user, not service-role.** The job signs in as a
+  dedicated Supabase auth user and writes through normal RLS as an ordinary
+  `authenticated` user. It can only insert its own **pending** submissions
+  (capped at 5 pending) and upload a photo to its own folder — it cannot
+  approve, update, delete, write `resets`, or read other users' data. No
+  service-role key is used anywhere, so a leaked secret can at worst file
+  pending suggestions an admin will reject. Migration `0010` closes an
+  `is_admin` self-escalation hole so the bot user can't be promoted to admin.
+- **The DB is the source of truth.** Gym handles and sections are read from
+  Supabase at runtime — no hardcoded gym config to keep in sync. Add a gym's
+  `instagram_handle` and it's scraped next run; no code change.
 - **Stories are hard mode.** They vanish in 24h and are normally login-walled.
   The chosen actor (`igview-owner/instagram-story-viewer`) reads public
   accounts' stories without *you* supplying an Instagram login, which removes
@@ -55,7 +58,7 @@ fetch-stories.mjs ──> stories.json ──> agent reads each image + caption
    (handles from DB,                     │
     Apify actor)                         ├─ reset? gym? section? date? count? confidence
                                          ▼
-                              submit-resets.mjs (service role, dedup, photo, dry-run first)
+                              submit-resets.mjs (bot login, dedup, photo, dry-run first)
                                          ▼
                               reset_submissions (pending) ──> /admin approve ──> resets
 ```
@@ -75,23 +78,30 @@ fetch-stories.mjs ──> stories.json ──> agent reads each image + caption
 1. **Apify** — create an account and copy an **API token** (Settings →
    Integrations → API tokens). The pilot defaults to the
    `igview-owner/instagram-story-viewer` actor, which needs no Instagram login.
-2. **Supabase** — from Project Settings → API, copy the **service_role** key.
-   (The project URL is reused from the app's `NEXT_PUBLIC_SUPABASE_URL` if it's
-   already set in the environment.)
-3. **Environment variables** — set these in the Claude Code environment config
-   (NOT committed — `.env*` is gitignored, and the service-role key must never
-   ship in the app). Only the first two are required:
+2. **Run migration `0010`** (`supabase db push`, or paste it in the SQL editor).
+   It closes the `is_admin` self-escalation hole the bot design relies on.
+3. **Create the bot user** — Supabase dashboard → Authentication → Add user.
+   Give it an email (e.g. `ig-bot@yourdomain`) and a password, and tick **Auto
+   Confirm User**. Make sure the Email provider's password sign-in is enabled
+   (Authentication → Providers → Email). Do **not** make it an admin. That's it —
+   under existing RLS it can only file its own pending submissions.
+4. **Environment variables** — set these in the Claude Code environment config
+   (NOT committed — `.env*` is gitignored). The bot password is the only
+   sensitive new value, and its blast radius is "can file pending suggestions":
 
    | Var | Required? | Purpose |
    |---|---|---|
    | `APIFY_TOKEN` | ✅ | Apify API token |
-   | `SUPABASE_SERVICE_ROLE_KEY` | ✅ | service-role key (bypasses RLS for the insert) |
+   | `SUPABASE_BOT_EMAIL` | ✅ | the bot user's email |
+   | `SUPABASE_BOT_PASSWORD` | ✅ | the bot user's password |
    | `SUPABASE_URL` | only if `NEXT_PUBLIC_SUPABASE_URL` isn't set | project URL |
+   | `SUPABASE_ANON_KEY` | only if `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` isn't set | public anon key |
    | `APIFY_ACTOR_ID` | optional | defaults to `igview-owner~instagram-story-viewer` |
    | `APIFY_INPUT_JSON` | optional | extra actor input, if you swap actors |
-   | `SUBMITTER_PROFILE_ID` | optional | defaults to the first admin profile in the DB |
 
-4. **Confirm reachability** — from a session in this environment,
+   No service-role key — by design.
+
+5. **Confirm reachability** — from a session in this environment,
    `curl -sS -o /dev/null -w "%{http_code}" "$SUPABASE_URL/rest/v1/"` should not
    return a proxy `502`/`403`. Apify, Instagram, and its CDN are already
    reachable here; if the Supabase host is blocked, an admin adds it to the
@@ -122,13 +132,12 @@ involved.
 
 Two prerequisites before the trigger is created:
 
-1. **The two secrets set** in the environment config (`APIFY_TOKEN`,
-   `SUPABASE_SERVICE_ROLE_KEY`, plus a Supabase URL).
-2. **The pilot code is reachable by a fresh session.** A new session clones the
-   default branch, so either merge this branch to the default branch, or rely
-   on the prompt's step 0, which checks out
-   `claude/apify-instagram-gym-scraper-h5ju2w` if the scripts are missing.
-   Merging is cleaner.
+1. **Setup done** — migration `0010` applied, the bot user created, and the env
+   vars set (`APIFY_TOKEN`, `SUPABASE_BOT_EMAIL`, `SUPABASE_BOT_PASSWORD`, plus a
+   Supabase URL + public key).
+2. **The pilot code is on the default branch** so a fresh session's clone has
+   it. (The prompt's step 0 falls back to checking out the feature branch if the
+   scripts are ever missing.)
 
 Because stories only live ~24h, a missed day means missed stories — pick days
 that match when the gyms actually post. A missed run can't backfill.
