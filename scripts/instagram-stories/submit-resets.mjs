@@ -23,8 +23,11 @@
 //     "reset_on":       "2026-07-17",      // YYYY-MM-DD, not in the future
 //     "boulders_reset": 12,                // optional, positive int or null
 //     "notes":          "New set on Cave", // optional, shown in /admin + UI
-//     "source_ref":     "ig:spotbouldering:<storyId>", // optional, for logs
-//     "confidence":     0.9                // optional 0..1, gated by --min-confidence
+//     "source_ref":     "ig:spot_climbing_gym:<storyId>", // optional, for logs
+//     "confidence":     0.9,               // optional 0..1, gated by --min-confidence
+//     "image_url":      "https://.../story.jpg" // optional; uploaded to the
+//                                          // reset-photos bucket so the admin
+//                                          // sees it in /admin, like a user photo
 //   }
 //
 // Usage:
@@ -47,6 +50,7 @@ if (!url || !serviceKey || !submitter) {
 
 const commit = process.argv.includes("--commit");
 const minConfidence = Number(getArg("--min-confidence") ?? 0.6);
+const PHOTO_BUCKET = "reset-photos";
 const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const todayISO = new Date().toISOString().slice(0, 10);
 
@@ -140,12 +144,24 @@ for (const [i, item] of items.entries()) {
 
   const notes = typeof item.notes === "string" && item.notes.trim() ? item.notes.trim() : null;
 
+  const hasPhoto = typeof item.image_url === "string" && item.image_url.startsWith("http");
+
   if (!commit) {
     console.log(
-      `DRY   ${label} — would insert (boulders=${boulders ?? "—"}, notes=${JSON.stringify(notes)}, src=${item.source_ref ?? "—"})`,
+      `DRY   ${label} — would insert (boulders=${boulders ?? "—"}, notes=${JSON.stringify(notes)}, ` +
+        `photo=${hasPhoto ? "yes" : "no"}, src=${item.source_ref ?? "—"})`,
     );
     summary.wouldInsert++;
     continue;
+  }
+
+  // Upload the story frame so the admin reviews it with the image attached,
+  // exactly like a user's "suggest a reset" photo. Non-fatal on failure — a
+  // submission without a photo is still useful.
+  let photoPath = null;
+  if (hasPhoto) {
+    photoPath = await uploadPhoto(item.image_url);
+    if (!photoPath) console.log(`WARN  ${label} — photo upload failed, submitting without it`);
   }
 
   const { error: insErr } = await supabase.from("reset_submissions").insert({
@@ -155,6 +171,7 @@ for (const [i, item] of items.entries()) {
     boulders_reset: boulders,
     submitted_by: submitter,
     status: "pending",
+    photo_path: photoPath,
   });
 
   if (insErr) {
@@ -162,7 +179,7 @@ for (const [i, item] of items.entries()) {
     summary.invalid++;
     continue;
   }
-  console.log(`OK    ${label} — submitted (src=${item.source_ref ?? "—"})`);
+  console.log(`OK    ${label} — submitted (photo=${photoPath ? "yes" : "no"}, src=${item.source_ref ?? "—"})`);
   summary.inserted++;
 }
 
@@ -176,4 +193,24 @@ if (!commit) console.log("Re-run with --commit to actually submit.");
 function getArg(name) {
   const idx = process.argv.indexOf(name);
   return idx !== -1 && process.argv[idx + 1] ? process.argv[idx + 1] : null;
+}
+
+// Download the story frame and put it in the private reset-photos bucket under
+// submissions/<submitter>/... (same folder convention as the app's user
+// uploads). Returns the object path, or null on any failure.
+async function uploadPhoto(imageUrl) {
+  try {
+    const res = await fetch(imageUrl);
+    if (!res.ok) return null;
+    const contentType = res.headers.get("content-type") ?? "image/jpeg";
+    const ext = contentType.includes("png") ? "png" : "jpg";
+    const bytes = new Uint8Array(await res.arrayBuffer());
+    const path = `submissions/${submitter}/${crypto.randomUUID()}.${ext}`;
+    const { error } = await supabase.storage
+      .from(PHOTO_BUCKET)
+      .upload(path, bytes, { contentType, upsert: false });
+    return error ? null : path;
+  } catch {
+    return null;
+  }
 }

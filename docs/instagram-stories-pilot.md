@@ -105,11 +105,25 @@ node scripts/instagram-stories/submit-resets.mjs --file /tmp/resets.json --commi
 
 ## Scheduling
 
-A Claude Code Routine fires `routine-prompt.md` on your chosen days (a cron
-expression — e.g. weekdays only, or daily). Because stories only live ~24h, a
-missed day means missed stories; pick days that match when the gyms actually
-post. The trigger is created once the secrets are in and a manual run looks
-good.
+The pilot runs as a **Claude Code Routine** set to **start a fresh session on
+each firing** (not a session-only cron — those die when the session ends). Each
+day the Routine spins up a new session in this environment, which already has
+the env vars baked in, runs `routine-prompt.md`, files any submissions, and
+exits. Nothing needs to stay running between firings, and no app/Claude-API
+cost is involved.
+
+Two prerequisites before the trigger is created:
+
+1. **All env vars set** in the environment config (the fetch half only needs
+   `APIFY_*`; writing needs the three `SUPABASE_*`/`SUBMITTER_*` vars).
+2. **The pilot code is reachable by a fresh session.** A new session clones the
+   default branch, so either merge this branch to the default branch, or rely
+   on the prompt's step 0, which checks out
+   `claude/apify-instagram-gym-scraper-h5ju2w` if the scripts are missing.
+   Merging is cleaner.
+
+Because stories only live ~24h, a missed day means missed stories — pick days
+that match when the gyms actually post. A missed run can't backfill.
 
 ## Known risks & limits
 

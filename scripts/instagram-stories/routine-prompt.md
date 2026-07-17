@@ -9,6 +9,14 @@ in sync with the scripts in this folder.
 You are running the Fresh Holds Instagram-stories reset pilot. Work only in the
 `fresh-holds` repo. Do this end to end, then stop:
 
+0. **Check your tools.** This runs in a fresh session with these env vars
+   already set: `APIFY_TOKEN`, `APIFY_ACTOR_ID`, `SUPABASE_URL`,
+   `SUPABASE_SERVICE_ROLE_KEY`, `SUBMITTER_PROFILE_ID`. Make sure the pilot
+   scripts exist (`scripts/instagram-stories/`) and deps are installed — if the
+   scripts are missing, the branch isn't merged: run
+   `git fetch origin claude/apify-instagram-gym-scraper-h5ju2w && git checkout claude/apify-instagram-gym-scraper-h5ju2w`.
+   Run `npm install` if `node_modules` is absent.
+
 1. **Fetch stories.** Run:
    `node scripts/instagram-stories/fetch-stories.mjs > /tmp/stories.json`
    If it exits non-zero, report the error and stop (usually a missing/expired
@@ -34,6 +42,8 @@ You are running the Fresh Holds Instagram-stories reset pilot. Work only in the
    - `notes` — one short, clean human line (e.g. "New set on the Cave"). No
      provenance tags, no emoji dump — this may end up in public UI copy.
    - `source_ref` — `ig:<handle>:<storyId>` so runs are traceable in the log.
+   - `image_url` — the story's `mediaUrl`, so the frame is uploaded and the
+     admin reviews the submission with the photo attached.
    - `confidence` — 0..1. Be honest; borderline reads should score low.
 
 4. **Submit.** Write the records as a JSON array to `/tmp/resets.json`, then:
