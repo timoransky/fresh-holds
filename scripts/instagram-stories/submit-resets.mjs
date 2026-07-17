@@ -10,11 +10,14 @@
 // Dry-run by default: it prints what it WOULD do. Pass --commit to insert.
 //
 // Required env:
-//   SUPABASE_URL                 e.g. https://xxxx.supabase.co
-//   SUPABASE_SERVICE_ROLE_KEY    Project Settings → API → service_role
-//   SUBMITTER_PROFILE_ID         profiles.id to attribute rows to (your admin
-//                                profile id for the pilot). Satisfies the
-//                                submitted_by FK.
+//   SUPABASE_SERVICE_ROLE_KEY    Project Settings → API → service_role. Bypasses
+//                                RLS so it can insert past the 5-pending cap.
+//   SUPABASE_URL or NEXT_PUBLIC_SUPABASE_URL    your project URL.
+//
+// Optional env:
+//   SUBMITTER_PROFILE_ID         profiles.id to attribute rows to (satisfies the
+//                                submitted_by FK). Defaults to the first admin
+//                                profile found in the DB.
 //
 // Input: a JSON array on stdin, or --file <path>. Each item:
 //   {
@@ -38,11 +41,10 @@ import { readFileSync } from "node:fs";
 
 const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const submitter = process.env.SUBMITTER_PROFILE_ID;
 
-if (!url || !serviceKey || !submitter) {
+if (!url || !serviceKey) {
   console.error(
-    "Missing one of SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY / SUBMITTER_PROFILE_ID.\n" +
+    "Missing SUPABASE_SERVICE_ROLE_KEY and/or a Supabase URL (SUPABASE_URL or NEXT_PUBLIC_SUPABASE_URL).\n" +
       "See docs/instagram-stories-pilot.md → Setup.",
   );
   process.exit(1);
@@ -69,6 +71,26 @@ if (!Array.isArray(items)) {
 
 const { createClient } = await import("@supabase/supabase-js");
 const supabase = createClient(url, serviceKey, { auth: { persistSession: false } });
+
+// Attribute rows to an admin profile (submitted_by FK is non-null). Prefer the
+// env override; otherwise pick the first admin in the DB.
+let submitter = process.env.SUBMITTER_PROFILE_ID;
+if (!submitter) {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("is_admin", true)
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+  if (error || !data) {
+    console.error(
+      "No SUBMITTER_PROFILE_ID set and couldn't find an admin profile to attribute submissions to.",
+    );
+    process.exit(1);
+  }
+  submitter = data.id;
+}
 
 const summary = { inserted: 0, wouldInsert: 0, skippedLowConf: 0, skippedDuplicate: 0, invalid: 0 };
 

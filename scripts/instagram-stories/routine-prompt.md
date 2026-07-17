@@ -9,11 +9,12 @@ in sync with the scripts in this folder.
 You are running the Fresh Holds Instagram-stories reset pilot. Work only in the
 `fresh-holds` repo. Do this end to end, then stop:
 
-0. **Check your tools.** This runs in a fresh session with these env vars
-   already set: `APIFY_TOKEN`, `APIFY_ACTOR_ID`, `SUPABASE_URL`,
-   `SUPABASE_SERVICE_ROLE_KEY`, `SUBMITTER_PROFILE_ID`. Make sure the pilot
-   scripts exist (`scripts/instagram-stories/`) and deps are installed — if the
-   scripts are missing, the branch isn't merged: run
+0. **Check your tools.** This runs in a fresh session with two secrets set in
+   the environment: `APIFY_TOKEN` and `SUPABASE_SERVICE_ROLE_KEY` (plus a
+   Supabase URL — `SUPABASE_URL` or the app's `NEXT_PUBLIC_SUPABASE_URL`). The
+   scripts derive everything else (gym handles, sections, submitter) from the
+   DB. Make sure the pilot scripts exist (`scripts/instagram-stories/`) and deps
+   are installed — if the scripts are missing, the branch isn't merged: run
    `git fetch origin claude/apify-instagram-gym-scraper-h5ju2w && git checkout claude/apify-instagram-gym-scraper-h5ju2w`.
    Run `npm install` if `node_modules` is absent.
 
@@ -29,11 +30,14 @@ You are running the Fresh Holds Instagram-stories reset pilot. Work only in the
 
 3. **Decide, per story, whether it announces a reset** (new boulders set on a
    section). Extract a structured record only when you're reasonably sure:
-   - `gym_slug` — from `gymSlugCandidates`. If the handle maps to more than one
-     gym (Block Dock: `block-dock-raca` vs `block-dock-petrzalka`), use the
-     content + the `locationHints` in `config.mjs` to pick. **If you can't tell
-     the location, skip it** — a wrong location is worse than a missed reset.
-   - `section_name` — must match a section of that gym in `config.mjs`. If the
+   - `gym_slug` — from the story's `gymSlugCandidates`. If a handle maps to more
+     than one gym (Block Dock runs both `block-dock-raca` and
+     `block-dock-petrzalka` from `@blockdock`), read the content to pick the
+     location — look for "Rača"/"Račianska" vs "Petržalka" in the visuals or
+     text. **If you can't tell which location, skip it** — a wrong location is
+     worse than a missed reset.
+   - `section_name` — must match one of that gym's section names. The submit
+     script validates this against the DB, so use the real sector name; if the
      story doesn't name/show a specific sector, skip it (submissions require a
      section).
    - `reset_on` — the date the set happened. Use the story's own date/`takenAt`

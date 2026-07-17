@@ -1,9 +1,10 @@
 # Instagram-stories → reset submissions (pilot)
 
 A daily job reads the active gyms' Instagram **stories**, and for any that
-announce a reset, files a `reset_submissions` row (status `pending`). An admin
-then approves or rejects it in `/admin`, exactly like a human "suggest a reset".
-Nothing reaches the trusted `resets` table without a human in the loop.
+announce a reset, files a `reset_submissions` row (status `pending`) with the
+story frame attached. An admin then approves or rejects it in `/admin`, exactly
+like a human "suggest a reset". Nothing reaches the trusted `resets` table
+without a human in the loop.
 
 This is a **pilot** run from a scheduled Claude Code Routine — the reading and
 extraction are done by the agent, so there's no `ANTHROPIC_API_KEY` and no app
@@ -18,76 +19,79 @@ section).
   (`supabase/migrations/0005_reset_submissions.sql`).
 - **Service-role writes.** RLS caps *users* at 5 pending submissions; a bot
   would hit that instantly. Writing with the service-role key bypasses RLS, so
-  no cap and no fake auth user is needed — we just attribute rows to an existing
-  admin `profiles.id` (the `submitted_by` FK is non-null).
-- **Stories are hard mode.** They're not publicly readable and vanish in 24h.
-  See the risk note below. Posts/reels would be more reliable, but this pilot
-  does stories per the request.
+  no cap and no fake auth user is needed — rows are attributed to an existing
+  admin `profiles.id` (the `submitted_by` FK is non-null), picked from the DB.
+- **The DB is the source of truth.** Gym handles, sections, and the submitter
+  are all read from Supabase at runtime — there's no hardcoded gym config to
+  keep in sync. Add a gym's `instagram_handle` and it's scraped next run; no
+  code change.
+- **Stories are hard mode.** They vanish in 24h and are normally login-walled.
+  The chosen actor (`igview-owner/instagram-story-viewer`) reads public
+  accounts' stories without *you* supplying an Instagram login, which removes
+  the burner-account hassle — but it's still ToS-gray and can break. See risks.
 
-## Coverage (from `supabase/seed.sql`)
+## Coverage
+
+Handles come from the `gyms` table (active rows with a non-null
+`instagram_handle`). Today:
 
 | Gym | Handle | Scraped? |
 |---|---|---|
-| Spot | `@spotbouldering` | ✅ |
+| Spot | `@spot_climbing_gym` | ✅ |
 | Block Dock – Rača | `@blockdock` | ✅ (shared handle) |
 | Block Dock – Petržalka | `@blockdock` | ✅ (shared handle) |
 | K2 | — | ❌ no handle |
 | Vertigo | — | ❌ no handle |
 
-Block Dock runs both locations from one handle, so a story from `@blockdock`
-can't be attributed to a location by handle alone — the extractor reads the
-content and uses `locationHints` in `config.mjs`, and **skips** when it can't
-tell. To cover K2/Vertigo, add their `instagram_handle` in the seed and DB, then
-add them to `config.mjs`.
+Block Dock runs both locations from one handle, so a `@blockdock` story can't be
+attributed to a location by handle alone — the extractor reads the content to
+pick Rača vs Petržalka and **skips** when it can't tell. To cover K2/Vertigo,
+just set their `instagram_handle` in the `gyms` table.
 
 ## Pipeline
 
 ```
 fetch-stories.mjs ──> stories.json ──> agent reads each image + caption
-   (Apify actor)                          │
-                                          ├─ reset? gym? section? date? count? confidence
-                                          ▼
-                              submit-resets.mjs (service role, dedup, dry-run first)
-                                          ▼
+   (handles from DB,                     │
+    Apify actor)                         ├─ reset? gym? section? date? count? confidence
+                                         ▼
+                              submit-resets.mjs (service role, dedup, photo, dry-run first)
+                                         ▼
                               reset_submissions (pending) ──> /admin approve ──> resets
 ```
 
-- `config.mjs` — gym → handle → sections mapping. Section names must match the
-  seed exactly; the submit script resolves them by name.
-- `fetch-stories.mjs` — calls the Apify actor, emits normalized story items
-  (handle, candidate gym slugs, `takenAt`, caption, media URL). Interprets
-  nothing.
-- `submit-resets.mjs` — validates, resolves `section_id`, **dedupes** against
-  existing resets + pending/approved submissions for the same `(section, date)`,
-  and inserts `pending` rows. Dry-run by default; `--commit` to write.
+- `fetch-stories.mjs` — reads active gym handles from the DB, calls the Apify
+  actor, emits normalized story items (handle, candidate gym slugs, `takenAt`,
+  caption, media URL). Interprets nothing. `--handles a,b` overrides the DB for
+  ad-hoc testing (Apify-only, no DB needed).
+- `submit-resets.mjs` — validates, resolves `section_id` from the DB, **dedupes**
+  against existing resets + pending/approved submissions for the same
+  `(section, date)`, uploads the story frame to the `reset-photos` bucket, and
+  inserts `pending` rows. Dry-run by default; `--commit` to write.
 - `routine-prompt.md` — the message the scheduled Routine fires.
 
 ## Setup (one-time)
 
-1. **Apify** — create an account, copy the **API token** (Settings →
-   Integrations), and choose a story-capable Instagram actor. Note its actor id
-   (form `user~actor-name`) and what its input needs for authentication.
-2. **Burner Instagram account** — stories require a logged-in session. Use a
-   **dedicated** account (never a personal one — it can get flagged), have it
-   follow Spot and Block Dock, and get whatever the actor needs (login fields or
-   session cookies).
-3. **Supabase** — from Project Settings → API, grab the project URL and the
-   **service_role** key. Find your admin `profiles.id`
-   (`select id from profiles where is_admin;`).
-4. **Environment variables** — set these as secrets in the Claude Code
-   environment config (NOT committed — `.env*` is gitignored, and the
-   service-role key must never ship in the app):
+1. **Apify** — create an account and copy an **API token** (Settings →
+   Integrations → API tokens). The pilot defaults to the
+   `igview-owner/instagram-story-viewer` actor, which needs no Instagram login.
+2. **Supabase** — from Project Settings → API, copy the **service_role** key.
+   (The project URL is reused from the app's `NEXT_PUBLIC_SUPABASE_URL` if it's
+   already set in the environment.)
+3. **Environment variables** — set these in the Claude Code environment config
+   (NOT committed — `.env*` is gitignored, and the service-role key must never
+   ship in the app). Only the first two are required:
 
-   | Var | Purpose |
-   |---|---|
-   | `APIFY_TOKEN` | Apify API token |
-   | `APIFY_ACTOR_ID` | e.g. `apify~instagram-scraper` |
-   | `APIFY_INPUT_JSON` | actor-specific input incl. the IG login/session fields |
-   | `SUPABASE_URL` | `https://xxxx.supabase.co` |
-   | `SUPABASE_SERVICE_ROLE_KEY` | service-role key (secret) |
-   | `SUBMITTER_PROFILE_ID` | your admin `profiles.id` |
+   | Var | Required? | Purpose |
+   |---|---|---|
+   | `APIFY_TOKEN` | ✅ | Apify API token |
+   | `SUPABASE_SERVICE_ROLE_KEY` | ✅ | service-role key (bypasses RLS for the insert) |
+   | `SUPABASE_URL` | only if `NEXT_PUBLIC_SUPABASE_URL` isn't set | project URL |
+   | `APIFY_ACTOR_ID` | optional | defaults to `igview-owner~instagram-story-viewer` |
+   | `APIFY_INPUT_JSON` | optional | extra actor input, if you swap actors |
+   | `SUBMITTER_PROFILE_ID` | optional | defaults to the first admin profile in the DB |
 
-5. **Confirm reachability** — from a session in this environment,
+4. **Confirm reachability** — from a session in this environment,
    `curl -sS -o /dev/null -w "%{http_code}" "$SUPABASE_URL/rest/v1/"` should not
    return a proxy `502`/`403`. Apify, Instagram, and its CDN are already
    reachable here; if the Supabase host is blocked, an admin adds it to the
@@ -97,7 +101,11 @@ fetch-stories.mjs ──> stories.json ──> agent reads each image + caption
 ## Running it manually (to test before scheduling)
 
 ```bash
+# Full run reads handles from the DB (needs Supabase creds):
 node scripts/instagram-stories/fetch-stories.mjs > /tmp/stories.json
+# Or fetch one handle without the DB (Apify only):
+node scripts/instagram-stories/fetch-stories.mjs --handles spot_climbing_gym > /tmp/stories.json
+
 # inspect /tmp/stories.json, then hand the media to the agent for extraction
 node scripts/instagram-stories/submit-resets.mjs --file /tmp/resets.json          # dry-run
 node scripts/instagram-stories/submit-resets.mjs --file /tmp/resets.json --commit # write
@@ -108,14 +116,14 @@ node scripts/instagram-stories/submit-resets.mjs --file /tmp/resets.json --commi
 The pilot runs as a **Claude Code Routine** set to **start a fresh session on
 each firing** (not a session-only cron — those die when the session ends). Each
 day the Routine spins up a new session in this environment, which already has
-the env vars baked in, runs `routine-prompt.md`, files any submissions, and
-exits. Nothing needs to stay running between firings, and no app/Claude-API
-cost is involved.
+the two secrets set, runs `routine-prompt.md`, files any submissions, and exits.
+Nothing needs to stay running between firings, and no app/Claude-API cost is
+involved.
 
 Two prerequisites before the trigger is created:
 
-1. **All env vars set** in the environment config (the fetch half only needs
-   `APIFY_*`; writing needs the three `SUPABASE_*`/`SUBMITTER_*` vars).
+1. **The two secrets set** in the environment config (`APIFY_TOKEN`,
+   `SUPABASE_SERVICE_ROLE_KEY`, plus a Supabase URL).
 2. **The pilot code is reachable by a fresh session.** A new session clones the
    default branch, so either merge this branch to the default branch, or rely
    on the prompt's step 0, which checks out
@@ -127,15 +135,17 @@ that match when the gyms actually post. A missed run can't backfill.
 
 ## Known risks & limits
 
-- **ToS / bans.** Automated story access violates Instagram's terms; the burner
-  account can be rate-limited or banned. If it keeps dying, switch to scraping
-  public posts/reels (no login) instead.
+- **ToS / reliability.** Automated story access is against Instagram's terms.
+  The chosen actor uses its own account pool so *you* don't supply a login, but
+  that also makes runs occasionally flaky/empty and the actor may break when
+  Instagram changes. If it degrades, swap actors (set `APIFY_ACTOR_ID` /
+  `APIFY_INPUT_JSON`) or fall back to scraping public posts/reels.
 - **Ephemerality.** Stories vanish in 24h — this can't backfill.
 - **Ambiguity.** Vague stories ("nové bouldre!") with no visible sector are
-  skipped, because a submission needs a `section_id`.
-- **Actor drift.** Instagram changes break scrapers; expect occasional actor
-  swaps. `fetch-stories.mjs` normalizes several common field names and keeps the
-  `raw` item so nothing is silently lost.
+  skipped, because a submission needs a `section_id`. Most days a gym's stories
+  are reposts/vibe content and the job files nothing — that's expected.
+- **Actor drift.** `fetch-stories.mjs` normalizes several common field names and
+  keeps the `raw` item so nothing is silently lost when a field is renamed.
 
 ## Graduating to an in-app cron (later)
 

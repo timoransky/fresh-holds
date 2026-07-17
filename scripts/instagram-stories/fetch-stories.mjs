@@ -1,56 +1,52 @@
 #!/usr/bin/env node
-// Fetch Instagram stories for the configured gym handles via an Apify actor
-// and emit normalized story items as JSON on stdout. The extraction step
-// (an agent) then downloads each media URL, reads it, and decides whether it
-// describes a reset.
+// Fetch Instagram stories for the active gyms via an Apify actor and emit
+// normalized story items as JSON on stdout. The extraction step (an agent) then
+// downloads each media URL, reads it, and decides whether it describes a reset.
+// This script interprets nothing.
 //
-// This script does NOT interpret stories — it only pulls raw material.
+// The handle list comes from the DATABASE — active gyms with a non-null
+// instagram_handle — so it stays in sync automatically (no hardcoded gym
+// config). Pass --handles to override for ad-hoc testing, which skips the DB
+// entirely and needs only the Apify token.
 //
 // Required env:
-//   APIFY_TOKEN      Apify API token (Settings → Integrations).
-//   APIFY_ACTOR_ID   Actor id/slug, e.g. "apify~instagram-scraper" or a
-//                    story-specific actor. Use "~" between user and actor.
+//   APIFY_TOKEN                              Apify API token.
+//   SUPABASE_SERVICE_ROLE_KEY + a URL        (SUPABASE_URL or
+//     NEXT_PUBLIC_SUPABASE_URL) — only when NOT using --handles.
 //
 // Optional env:
-//   APIFY_INPUT_JSON Extra actor input as JSON, merged over the default input.
-//                    Use this to pass the actor's IG login/session fields and
-//                    any actor-specific options. `usernames` is injected
-//                    automatically unless you set it here.
-//   IG_STORY_MAX_AGE_HOURS  Drop stories older than this (default 30).
+//   APIFY_ACTOR_ID      default: igview-owner~instagram-story-viewer
+//   APIFY_INPUT_JSON    extra actor input merged over { usernames }.
+//   IG_STORY_MAX_AGE_HOURS   drop stories older than this (default 30).
 //
 // Usage:
 //   node scripts/instagram-stories/fetch-stories.mjs > stories.json
-//   node scripts/instagram-stories/fetch-stories.mjs --handles spotbouldering
-
-import { scrapableHandles } from "./config.mjs";
+//   node scripts/instagram-stories/fetch-stories.mjs --handles spot_climbing_gym
 
 const token = process.env.APIFY_TOKEN;
-const actorId = process.env.APIFY_ACTOR_ID;
-
-if (!token || !actorId) {
-  console.error(
-    "Missing APIFY_TOKEN and/or APIFY_ACTOR_ID.\n" +
-      "See docs/instagram-stories-pilot.md → Setup.",
-  );
+if (!token) {
+  console.error("Missing APIFY_TOKEN. See docs/instagram-stories-pilot.md → Setup.");
   process.exit(1);
 }
 
-const argHandles = getArg("--handles");
-const handleMap = scrapableHandles(); // Map<handle, gymSlug[]>
-const handles = argHandles
-  ? argHandles.split(",").map((h) => h.trim().toLowerCase())
-  : [...handleMap.keys()];
-
-if (handles.length === 0) {
-  console.error("No scrapable handles configured. Add instagram_handle values in config.mjs.");
-  process.exit(1);
-}
-
+const actorId = process.env.APIFY_ACTOR_ID || "igview-owner~instagram-story-viewer";
 const maxAgeHours = Number(process.env.IG_STORY_MAX_AGE_HOURS ?? 30);
 
-// Build actor input. `usernames` is what igview-owner/instagram-story-viewer
-// requires; extend/override via APIFY_INPUT_JSON for actors that need extra or
-// differently-named fields.
+// handleMap: Map<handle, gymSlug[]> — one handle can map to several gyms
+// (e.g. Block Dock runs both locations from @blockdock).
+const argHandles = getArg("--handles");
+const handleMap = argHandles
+  ? new Map(argHandles.split(",").map((h) => [normHandle(h), []]))
+  : await handlesFromDb();
+
+const handles = [...handleMap.keys()];
+if (handles.length === 0) {
+  console.error("No active gyms with an instagram_handle (and no --handles given).");
+  process.exit(1);
+}
+
+// igview-owner/instagram-story-viewer requires only `usernames`; extend via
+// APIFY_INPUT_JSON for actors that need extra or differently-named fields.
 let input = { usernames: handles };
 if (process.env.APIFY_INPUT_JSON) {
   try {
@@ -101,19 +97,53 @@ const normalized = items
 
 process.stdout.write(JSON.stringify(normalized, null, 2) + "\n");
 console.error(
-  `Fetched ${items.length} raw item(s); ${normalized.length} story(ies) within ${maxAgeHours}h with media.`,
+  `Handles: ${handles.join(", ")}. Fetched ${items.length} raw item(s); ` +
+    `${normalized.length} story(ies) within ${maxAgeHours}h with media.`,
 );
 
 // --- helpers -----------------------------------------------------------------
 
+async function handlesFromDb() {
+  const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) {
+    console.error(
+      "Missing Supabase creds to read the gym list (SUPABASE_SERVICE_ROLE_KEY + a URL), " +
+        "or pass --handles for an ad-hoc fetch.",
+    );
+    process.exit(1);
+  }
+  const { createClient } = await import("@supabase/supabase-js");
+  const supabase = createClient(url, key, { auth: { persistSession: false } });
+  const { data, error } = await supabase
+    .from("gyms")
+    .select("slug, instagram_handle")
+    .eq("is_active", true)
+    .not("instagram_handle", "is", null);
+  if (error) {
+    console.error(`Could not read gyms: ${error.message}`);
+    process.exit(1);
+  }
+  const map = new Map();
+  for (const g of data ?? []) {
+    const h = normHandle(g.instagram_handle);
+    if (!h) continue;
+    if (!map.has(h)) map.set(h, []);
+    map.get(h).push(g.slug);
+  }
+  return map;
+}
+
+function normHandle(h) {
+  return String(h ?? "").trim().toLowerCase().replace(/^@/, "");
+}
+
 function normalize(it, handleMap) {
   if (!it || typeof it !== "object") return null;
 
-  const handle = String(
+  const handle = normHandle(
     it.ownerUsername ?? it.username ?? it.owner?.username ?? it.user?.username ?? "",
-  )
-    .toLowerCase()
-    .replace(/^@/, "");
+  );
 
   const takenAtRaw = it.timestamp ?? it.takenAt ?? it.takenAtTimestamp ?? it.taken_at ?? null;
   const takenAt = toIso(takenAtRaw);
@@ -147,8 +177,7 @@ function normalize(it, handleMap) {
 function toIso(v) {
   if (v == null) return null;
   if (typeof v === "number") {
-    // seconds vs ms
-    const ms = v < 1e12 ? v * 1000 : v;
+    const ms = v < 1e12 ? v * 1000 : v; // seconds vs ms
     return new Date(ms).toISOString();
   }
   const t = Date.parse(String(v));
