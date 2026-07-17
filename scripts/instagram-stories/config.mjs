@@ -17,7 +17,7 @@ export const GYMS = [
   {
     slug: "spot",
     name: "Spot",
-    instagram: "spotbouldering",
+    instagram: "spot_climbing_gym",
     locationHints: [],
     sections: ["Cave", "Slab", "Roof", "Top", "Comp", "Kids"],
   },
