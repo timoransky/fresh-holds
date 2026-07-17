@@ -48,10 +48,10 @@ if (handles.length === 0) {
 
 const maxAgeHours = Number(process.env.IG_STORY_MAX_AGE_HOURS ?? 30);
 
-// Build actor input. Default shape works for the common Instagram actors that
-// accept `usernames`; override/extend via APIFY_INPUT_JSON for actors that
-// need login fields or different keys.
-let input = { usernames: handles, resultsType: "stories" };
+// Build actor input. `usernames` is what igview-owner/instagram-story-viewer
+// requires; extend/override via APIFY_INPUT_JSON for actors that need extra or
+// differently-named fields.
+let input = { usernames: handles };
 if (process.env.APIFY_INPUT_JSON) {
   try {
     input = { ...input, ...JSON.parse(process.env.APIFY_INPUT_JSON) };
