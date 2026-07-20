@@ -31,6 +31,15 @@ You are running the Fresh Holds Instagram-stories reset pilot. Work only in the
 
 3. **Decide, per story, whether it announces a reset** (new boulders set on a
    section). Extract a structured record only when you're reasonably sure:
+   - **Original content only.** Skip stories that are reposts/shares of someone
+     else's post — look for a repost card (another account's name/handle and
+     avatar overlaid on the image, e.g. an IG "share to story" frame), a photo
+     credit or "via @..." tag, or a caption crediting another photographer.
+     Climbing-gym accounts often reshare tagged customer photos or third-party
+     pages; those are real photos of the wall but don't confirm the gym itself
+     is announcing a reset today, so skip them even if the wall looks freshly
+     set. Only extract from stories the gym posted natively about its own
+     space.
    - `gym_slug` — from the story's `gymSlugCandidates`. If a handle maps to more
      than one gym (Block Dock runs both `block-dock-raca` and
      `block-dock-petrzalka` from `@blockdock`), read the content to pick the
