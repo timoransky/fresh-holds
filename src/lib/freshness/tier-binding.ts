@@ -1,9 +1,11 @@
 import { HOT, FRESH, WORTH, SLIM, STALE, UNKNOWN, type Tier } from "@/lib/tier";
 import type { FreshnessResult } from "@/lib/freshness/scoring";
 
-// The same noveltyScore (a recency-weighted reset-volume sum, see ADR-0004) is
+// The noveltyScore (a recency-weighted reset-volume sum, see ADR-0004/0005) is
 // read through two different cut sets, because anon and returning users ask
-// different questions about it:
+// different questions about it — and the two lenses weight reset age differently
+// (anon decays to 0, returning floors each reset at RETURNING_WEIGHT_FLOOR), so
+// the cuts aren't comparable across lenses.
 //
 // - Anon — "is this gym fresh right now?" The cuts are spaced to map a typical
 //   weekly gym's score onto reset recency. At HALF_LIFE_DAYS = 10 such a gym
@@ -12,13 +14,14 @@ import type { FreshnessResult } from "@/lib/freshness/scoring";
 //   4–~11 days, SLIM beyond — and as a gym ages with no new reset it cools down
 //   the ladder. Volume still modulates: a denser gym scores higher (can stay HOT
 //   a touch longer), a sparse one lower. That spread is the "wow".
-// - Returning — "is there enough new-to-me to bother?" One unseen reset (≤ 1.0)
-//   is SLIM ("not a special trip"), two recent (~1.5) cross to WORTH, three
-//   (~1.9) to FRESH, four-plus (~2.1+) to HOT ("most of the gym is new to you").
-//   Zero unseen scores 0 → STALE on its own. The cuts are reachable by steady
-//   weekly turnover over a typical visit gap, not just a rare burst: a month
-//   away from a weekly gym (4–5 unseen resets) lands on HOT, which is what
-//   "practically a new gym" should feel like.
+// - Returning — "how much is new-to-me since I came?" Because the returning
+//   weight floors each unseen reset at 0.25, this ladder is driven mostly by
+//   COUNT (see ADR-0005): 1 fresh unseen reset (≤ 1.0) is WORTH, 2 recent (~1.7)
+//   are FRESH, 3+ recent (~2.0+) are HOT ("most of the gym is new to you"). A
+//   lone unseen reset cools WORTH → SLIM at ~2 weeks (fw(14) ≈ 0.53). Many
+//   old-but-unseen resets sit about one tier below the same count when fresh (a
+//   mild staleness pull), never falling to STALE while unseen resets remain. Zero
+//   unseen scores 0 → STALE on its own.
 //
 // All six are calibration knobs (HALF_LIFE_DAYS = 10, ~weekly cadence). The anon
 // cuts are the lever for first-open variance; tune them first if HOT goes
@@ -29,8 +32,8 @@ export const ANON_FRESH_SCORE = 1.75;
 export const ANON_WORTH_SCORE = 0.9;
 
 export const RETURNING_HOT_SCORE = 2.0;
-export const RETURNING_FRESH_SCORE = 1.7;
-export const RETURNING_WORTH_SCORE = 1.2;
+export const RETURNING_FRESH_SCORE = 1.45;
+export const RETURNING_WORTH_SCORE = 0.53;
 
 export function bindTier(result: FreshnessResult, isAnon: boolean): Tier {
   if (!result.hasResetData) return UNKNOWN;
