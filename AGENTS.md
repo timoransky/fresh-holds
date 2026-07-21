@@ -41,7 +41,7 @@ When signed in, the hook reconciles localStorage with the server `visits` table 
 
 ## Caching & ranking
 
-Per **[ADR-0001](docs/adr/0001-cache-architecture.md)**: `unstable_cache` (not `"use cache"`/`cacheComponents`), so dynamic cookie reads need no Suspense and the page lands fully ranked. `getActiveGymsWithSections` (`db/gyms.ts`) and `getRankedGyms(visitsCookieRaw, todayISO)` (`db/ranking.ts`) are both cached, tagged `["gyms"]`. Admin writes call `revalidateTag("gyms", "max")`. Cached payloads must be JSON-serializable (no `Set`/`Map`).
+Per **[ADR-0001](docs/adr/0001-cache-architecture.md)**: `unstable_cache` (not `"use cache"`/`cacheComponents`), so dynamic cookie reads need no Suspense and the page lands fully ranked. Only `getActiveGymsWithSections` (`db/gyms.ts`) is cached — one entry, tagged `["gyms"]`. `getRankedGyms(visitsCookieRaw)` (`db/ranking.ts`) is an uncached function that reads that cache and runs `rankGyms` fresh per request (so scores track the current time). Admin writes call `revalidateTag("gyms", { expire: 0 })` — immediate expiration, so the next load blocks and recomputes fresh rather than serving stale (read-your-own-writes; `"max"`/stale-while-revalidate was the source of post-reset staleness). Cached payloads must be JSON-serializable (no `Set`/`Map`).
 
 ## Sort order
 

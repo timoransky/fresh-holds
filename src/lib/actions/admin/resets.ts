@@ -56,7 +56,7 @@ export async function submitReset(
   }
 
   revalidatePath("/admin");
-  revalidateTag("gyms", "max");
+  revalidateTag("gyms", { expire: 0 });
   return ok(`Logged ${sectionIds.length} section reset${sectionIds.length > 1 ? "s" : ""}`);
 }
 
@@ -84,6 +84,6 @@ export async function updateResetDate(
   if (error) return fail(error.message);
 
   revalidatePath("/admin");
-  revalidateTag("gyms", "max");
+  revalidateTag("gyms", { expire: 0 });
   return ok("Reset date updated");
 }

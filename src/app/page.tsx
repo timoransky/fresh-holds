@@ -2,7 +2,6 @@ import { Suspense } from "react";
 import { cookies } from "next/headers";
 import { getRankedGyms } from "@/lib/db/ranking";
 import { getCurrentUser } from "@/lib/auth";
-import { todayISO } from "@/lib/date";
 import { VISITS_COOKIE } from "@/lib/visit-log";
 import { GymList } from "@/components/GymList";
 import { HeaderAuth } from "@/components/HeaderAuth";
@@ -14,7 +13,7 @@ import { VisitHistoryMenuDialogSlot } from "@/components/user/VisitHistoryMenuDi
 export default async function Home() {
   const [cookieStore, user] = await Promise.all([cookies(), getCurrentUser()]);
   const visitsCookieRaw = cookieStore.get(VISITS_COOKIE)?.value ?? "";
-  const { gyms, ranking } = await getRankedGyms(visitsCookieRaw, todayISO());
+  const { gyms, ranking } = await getRankedGyms(visitsCookieRaw);
 
   return (
     <main className="mx-auto min-h-dvh w-full max-w-4xl px-4 py-6 sm:pt-10 sm:pb-14 overflow-hidden">
