@@ -5,6 +5,7 @@ import { Agentation } from "agentation";
 import { cn } from "@/lib/utils";
 import { Analytics } from "@vercel/analytics/next";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
+import { AuthListener } from "@/components/AuthListener";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -109,6 +110,7 @@ export default function RootLayout({
         {children}
         {modal}
 
+        <AuthListener />
         <Analytics />
         <ServiceWorkerRegister />
         {process.env.NODE_ENV === "development" && <Agentation />}
