@@ -4,6 +4,11 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 
+type Props = {
+  /** The user id the server just rendered from the auth cookie (`null` if signed out). */
+  userId: string | null;
+};
+
 /**
  * Bridges browser-side auth changes to the server-rendered UI.
  *
@@ -12,11 +17,17 @@ import { createClient } from "@/utils/supabase/client";
  * leaves them stale until a server re-render. This single listener calls
  * `router.refresh()` on any real auth transition — login, logout, cross-tab —
  * so the whole tree re-fetches without a manual reload.
+ *
+ * The baseline is seeded from the server-rendered `userId`, not from the
+ * listener's own first callback: the client is created during render but only
+ * subscribes in an effect, so the one-shot `INITIAL_SESSION` event can be
+ * emitted in that gap and missed. Seeding from the server truth makes the very
+ * first login/logout a detectable transition regardless of that race.
  */
-export function AuthListener() {
+export function AuthListener({ userId }: Props) {
   const router = useRouter();
   const [supabase] = useState(createClient);
-  const lastUserId = useRef<string | null | undefined>(undefined);
+  const lastUserId = useRef(userId);
 
   useEffect(() => {
     const {
@@ -24,15 +35,9 @@ export function AuthListener() {
     } = supabase.auth.onAuthStateChange((_event, session) => {
       const uid = session?.user?.id ?? null;
 
-      // The first callback (INITIAL_SESSION) just reports what the server
-      // already rendered — record it without refreshing.
-      if (lastUserId.current === undefined) {
-        lastUserId.current = uid;
-        return;
-      }
-
       // Refresh only when the signed-in user actually changes, so routine
-      // token refreshes (same uid) don't churn the server tree.
+      // token refreshes and the initial session (same uid) don't churn the
+      // server tree.
       if (uid !== lastUserId.current) {
         lastUserId.current = uid;
         router.refresh();
