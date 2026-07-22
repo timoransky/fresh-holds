@@ -1,6 +1,7 @@
 "use client";
 
 import { type ReactNode, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Logout02Icon } from "@hugeicons/core-free-icons";
 import { createClient } from "@/utils/supabase/client";
@@ -31,12 +32,14 @@ export function MembershipCard({ email, createdAt, adminLinkSlot }: Props) {
   const gymCount = Object.keys(history).length;
   const memberSince = formatMemberSince(createdAt);
 
-  // Sign out on the browser client so AuthListener's onAuthStateChange fires
-  // and refreshes the server-rendered header back to "Sign in".
+  // Sign out on the browser client, then refresh so the server-rendered
+  // header re-fetches and returns to "Sign in" without a manual reload.
+  const router = useRouter();
   const [signingOut, startSignOut] = useTransition();
   const handleSignOut = () =>
     startSignOut(async () => {
       await createClient().auth.signOut();
+      router.refresh();
     });
 
   return (

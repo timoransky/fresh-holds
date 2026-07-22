@@ -131,9 +131,12 @@ function CodeForm({ supabase, email, next, onChangeEmail }: CodeFormProps) {
       return;
     }
 
-    // Auth cookie is set on the browser client; AuthListener will fire the
-    // server refresh. Navigate to close the modal / reach the destination —
-    // leave `pending` set so the button stays disabled through navigation.
+    // The browser client just wrote the auth cookie. Refresh so the
+    // server-rendered UI (header, GymList `authed`, narrative) re-fetches as
+    // logged in, then navigate to close the modal / reach the destination —
+    // refresh first so the underlying page has no logged-out flash. Leave
+    // `pending` set so the button stays disabled through navigation.
+    router.refresh();
     router.replace(safeNext(next));
   };
 

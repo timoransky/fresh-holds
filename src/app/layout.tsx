@@ -5,8 +5,6 @@ import { Agentation } from "agentation";
 import { cn } from "@/lib/utils";
 import { Analytics } from "@vercel/analytics/next";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
-import { AuthListener } from "@/components/AuthListener";
-import { getCurrentUser } from "@/lib/auth";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -95,15 +93,13 @@ export const viewport: Viewport = {
   colorScheme: "light",
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
   modal,
 }: Readonly<{
   children: React.ReactNode;
   modal: React.ReactNode;
 }>) {
-  const user = await getCurrentUser();
-
   return (
     <html
       lang="en"
@@ -113,7 +109,6 @@ export default async function RootLayout({
         {children}
         {modal}
 
-        <AuthListener userId={user?.id ?? null} />
         <Analytics />
         <ServiceWorkerRegister />
         {process.env.NODE_ENV === "development" && <Agentation />}
