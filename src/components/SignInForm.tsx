@@ -1,54 +1,84 @@
 "use client";
 
-import { startTransition, useActionState, useState } from "react";
-import { requestOtpCode, verifyOtpCode, type RequestOtpResult } from "@/lib/actions/auth";
+import { type FormEvent, useState } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/utils/supabase/client";
 import { Button } from "@/components/ui/button";
 import { FormAlert } from "@/components/ui/form-alert";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
+type SupabaseClient = ReturnType<typeof createClient>;
+
 type Props = {
   next?: string;
 };
 
-export function SignInForm({ next = "/" }: Props) {
-  const [emailState, requestAction, requestPending] = useActionState<RequestOtpResult, FormData>(
-    requestOtpCode,
-    null,
-  );
+// Only follow same-origin, non-protocol-relative destinations. Anything else
+// (an absolute URL, `//evil.com`) collapses to `/`, closing an open redirect.
+function safeNext(next: string): string {
+  return next.startsWith("/") && !next.startsWith("//") ? next : "/";
+}
 
+export function SignInForm({ next = "/" }: Props) {
+  const [supabase] = useState(createClient);
   const [pendingEmail, setPendingEmail] = useState<string | null>(null);
-  const [seenState, setSeenState] = useState(emailState);
-  if (emailState !== seenState) {
-    setSeenState(emailState);
-    if (emailState && "success" in emailState && emailState.data) {
-      setPendingEmail(emailState.data.email);
-    }
-  }
 
   if (pendingEmail) {
     return (
       <CodeForm
+        supabase={supabase}
         email={pendingEmail}
         next={next}
         onChangeEmail={() => setPendingEmail(null)}
-        resendAction={requestAction}
-        resendPending={requestPending}
       />
     );
   }
 
+  return <EmailForm supabase={supabase} onSent={setPendingEmail} />;
+}
+
+type EmailFormProps = {
+  supabase: SupabaseClient;
+  onSent: (email: string) => void;
+};
+
+function EmailForm({ supabase, onSent }: EmailFormProps) {
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const email = String(new FormData(event.currentTarget).get("email") ?? "").trim();
+    if (!email) {
+      setError("Enter your email.");
+      return;
+    }
+
+    setError(null);
+    setPending(true);
+    const { error: sendError } = await supabase.auth.signInWithOtp({ email });
+    setPending(false);
+
+    if (sendError) {
+      setError(sendError.message);
+      return;
+    }
+
+    onSent(email);
+  };
+
   return (
-    <form action={requestAction} className="flex flex-col gap-4">
-      <FormAlert state={emailState} />
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      <FormAlert state={error ? { error } : null} />
 
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="email">Email</Label>
         <Input id="email" name="email" type="email" required autoComplete="email" />
       </div>
 
-      <Button type="submit" disabled={requestPending} className="mt-2 w-full">
-        {requestPending ? "Sending code…" : "Send sign-in code"}
+      <Button type="submit" disabled={pending} className="mt-2 w-full">
+        {pending ? "Sending code…" : "Send sign-in code"}
       </Button>
 
       <p className="text-xs text-muted-foreground">
@@ -59,29 +89,59 @@ export function SignInForm({ next = "/" }: Props) {
 }
 
 type CodeFormProps = {
+  supabase: SupabaseClient;
   email: string;
   next: string;
   onChangeEmail: () => void;
-  resendAction: (formData: FormData) => void;
-  resendPending: boolean;
 };
 
-function CodeForm({ email, next, onChangeEmail, resendAction, resendPending }: CodeFormProps) {
-  const [verifyState, verifyAction, verifyPending] = useActionState(verifyOtpCode, null);
+function CodeForm({ supabase, email, next, onChangeEmail }: CodeFormProps) {
+  const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
+  const [resendPending, setResendPending] = useState(false);
 
-  const handleResend = () => {
-    const formData = new FormData();
-    formData.set("email", email);
-    startTransition(() => {
-      resendAction(formData);
+  const handleResend = async () => {
+    setResendPending(true);
+    setError(null);
+    const { error: sendError } = await supabase.auth.signInWithOtp({ email });
+    setResendPending(false);
+    if (sendError) setError(sendError.message);
+  };
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const token = String(new FormData(event.currentTarget).get("token") ?? "").trim();
+    if (!token) {
+      setError("Enter the 8-digit code from your email.");
+      return;
+    }
+
+    setError(null);
+    setPending(true);
+    const { error: verifyError } = await supabase.auth.verifyOtp({
+      email,
+      token,
+      type: "email",
     });
+
+    if (verifyError) {
+      setPending(false);
+      setError(verifyError.message);
+      return;
+    }
+
+    // The browser client just wrote the auth cookie. Refresh so the
+    // server-rendered UI (header, GymList `authed`, narrative) re-fetches as
+    // logged in, then navigate to close the modal / reach the destination —
+    // refresh first so the underlying page has no logged-out flash. Leave
+    // `pending` set so the button stays disabled through navigation.
+    router.refresh();
+    router.replace(safeNext(next));
   };
 
   return (
-    <form action={verifyAction} className="flex flex-col gap-4">
-      <input type="hidden" name="email" value={email} />
-      <input type="hidden" name="next" value={next} />
-
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <div className="rounded-lg border border-foreground/15 bg-background/60 px-4 py-3 text-sm">
         <p className="text-muted-foreground">
           We sent a code to <span className="font-medium text-foreground">{email}</span>.
@@ -95,7 +155,7 @@ function CodeForm({ email, next, onChangeEmail, resendAction, resendPending }: C
         </button>
       </div>
 
-      <FormAlert state={verifyState} />
+      <FormAlert state={error ? { error } : null} />
 
       <div className="flex flex-col gap-1.5">
         <div className="flex justify-between items-baseline">
@@ -125,8 +185,8 @@ function CodeForm({ email, next, onChangeEmail, resendAction, resendPending }: C
         />
       </div>
 
-      <Button type="submit" disabled={verifyPending} className="mt-2 w-full">
-        {verifyPending ? "Verifying…" : "Sign in"}
+      <Button type="submit" disabled={pending} className="mt-2 w-full">
+        {pending ? "Verifying…" : "Sign in"}
       </Button>
     </form>
   );

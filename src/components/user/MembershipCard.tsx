@@ -1,9 +1,10 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { type ReactNode, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Logout02Icon } from "@hugeicons/core-free-icons";
-import { signOut } from "@/lib/actions/auth";
+import { createClient } from "@/utils/supabase/client";
 import { Button } from "@/components/ui/button";
 import { SuggestResetMenuButton } from "@/components/SuggestResetMenuButton";
 import { VisitHistoryMenuButton } from "@/components/VisitHistoryMenuButton";
@@ -31,6 +32,16 @@ export function MembershipCard({ email, createdAt, adminLinkSlot }: Props) {
   const gymCount = Object.keys(history).length;
   const memberSince = formatMemberSince(createdAt);
 
+  // Sign out on the browser client, then refresh so the server-rendered
+  // header re-fetches and returns to "Sign in" without a manual reload.
+  const router = useRouter();
+  const [signingOut, startSignOut] = useTransition();
+  const handleSignOut = () =>
+    startSignOut(async () => {
+      await createClient().auth.signOut();
+      router.refresh();
+    });
+
   return (
     <div className="relative">
       <div className="flex items-center gap-3 px-5 pt-5">
@@ -42,7 +53,8 @@ export function MembershipCard({ email, createdAt, adminLinkSlot }: Props) {
         </div>
         <div>
           <Button
-            onClick={() => signOut()}
+            onClick={handleSignOut}
+            disabled={signingOut}
             size="icon-xs"
             variant="outline"
             className="rounded-full squircle"
