@@ -23,7 +23,7 @@ type Props = {
 
 export function GymCard({ scored, variant, visitedDates, onChangeVisits }: Props) {
   const { gym, tier, narrative, freshSectionIds } = scored;
-  // Exposed for manual tuning of the scoring cuts (see ADR-0004 / tier-binding.ts):
+  // Exposed for manual tuning of the scoring cuts (see ADR-0004/0005 / tier-binding.ts):
   // inspect these in devtools to see the raw score behind each badge.
   const scoreDebugAttrs = {
     "data-novelty-score": scored.noveltyScore.toFixed(4),

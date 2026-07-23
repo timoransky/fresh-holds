@@ -1,6 +1,6 @@
 # ADR-0004 — Recency-weighted reset volume: one score, two lenses
 
-Status: Accepted (2026-06-16). Supersedes [ADR-0003](0003-turnover-times-recency-scoring.md).
+Status: Superseded by [ADR-0005](0005-floored-returning-decay.md) (2026-07-21) — 0005 changes only the **returning** lens (floored per-reset weight + a shifted, count-driven cut ladder); the anon lens and all the anon rationale below still apply. Supersedes [ADR-0003](0003-turnover-times-recency-scoring.md).
 
 ## Context
 
