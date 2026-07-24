@@ -26,7 +26,7 @@ The full domain model and scoring formula are in [`CONTEXT.md`](CONTEXT.md) and 
 | --- | --- |
 | Framework | **Next.js 16** (App Router, Server Components, Server Actions, parallel routes for the detail modal) |
 | UI | **React 19**, **Tailwind CSS v4**, **shadcn/ui** (Radix primitives), **Vaul** drawers, **Hugeicons** |
-| Data | **Supabase** (Postgres + RLS + Auth) via **`@supabase/ssr`** |
+| Data | **Postgres + RLS** via **Drizzle ORM** (`drizzle-orm/node-postgres`); **Supabase Auth** via **`@supabase/ssr`**. Mid-migration to Neon — see [`docs/adr/0006`](docs/adr/0006-supabase-to-neon-migration.md) |
 | Storage | **`localStorage`** as the canonical visit log for anonymous users; **cookie mirror** so the server can pre-rank; **`visits` table** for cross-device sync when signed in |
 | Cache | Next.js **`unstable_cache`** with daily revalidation and tag-based invalidation |
 | Offline | **Service worker** with stale-while-revalidate for the home page and static assets; **Web App Manifest** for installable PWA |
@@ -54,8 +54,11 @@ src/
     manifest.json       PWA manifest
   components/           Client components (gym cards, drawers, forms, SW register)
   hooks/                React hooks
+  db/
+    schema.ts           Drizzle schema (7 tables + RLS policies)
+    client.ts           Pooled node-postgres db + rlsDb() RLS wrapper
   lib/
-    db/                 Cached Supabase queries (gyms, ranking, submissions, admin)
+    db/                 Drizzle queries (gyms, ranking, submissions, admin)
     freshness/          Pure scoring: scoring.ts, tier-binding.ts, sort.ts, narrative.ts
     visit-log/          localStorage + cookie + server reconciliation
     actions/            Server Actions (visits, submissions, auth, admin)
@@ -84,6 +87,7 @@ docs/
    ```
    - `NEXT_PUBLIC_SUPABASE_URL` — your project URL
    - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` — publishable (anon-equivalent) key. Reads are protected by the RLS public-read policies set up by the migration.
+   - `DATABASE_URL` / `DATABASE_URL_UNPOOLED` — Postgres connection strings for Drizzle (Project Settings → Database → Connection string). The connecting role must be able to `SET ROLE authenticated` for `rlsDb` to enforce RLS. See [`docs/adr/0006`](docs/adr/0006-supabase-to-neon-migration.md).
 
 ## Supabase setup
 

@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // `pg` does dynamic requires the bundler mishandles — keep it (and Drizzle)
+  // as a runtime dependency on the server instead of bundling it.
+  serverExternalPackages: ["pg", "drizzle-orm"],
   experimental: {
     serverActions: {
       // Reset-suggestion photos travel through the action (see

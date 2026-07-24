@@ -1,6 +1,9 @@
 import "server-only";
 
-import { getAuthedClient, getSupabase } from "@/lib/auth";
+import { asc, desc, eq } from "drizzle-orm";
+import { db } from "@/db/client";
+import { resetSubmissions } from "@/db/schema";
+import { getAuthedUser, getSupabase, requireAdmin } from "@/lib/auth";
 
 export type SubmissionStatus = "pending" | "approved" | "rejected";
 
@@ -18,6 +21,7 @@ export type PendingSubmission = {
   photo_url: string | null;
 };
 
+const PHOTO_BUCKET = "reset-photos";
 const PHOTO_SIGNED_URL_TTL_SECONDS = 60 * 60;
 
 export type MySubmission = {
@@ -33,28 +37,35 @@ export type MySubmission = {
 };
 
 export async function listPendingSubmissions(): Promise<PendingSubmission[]> {
-  const supabase = await getSupabase();
+  const ctx = await requireAdmin();
+  if ("error" in ctx) return [];
 
-  const { data, error } = await supabase
-    .from("reset_submissions")
-    .select(
-      "id, reset_on, notes, boulders_reset, created_at, section_id, photo_path, sections(name, gyms(name, slug)), profiles!submitted_by(email)",
-    )
-    .eq("status", "pending")
-    .order("created_at", { ascending: true });
+  const rows = await db.query.resetSubmissions.findMany({
+    columns: {
+      id: true,
+      reset_on: true,
+      notes: true,
+      boulders_reset: true,
+      created_at: true,
+      section_id: true,
+      photo_path: true,
+    },
+    where: eq(resetSubmissions.status, "pending"),
+    orderBy: [asc(resetSubmissions.created_at)],
+    with: {
+      section: { columns: { name: true }, with: { gym: { columns: { name: true, slug: true } } } },
+      submitter: { columns: { email: true } },
+    },
+  });
 
-  if (error) console.error("[listPendingSubmissions]", error);
-  if (error || !data) return [];
-
-  const paths = data
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .map((row: any) => row.photo_path as string | null)
-    .filter((p): p is string => !!p);
-
+  // Signed URLs stay on supabase-js until Phase 2 (the bucket lives on in the
+  // Supabase project). The admin read policy on storage.objects covers this.
+  const paths = rows.map((r) => r.photo_path).filter((p): p is string => !!p);
   const signedUrls = new Map<string, string>();
   if (paths.length > 0) {
+    const supabase = await getSupabase();
     const { data: signed, error: signError } = await supabase.storage
-      .from("reset-photos")
+      .from(PHOTO_BUCKET)
       .createSignedUrls(paths, PHOTO_SIGNED_URL_TTL_SECONDS);
     if (signError) console.error("[listPendingSubmissions] createSignedUrls", signError);
     signed?.forEach((s) => {
@@ -63,39 +74,45 @@ export async function listPendingSubmissions(): Promise<PendingSubmission[]> {
     });
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (data as any[]).map((row) => ({
+  return rows.map((row) => ({
     id: row.id,
     reset_on: row.reset_on,
     notes: row.notes,
     boulders_reset: row.boulders_reset ?? null,
     created_at: row.created_at,
-    submitter_email: row.profiles?.email ?? "unknown",
+    submitter_email: row.submitter?.email ?? "unknown",
     section_id: row.section_id,
-    section_name: row.sections?.name ?? "",
-    gym_name: row.sections?.gyms?.name ?? "",
-    gym_slug: row.sections?.gyms?.slug ?? "",
-    photo_url: row.photo_path ? signedUrls.get(row.photo_path) ?? null : null,
+    section_name: row.section?.name ?? "",
+    gym_name: row.section?.gym?.name ?? "",
+    gym_slug: row.section?.gym?.slug ?? "",
+    photo_url: row.photo_path ? (signedUrls.get(row.photo_path) ?? null) : null,
   }));
 }
 
 export async function listMySubmissions(): Promise<MySubmission[]> {
-  const ctx = await getAuthedClient();
-  if (!ctx) return [];
+  const authed = await getAuthedUser();
+  if (!authed) return [];
 
-  const { data, error } = await ctx.supabase
-    .from("reset_submissions")
-    .select(
-      "id, reset_on, status, created_at, reviewed_at, notes, boulders_reset, sections(name, gyms(name))",
-    )
-    .eq("submitted_by", ctx.userId)
-    .order("created_at", { ascending: false })
-    .limit(20);
+  // Scoped to the caller (matches the "own submissions read" policy).
+  const rows = await db.query.resetSubmissions.findMany({
+    columns: {
+      id: true,
+      reset_on: true,
+      status: true,
+      created_at: true,
+      reviewed_at: true,
+      notes: true,
+      boulders_reset: true,
+    },
+    where: eq(resetSubmissions.submitted_by, authed.userId),
+    orderBy: [desc(resetSubmissions.created_at)],
+    limit: 20,
+    with: {
+      section: { columns: { name: true }, with: { gym: { columns: { name: true } } } },
+    },
+  });
 
-  if (error || !data) return [];
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (data as any[]).map((row) => ({
+  return rows.map((row) => ({
     id: row.id,
     reset_on: row.reset_on,
     status: row.status,
@@ -103,7 +120,7 @@ export async function listMySubmissions(): Promise<MySubmission[]> {
     reviewed_at: row.reviewed_at,
     notes: row.notes,
     boulders_reset: row.boulders_reset ?? null,
-    section_name: row.sections?.name ?? "",
-    gym_name: row.sections?.gyms?.name ?? "",
+    section_name: row.section?.name ?? "",
+    gym_name: row.section?.gym?.name ?? "",
   }));
 }
