@@ -1,5 +1,7 @@
 import { unstable_cache } from "next/cache";
-import { createAnonClient } from "@/utils/supabase/server";
+import { and, asc, desc, eq, gte, lte } from "drizzle-orm";
+import { db } from "@/db/client";
+import { gyms, resets, sections } from "@/db/schema";
 import { DAY_MS, isoFromDate, todayISO } from "@/lib/date";
 import type { GymWithSections } from "@/lib/types";
 
@@ -10,38 +12,43 @@ const ONE_DAY_SECONDS = 24 * 60 * 60;
 
 export const getActiveGymsWithSections = unstable_cache(
   async (): Promise<GymWithSections[]> => {
-    const supabase = createAnonClient();
-
     const cutoffISO = isoFromDate(new Date(Date.now() - RESET_HISTORY_DAYS * DAY_MS));
     const todayStr = todayISO();
 
-    const { data, error } = await supabase
-      .from("gyms")
-      .select(
-        `
-        id, slug, name, neighborhood, website_url, instagram_handle, iclub_slug, city_id,
-        sections!inner (
-          id, name, display_order, is_active,
-          resets ( id, reset_on, notes, boulders_reset )
-        )
-      `,
-      )
-      .eq("is_active", true)
-      .eq("sections.is_active", true)
-      .gte("sections.resets.reset_on", cutoffISO)
-      .lte("sections.resets.reset_on", todayStr)
-      .order("display_order", { ascending: true })
-      .order("display_order", { referencedTable: "sections", ascending: true })
-      .order("reset_on", {
-        referencedTable: "sections.resets",
-        ascending: false,
-      });
+    // Public read (RLS `using (true)`) — runs on the plain owner connection.
+    // The 240-day window and is_active/ordering filters are pushed down; resets
+    // are already sorted newest-first per section. Only gyms with ≥1 active
+    // section are kept (the old query's `sections!inner`).
+    const rows = await db.query.gyms.findMany({
+      columns: {
+        id: true,
+        slug: true,
+        name: true,
+        neighborhood: true,
+        website_url: true,
+        instagram_handle: true,
+        iclub_slug: true,
+        city_id: true,
+      },
+      where: eq(gyms.is_active, true),
+      orderBy: [asc(gyms.display_order)],
+      with: {
+        sections: {
+          columns: { id: true, name: true, display_order: true, is_active: true },
+          where: eq(sections.is_active, true),
+          orderBy: [asc(sections.display_order)],
+          with: {
+            resets: {
+              columns: { id: true, reset_on: true, notes: true, boulders_reset: true },
+              where: and(gte(resets.reset_on, cutoffISO), lte(resets.reset_on, todayStr)),
+              orderBy: [desc(resets.reset_on)],
+            },
+          },
+        },
+      },
+    });
 
-    if (error) {
-      throw new Error(`Failed to load gyms: ${error.message}`);
-    }
-
-    return (data ?? []) as GymWithSections[];
+    return rows.filter((gym) => gym.sections.length > 0) as GymWithSections[];
   },
   ["active-gyms-with-sections"],
   { tags: ["gyms"], revalidate: ONE_DAY_SECONDS },

@@ -1,6 +1,9 @@
 "use server";
 
 import { revalidatePath, revalidateTag } from "next/cache";
+import { eq } from "drizzle-orm";
+import { rlsDb } from "@/db/client";
+import { resets } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth";
 import { fail, ok, type ActionResult } from "@/lib/actions/result";
 import { ISO_DATE_RE, todayISO } from "@/lib/date";
@@ -45,14 +48,14 @@ export async function submitReset(
     section_id,
     reset_on: resetOn,
     notes,
-    logged_by: ctx.user.email,
+    logged_by: ctx.user.email ?? null,
     boulders_reset: bouldersReset,
   }));
 
-  const { error } = await ctx.supabase.from("resets").insert(inserts);
-
-  if (error) {
-    return fail(error.message);
+  try {
+    await rlsDb(ctx.claims, (tx) => tx.insert(resets).values(inserts));
+  } catch (error) {
+    return fail(error instanceof Error ? error.message : "Couldn't log resets");
   }
 
   revalidatePath("/admin");
@@ -76,12 +79,13 @@ export async function updateResetDate(
   if (!ISO_DATE_RE.test(resetOn)) return fail("Pick a valid date.");
   if (resetOn > todayISO()) return fail("Reset date can't be in the future.");
 
-  const { error } = await ctx.supabase
-    .from("resets")
-    .update({ reset_on: resetOn })
-    .eq("id", resetId);
-
-  if (error) return fail(error.message);
+  try {
+    await rlsDb(ctx.claims, (tx) =>
+      tx.update(resets).set({ reset_on: resetOn }).where(eq(resets.id, resetId)),
+    );
+  } catch (error) {
+    return fail(error instanceof Error ? error.message : "Couldn't update reset");
+  }
 
   revalidatePath("/admin");
   revalidateTag("gyms", { expire: 0 });
