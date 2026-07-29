@@ -14,7 +14,7 @@ insert into gyms (city_id, name, slug, neighborhood, website_url, instagram_hand
   ((select id from cities where slug = 'bratislava'), 'Spot',       'spot',                  'Devínska Nová Ves', 'https://spot.sk',       'spot_climbing_gym', 'spot-climbing-gym-ba', 1),
   ((select id from cities where slug = 'bratislava'), 'Block Dock - Rača',      'block-dock-raca',       'Rača',              'https://blockdock.sk',  'blockdock',      'blockdock-ba',         2),
   ((select id from cities where slug = 'bratislava'), 'Block Dock - Petržalka', 'block-dock-petrzalka',  'Petržalka',         'https://blockdock.sk',  'blockdock',      'blockdock-ba',         3),
-  ((select id from cities where slug = 'bratislava'), 'K2',         'k2',                    'Petržalka',          null,                   null,             'k2-ba',                4),
+  ((select id from cities where slug = 'bratislava'), 'K2',         'k2',                    'Ružinov',            'https://www.lezeckastena.sk', 'lezeckastenak2', null,          4),
   ((select id from cities where slug = 'bratislava'), 'Vertigo',    'vertigo',               'Trenčianska',        null,                   null,             'vertigo-ba',           5)
 on conflict (slug) do update set
   name             = excluded.name,
@@ -65,13 +65,17 @@ insert into sections (gym_id, name, display_order) values
   ((select id from g), 'Pandora',     7),
   ((select id from g), 'Kaer Morhen', 8);
 
--- K2 (4 sections) ------------------------------------------------------------
+-- K2 (6 sections) — real sectors K2 sets by: named rope-hall sub-walls
+-- (Kaskády, Galéria, Monster), auto-belay lines (Samoisty), a general main-hall
+-- bucket (Hala), and the boulder area (Boulder).
 with g as (select id from gyms where slug = 'k2')
 insert into sections (gym_id, name, display_order) values
-  ((select id from g), 'Boulder',  1),
-  ((select id from g), 'Overhang', 2),
-  ((select id from g), 'Slab',     3),
-  ((select id from g), 'Training', 4);
+  ((select id from g), 'Kaskády',  1),
+  ((select id from g), 'Galéria',  2),
+  ((select id from g), 'Monster',  3),
+  ((select id from g), 'Samoisty', 4),
+  ((select id from g), 'Hala',     5),
+  ((select id from g), 'Boulder',  6);
 
 -- Vertigo (3 sections) -------------------------------------------------------
 with g as (select id from gyms where slug = 'vertigo')
@@ -105,10 +109,14 @@ from (values
   ('block-dock-petrzalka',  'Hueco',       43),
   ('block-dock-petrzalka',  'Sumo',        50),
   ('block-dock-petrzalka',  'Pandora',     57),
-  ('k2',                    'Boulder',      6),
-  ('k2',                    'Overhang',    14),
-  ('k2',                    'Slab',         9),
-  ('k2',                    'Training',    24),
+  -- K2 sets by sector, ~monthly (illustrative cadence; real history from IG
+  -- lives in supabase/backfills/k2_resets_2026.sql).
+  ('k2',                    'Hala',         8),
+  ('k2',                    'Galéria',     16),
+  ('k2',                    'Samoisty',    24),
+  ('k2',                    'Monster',     52),
+  ('k2',                    'Kaskády',     80),
+  ('k2',                    'Boulder',    130),
   ('vertigo',               'Main',        12),
   ('vertigo',               'Boulder',     19),
   ('vertigo',               'Training',    25)
