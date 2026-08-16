@@ -1,6 +1,9 @@
 "use server";
 
 import { revalidatePath, revalidateTag } from "next/cache";
+import { and, eq, sql } from "drizzle-orm";
+import { rlsDb } from "@/db/client";
+import { resetSubmissions } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth";
 import { fail, ok, type ActionResult } from "@/lib/actions/result";
 
@@ -16,42 +19,42 @@ export async function approveSubmission(
   const submissionId = String(formData.get("submission_id") ?? "");
   if (!submissionId) return fail("Missing submission id");
 
-  const { data: submission, error: readError } = await ctx.supabase
-    .from("reset_submissions")
-    .select("id, section_id, reset_on, notes, boulders_reset, status")
-    .eq("id", submissionId)
-    .single();
+  const loggedBy = ctx.user.email ?? null;
 
-  if (readError || !submission) return fail("Submission not found");
-  if (submission.status !== "pending") return fail("Already reviewed");
-
-  const { data: inserted, error: insertError } = await ctx.supabase
-    .from("resets")
-    .insert({
-      section_id: submission.section_id,
-      reset_on: submission.reset_on,
-      notes: submission.notes,
-      boulders_reset: submission.boulders_reset,
-      logged_by: ctx.user.email,
-    })
-    .select("id")
-    .single();
-
-  if (insertError || !inserted) {
-    return fail(insertError?.message ?? "Couldn't create reset");
+  // One statement: read the pending submission, copy it into resets, and stamp
+  // the submission approved — atomically. If the submission isn't pending, the
+  // `sub` CTE is empty, nothing is inserted/updated, and RETURNING yields zero
+  // rows ⇒ "Already reviewed". Runs under the admin's RLS claims.
+  let approved: { id: string }[];
+  try {
+    approved = await rlsDb(ctx.claims, async (tx) => {
+      const result = await tx.execute<{ id: string }>(sql`
+        with sub as (
+          select id, section_id, reset_on, notes, boulders_reset
+          from reset_submissions
+          where id = ${submissionId} and status = 'pending'
+        ),
+        new_reset as (
+          insert into resets (section_id, reset_on, notes, boulders_reset, logged_by)
+          select section_id, reset_on, notes, boulders_reset, ${loggedBy}::text from sub
+          returning id
+        )
+        update reset_submissions rs
+        set status = 'approved',
+            reviewed_by = ${ctx.userId}::uuid,
+            reviewed_at = now(),
+            reset_id = (select id from new_reset)
+        from sub
+        where rs.id = sub.id
+        returning rs.id
+      `);
+      return result.rows;
+    });
+  } catch (error) {
+    return fail(error instanceof Error ? error.message : "Couldn't approve submission");
   }
 
-  const { error: updateError } = await ctx.supabase
-    .from("reset_submissions")
-    .update({
-      status: "approved",
-      reviewed_by: ctx.user.id,
-      reviewed_at: new Date().toISOString(),
-      reset_id: inserted.id,
-    })
-    .eq("id", submissionId);
-
-  if (updateError) return fail(updateError.message);
+  if (approved.length === 0) return fail("Already reviewed");
 
   revalidatePath("/admin/submissions");
   revalidatePath("/admin");
@@ -69,17 +72,20 @@ export async function rejectSubmission(
   const submissionId = String(formData.get("submission_id") ?? "");
   if (!submissionId) return fail("Missing submission id");
 
-  const { error } = await ctx.supabase
-    .from("reset_submissions")
-    .update({
-      status: "rejected",
-      reviewed_by: ctx.user.id,
-      reviewed_at: new Date().toISOString(),
-    })
-    .eq("id", submissionId)
-    .eq("status", "pending");
-
-  if (error) return fail(error.message);
+  try {
+    await rlsDb(ctx.claims, (tx) =>
+      tx
+        .update(resetSubmissions)
+        .set({
+          status: "rejected",
+          reviewed_by: ctx.userId,
+          reviewed_at: new Date().toISOString(),
+        })
+        .where(and(eq(resetSubmissions.id, submissionId), eq(resetSubmissions.status, "pending"))),
+    );
+  } catch (error) {
+    return fail(error instanceof Error ? error.message : "Couldn't reject submission");
+  }
 
   revalidatePath("/admin/submissions");
   return ok("Rejected");

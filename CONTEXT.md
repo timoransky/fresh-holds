@@ -30,7 +30,7 @@ Vocabulary the code and the UI should use consistently. Add terms here as they c
 
 ## Caching
 
-**Gym cache** — `getActiveGymsWithSections` in `src/lib/db/gyms.ts` is wrapped in `unstable_cache` (not `"use cache"`), tagged `"gyms"`, revalidated daily. The Supabase query is the cache fill.
+**Gym cache** — `getActiveGymsWithSections` in `src/lib/db/gyms.ts` is wrapped in `unstable_cache` (not `"use cache"`), tagged `"gyms"`, revalidated daily. The Drizzle query (plain `db`, public read) is the cache fill.
 
 **Ranking cache** — `getRankedGyms(visitsCookieRaw, todayISO)` in `src/lib/db/ranking.ts` is wrapped in `unstable_cache` and tagged `"gyms"`. Both arguments are cache key participants: users with the same visits share an entry; the entry rotates daily so the time-decay term in the novelty score stays accurate. Empty cookie collapses to one shared entry across all anonymous-no-visit users.
 

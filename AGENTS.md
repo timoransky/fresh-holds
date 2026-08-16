@@ -8,9 +8,11 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 # Fresh Holds
 
-A Next.js 16 (App Router) + Supabase app that helps Bratislava boulderers see which gym is freshest since their last visit. The home page fetches gyms/sections/resets in one query via `@supabase/ssr` and ranks them server-side. Tailwind v4 with Geist, light-only.
+A Next.js 16 (App Router) app that helps Bratislava boulderers see which gym is freshest since their last visit. The home page fetches gyms/sections/resets in one Drizzle query and ranks them server-side. Tailwind v4 with Geist, light-only.
 
-Tables (`cities`, `gyms`, `sections`, `resets`, `profiles`, `reset_submissions`) have RLS with public read on the gym data. Resets reach the DB three ways: the Supabase dashboard, the admin UI (`/admin`), or a signed-in user's "suggest a reset" submission once an admin approves it.
+Data access is **Drizzle ORM** on a direct Postgres connection (`src/db/`); **auth is still Supabase** (`@supabase/ssr`). The app is mid-migration off Supabase to Neon in four phases — read [`docs/adr/0006`](docs/adr/0006-supabase-to-neon-migration.md) before touching the DB/auth layer. RLS stays live throughout: the plain `db` (owner) bypasses RLS for public/authorized reads, and `rlsDb(claims, fn)` (`src/db/client.ts`) impersonates an end user so the `auth.uid()` policies enforce as a backstop behind the app's own checks.
+
+Tables (`cities`, `gyms`, `sections`, `resets`, `profiles`, `visits`, `reset_submissions`) have RLS with public read on the gym data; policies are declared in `src/db/schema.ts` via `pgPolicy`. Resets reach the DB three ways: the Supabase dashboard, the admin UI (`/admin`), or a signed-in user's "suggest a reset" submission once an admin approves it.
 
 ## Auth & roles
 

@@ -18,44 +18,30 @@ vi.mock("next/cache", () => ({
   revalidatePath: (...args: unknown[]) => revalidatePath(...args),
 }));
 
-// A chainable, thenable Supabase query-builder stub. Every intermediate method
-// (`insert`/`update`/`select`/`eq`) returns the builder, so any chain length
-// works; awaiting the builder resolves `{ error: null }` (the direct-await
-// terminals like `.insert(rows)` and `.update(...).eq(...)`); `.single()`
-// resolves the configured `{ data }` (the `.select().single()` terminals).
-function makeBuilder(single: { data: unknown; error: unknown }) {
-  const builder: Record<string, unknown> = {};
-  for (const method of ["insert", "update", "select", "eq"]) {
-    builder[method] = vi.fn(() => builder);
-  }
-  builder.single = vi.fn(() => Promise.resolve(single));
-  builder.then = (onFulfilled: (v: { error: null }) => unknown) => onFulfilled({ error: null });
-  return builder;
-}
-
-// A pending submission for approveSubmission's initial read.
-const pendingSubmission = {
-  id: "sub-1",
-  section_id: "sec-1",
-  reset_on: "2026-05-01",
-  notes: null,
-  boulders_reset: null,
-  status: "pending",
+// Fake transaction handed to the rlsDb wrapper. Every write terminal resolves;
+// `execute` returns one row so approveSubmission's CTE reads as "one row
+// approved" (non-empty ⇒ success). The SQL/column expressions passed in are
+// real (built from the schema) but ignored here.
+const tx = {
+  insert: () => ({
+    values: () => Promise.resolve(undefined),
+  }),
+  update: () => ({
+    set: () => ({ where: () => Promise.resolve(undefined) }),
+  }),
+  execute: () => Promise.resolve({ rows: [{ id: "reset-1" }] }),
 };
 
-const submissionsBuilder = makeBuilder({ data: pendingSubmission, error: null });
-const resetsBuilder = makeBuilder({ data: { id: "reset-1" }, error: null });
-
-const supabase = {
-  from: vi.fn((table: string) =>
-    table === "reset_submissions" ? submissionsBuilder : resetsBuilder,
-  ),
-};
+vi.mock("@/db/client", () => ({
+  db: {},
+  rlsDb: async (_claims: unknown, fn: (t: typeof tx) => Promise<unknown>) => fn(tx),
+}));
 
 vi.mock("@/lib/auth", () => ({
   requireAdmin: async () => ({
     user: { id: "admin-1", email: "admin@example.com" },
-    supabase,
+    userId: "admin-1",
+    claims: { sub: "admin-1", role: "authenticated" },
   }),
 }));
 
