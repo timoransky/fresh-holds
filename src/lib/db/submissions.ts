@@ -4,6 +4,10 @@ import { getAuthedClient, getSupabase } from "@/lib/auth";
 
 export type SubmissionStatus = "pending" | "approved" | "rejected";
 
+// Null for a human suggestion — only the Instagram-stories bot rates its own
+// certainty, and it files everything plausible rather than gating (ADR-0006).
+export type SubmissionConfidence = "low" | "medium" | "high";
+
 export type PendingSubmission = {
   id: string;
   reset_on: string;
@@ -11,10 +15,13 @@ export type PendingSubmission = {
   boulders_reset: number | null;
   created_at: string;
   submitter_email: string;
-  section_id: string;
-  section_name: string;
+  // Null when the source didn't name a sector; the admin picks one on approval.
+  section_id: string | null;
+  section_name: string | null;
+  gym_id: string;
   gym_name: string;
   gym_slug: string;
+  confidence: SubmissionConfidence | null;
   photo_url: string | null;
 };
 
@@ -28,7 +35,7 @@ export type MySubmission = {
   reviewed_at: string | null;
   notes: string | null;
   boulders_reset: number | null;
-  section_name: string;
+  section_name: string | null;
   gym_name: string;
 };
 
@@ -38,7 +45,7 @@ export async function listPendingSubmissions(): Promise<PendingSubmission[]> {
   const { data, error } = await supabase
     .from("reset_submissions")
     .select(
-      "id, reset_on, notes, boulders_reset, created_at, section_id, photo_path, sections(name, gyms(name, slug)), profiles!submitted_by(email)",
+      "id, reset_on, notes, boulders_reset, created_at, section_id, gym_id, confidence, photo_path, sections(name), gyms(name, slug), profiles!submitted_by(email)",
     )
     .eq("status", "pending")
     .order("created_at", { ascending: true });
@@ -71,10 +78,12 @@ export async function listPendingSubmissions(): Promise<PendingSubmission[]> {
     boulders_reset: row.boulders_reset ?? null,
     created_at: row.created_at,
     submitter_email: row.profiles?.email ?? "unknown",
-    section_id: row.section_id,
-    section_name: row.sections?.name ?? "",
-    gym_name: row.sections?.gyms?.name ?? "",
-    gym_slug: row.sections?.gyms?.slug ?? "",
+    section_id: row.section_id ?? null,
+    section_name: row.sections?.name ?? null,
+    gym_id: row.gym_id,
+    gym_name: row.gyms?.name ?? "",
+    gym_slug: row.gyms?.slug ?? "",
+    confidence: row.confidence ?? null,
     photo_url: row.photo_path ? signedUrls.get(row.photo_path) ?? null : null,
   }));
 }
@@ -86,7 +95,7 @@ export async function listMySubmissions(): Promise<MySubmission[]> {
   const { data, error } = await ctx.supabase
     .from("reset_submissions")
     .select(
-      "id, reset_on, status, created_at, reviewed_at, notes, boulders_reset, sections(name, gyms(name))",
+      "id, reset_on, status, created_at, reviewed_at, notes, boulders_reset, sections(name), gyms(name)",
     )
     .eq("submitted_by", ctx.userId)
     .order("created_at", { ascending: false })
@@ -103,7 +112,7 @@ export async function listMySubmissions(): Promise<MySubmission[]> {
     reviewed_at: row.reviewed_at,
     notes: row.notes,
     boulders_reset: row.boulders_reset ?? null,
-    section_name: row.sections?.name ?? "",
-    gym_name: row.sections?.gyms?.name ?? "",
+    section_name: row.sections?.name ?? null,
+    gym_name: row.gyms?.name ?? "",
   }));
 }

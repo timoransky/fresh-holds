@@ -37,6 +37,7 @@ function makeBuilder(single: { data: unknown; error: unknown }) {
 const pendingSubmission = {
   id: "sub-1",
   section_id: "sec-1",
+  gym_id: "gym-1",
   reset_on: "2026-05-01",
   notes: null,
   boulders_reset: null,

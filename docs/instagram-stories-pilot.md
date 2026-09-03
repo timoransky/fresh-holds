@@ -1,10 +1,10 @@
 # Instagram-stories → reset submissions (pilot)
 
-A daily job reads the active gyms' Instagram **stories**, and for any that
-announce a reset, files a `reset_submissions` row (status `pending`) with the
-story frame attached. An admin then approves or rejects it in `/admin`, exactly
-like a human "suggest a reset". Nothing reaches the trusted `resets` table
-without a human in the loop.
+A daily job reads the active gyms' Instagram **stories**, and for any that show
+evidence of new climbing, files a `reset_submissions` row (status `pending`)
+with the story frame attached and a `low`/`medium`/`high` confidence stamp. An
+admin then approves or rejects it in `/admin`, exactly like a human "suggest a
+reset". Nothing reaches the trusted `resets` table without a human in the loop.
 
 This is a **pilot** run from a scheduled Claude Code Routine — the reading and
 extraction are done by the agent, so there's no `ANTHROPIC_API_KEY` and no app
@@ -13,6 +13,17 @@ section).
 
 ## Why it's shaped this way
 
+- **Confidence is data, not a gate** (**[ADR-0006](adr/0006-confidence-on-the-submission.md)**).
+  The agent files every plausible read and lets the badge carry its doubt. It
+  used to skip anything it wasn't sure about, which cost a real Spot reset on
+  2026-09-02 ("6 nových žolíkov v Spote" — read as ambiguous, filed as nothing).
+  Stories vanish in ~24h so a false negative is permanent; a false positive is
+  one click to reject. The agent may now only skip for structural reasons: it
+  can't tell which gym, there's no plausible date, or the story plainly isn't
+  about new boulders.
+- **A sector is optional.** `section_id` is nullable and `gym_id` carries the
+  attribution, so "6 new boulders" with no wall named still gets filed — the
+  admin picks the sector when approving.
 - **Submissions, not resets.** The freshness signal is only as good as the
   `resets` table, and scraping is noisy. Routing through `reset_submissions`
   reuses the existing moderation UI and keeps the trusted table clean
@@ -20,7 +31,8 @@ section).
 - **Least-privilege bot user, not service-role.** The job signs in as a
   dedicated Supabase auth user and writes through normal RLS as an ordinary
   `authenticated` user. It can only insert its own **pending** submissions
-  (capped at 5 pending) and upload a photo to its own folder — it cannot
+  (capped at 20 pending — raised from 5 in `0011`, since ungated filing means
+  more rows per run) and upload a photo to its own folder — it cannot
   approve, update, delete, write `resets`, or read other users' data. No
   service-role key is used anywhere, so a leaked secret can at worst file
   pending suggestions an admin will reject. Migration `0010` closes an
@@ -56,30 +68,51 @@ just set their `instagram_handle` in the `gyms` table.
 ```
 fetch-stories.mjs ──> stories.json ──> agent reads each image + caption
    (handles from DB,                     │
-    Apify actor)                         ├─ reset? gym? section? date? count? confidence
+    Apify actor)                         ├─ new climbing? gym? date? count?
+                                         │  sector (optional) + confidence stamp
                                          ▼
                               submit-resets.mjs (bot login, dedup, photo, dry-run first)
                                          ▼
-                              reset_submissions (pending) ──> /admin approve ──> resets
+                              reset_submissions (pending, low/medium/high)
+                                         ▼
+                              /admin — badge + photo, pick a sector if none ──> resets
 ```
 
 - `fetch-stories.mjs` — reads active gym handles from the DB, calls the Apify
   actor, emits normalized story items (handle, candidate gym slugs, `takenAt`,
   caption, media URL). Interprets nothing. `--handles a,b` overrides the DB for
   ad-hoc testing (Apify-only, no DB needed).
-- `submit-resets.mjs` — validates, resolves `section_id` from the DB, **dedupes**
-  against existing resets + pending/approved submissions for the same
-  `(section, date)`, uploads the story frame to the `reset-photos` bucket, and
-  inserts `pending` rows. Dry-run by default; `--commit` to write.
+- `submit-resets.mjs` — validates, resolves the gym (and `section_id` when a
+  sector was named), **dedupes** against existing resets + submissions of *any*
+  status for the same gym/date, uploads the story frame to the `reset-photos`
+  bucket, and inserts `pending` rows with their confidence. Nothing is dropped
+  for low confidence; `--min-confidence low|medium|high` is an opt-in floor for
+  manual runs only. Dry-run by default; `--commit` to write.
 - `routine-prompt.md` — the message the scheduled Routine fires.
+
+## Confidence rubric
+
+Set by the agent, shown as a badge in `/admin` (see `routine-prompt.md` for the
+full wording):
+
+| Value | Means |
+|---|---|
+| `high` | the gym's own post explicitly announces a set/reset, sector named or unmistakable |
+| `medium` | clearly new climbing, but something is inferred (sector from visuals, date shifted, count unclear) |
+| `low` | plausible but ambiguous — a repost, no sector, a wildcard/"joker" rotation, or fresh holds inferred from a photo |
+
+Omitting the sector costs one tier. A human "suggest a reset" carries no
+confidence at all (null).
 
 ## Setup (one-time)
 
 1. **Apify** — create an account and copy an **API token** (Settings →
    Integrations → API tokens). The pilot defaults to the
    `igview-owner/instagram-story-viewer` actor, which needs no Instagram login.
-2. **Run migration `0010`** (`supabase db push`, or paste it in the SQL editor).
-   It closes the `is_admin` self-escalation hole the bot design relies on.
+2. **Run migrations `0010` and `0011`** (`supabase db push`, or paste them in
+   the SQL editor). `0010` closes the `is_admin` self-escalation hole the bot
+   design relies on; `0011` adds `confidence`, makes the sector optional, and
+   raises the pending cap to 20.
 3. **Create the bot user** — Supabase dashboard → Authentication → Add user.
    Give it an email (e.g. `ig-bot@yourdomain`) and a password, and tick **Auto
    Confirm User**. Make sure the Email provider's password sign-in is enabled
@@ -132,7 +165,7 @@ involved.
 
 Two prerequisites before the trigger is created:
 
-1. **Setup done** — migration `0010` applied, the bot user created, and the env
+1. **Setup done** — migrations `0010` + `0011` applied, the bot user created, and the env
    vars set (`APIFY_TOKEN`, `SUPABASE_BOT_EMAIL`, `SUPABASE_BOT_PASSWORD`, plus a
    Supabase URL + public key).
 2. **The pilot code is on the default branch** so a fresh session's clone has
@@ -150,9 +183,11 @@ that match when the gyms actually post. A missed run can't backfill.
   Instagram changes. If it degrades, swap actors (set `APIFY_ACTOR_ID` /
   `APIFY_INPUT_JSON`) or fall back to scraping public posts/reels.
 - **Ephemerality.** Stories vanish in 24h — this can't backfill.
-- **Ambiguity.** Vague stories ("nové bouldre!") with no visible sector are
-  skipped, because a submission needs a `section_id`. Most days a gym's stories
-  are reposts/vibe content and the job files nothing — that's expected.
+- **Queue noise.** Vague stories ("nové bouldre!") with no visible sector are
+  now *filed* — sectorless, at `low` — rather than skipped, so expect rejects
+  to be part of the routine. If it gets unmanageable, see the last section of
+  ADR-0006 for the escape hatches (hiding `low` in `/admin` first, re-gating the
+  agent last).
 - **Actor drift.** `fetch-stories.mjs` normalizes several common field names and
   keeps the `raw` item so nothing is silently lost when a field is renamed.
 
@@ -161,7 +196,7 @@ that match when the gyms actually post. A missed run can't backfill.
 Once the extraction prompt is proven, move it into the app: a Vercel Cron (or
 Supabase `pg_cron` + Edge Function) hits an API route daily that calls Apify,
 calls the Claude API to extract, and inserts submissions — same tables, same
-approval flow, no Claude Code session required. That path adds a metered
+approval flow, same confidence enum, no Claude Code session required. That path adds a metered
 `ANTHROPIC_API_KEY` cost, which is why the pilot stays in a Routine first. When
 it does move in-app, add a `source_ref` column to `reset_submissions` for
 durable dedup instead of the `(section, date)` heuristic used here.

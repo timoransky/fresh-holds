@@ -18,17 +18,37 @@ export async function approveSubmission(
 
   const { data: submission, error: readError } = await ctx.supabase
     .from("reset_submissions")
-    .select("id, section_id, reset_on, notes, boulders_reset, status")
+    .select("id, section_id, gym_id, reset_on, notes, boulders_reset, status")
     .eq("id", submissionId)
     .single();
 
   if (readError || !submission) return fail("Submission not found");
   if (submission.status !== "pending") return fail("Already reviewed");
 
+  // A scraped submission can arrive without a sector ("6 new boulders" with no
+  // wall named) — `resets` needs one, so the admin picks it here. Verify the
+  // choice belongs to the submission's gym rather than trusting the form.
+  let sectionId = submission.section_id;
+  if (!sectionId) {
+    const chosen = String(formData.get("section_id") ?? "");
+    if (!chosen) return fail("Pick a sector to approve this suggestion.");
+
+    const { data: section, error: sectionError } = await ctx.supabase
+      .from("sections")
+      .select("id")
+      .eq("id", chosen)
+      .eq("gym_id", submission.gym_id)
+      .maybeSingle();
+
+    if (sectionError) return fail(sectionError.message);
+    if (!section) return fail("That sector doesn't belong to this gym.");
+    sectionId = section.id;
+  }
+
   const { data: inserted, error: insertError } = await ctx.supabase
     .from("resets")
     .insert({
-      section_id: submission.section_id,
+      section_id: sectionId,
       reset_on: submission.reset_on,
       notes: submission.notes,
       boulders_reset: submission.boulders_reset,
@@ -48,6 +68,7 @@ export async function approveSubmission(
       reviewed_by: ctx.user.id,
       reviewed_at: new Date().toISOString(),
       reset_id: inserted.id,
+      section_id: sectionId,
     })
     .eq("id", submissionId);
 
