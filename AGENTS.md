@@ -10,7 +10,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 A Next.js 16 (App Router) + Supabase app that helps Bratislava boulderers see which gym is freshest since their last visit. The home page fetches gyms/sections/resets in one query via `@supabase/ssr` and ranks them server-side. Tailwind v4 with Geist, light-only.
 
-Tables (`cities`, `gyms`, `sections`, `resets`, `profiles`, `reset_submissions`) have RLS with public read on the gym data. Resets reach the DB three ways: the Supabase dashboard, the admin UI (`/admin`), or a signed-in user's "suggest a reset" submission once an admin approves it.
+Tables (`cities`, `gyms`, `sections`, `resets`, `profiles`, `reset_submissions`) have RLS with public read on the gym data. Resets reach the DB three ways: the Supabase dashboard, the admin UI (`/admin`), or an approved `reset_submissions` row — filed either by a signed-in user's "suggest a reset" or by the Instagram-stories bot (`scripts/instagram-stories/`). Bot submissions carry a `low`/`medium`/`high` `confidence` and may arrive with no sector at all, which the admin picks on approval; confidence is deliberately data on the row rather than a gate the agent applies — **[ADR-0006](docs/adr/0006-confidence-on-the-submission.md)**.
 
 ## Auth & roles
 

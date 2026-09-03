@@ -85,7 +85,8 @@ async function ProfileContent() {
               >
                 <div className="flex items-baseline justify-between gap-2">
                   <span className="font-medium text-foreground">
-                    {s.gym_name} — {s.section_name}
+                    {s.gym_name}
+                    {s.section_name ? ` — ${s.section_name}` : ""}
                   </span>
                   <Badge
                     variant={statusVariant[s.status]}
