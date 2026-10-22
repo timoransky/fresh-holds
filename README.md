@@ -76,7 +76,7 @@ docs/
 
 1. Install dependencies:
    ```bash
-   npm install
+   pnpm install
    ```
 2. Copy the env file and fill in values from your Supabase project (Settings → API):
    ```bash
@@ -103,15 +103,15 @@ values ((select id from sections where name = 'Cave' and gym_id = (select id fro
 ## Run it
 
 ```bash
-npm run dev       # dev server on http://localhost:3000
-npm run build     # production build
-npm run start     # serve the production build
+pnpm dev       # dev server on http://localhost:3000
+pnpm build     # production build
+pnpm start     # serve the production build
 
-npm run lint      # ESLint
-npm run test      # Vitest (single run)
-npm run test:watch
-npm run fmt       # oxfmt
-npm run fmt:check
+pnpm lint      # ESLint
+pnpm test      # Vitest (single run)
+pnpm test:watch
+pnpm fmt       # oxfmt
+pnpm fmt:check
 ```
 
 ## Deploy to Vercel

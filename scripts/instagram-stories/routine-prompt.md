@@ -16,7 +16,7 @@ You are running the Fresh Holds Instagram-stories reset pilot. Work only in the
    the DB and write as the least-privilege bot user — no service-role key.
    Make sure the pilot scripts exist (`scripts/instagram-stories/`); if not, the
    branch isn't merged: run `git fetch origin main && git checkout main`.
-   Run `npm install` if `node_modules` is absent.
+   Run `pnpm install` if `node_modules` is absent (`corepack enable` first if `pnpm` is missing).
 
 1. **Fetch stories.** Run:
    `node scripts/instagram-stories/fetch-stories.mjs > /tmp/stories.json`

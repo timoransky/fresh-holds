@@ -1,0 +1,4 @@
+allowBuilds:
+  unrs-resolver: false
+overrides:
+  tinypool@<2.1.2: ^2.2.0
