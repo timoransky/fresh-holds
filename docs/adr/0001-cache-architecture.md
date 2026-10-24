@@ -4,7 +4,7 @@ Status: Accepted (2026-05-17); updated 2026-07-02 — see "Update" below.
 
 ## Context
 
-The home page renders gyms in a personalized order — freshest-for-this-user first. The freshness ranking depends on the user's visit history (stored in `localStorage`, mirrored into the `fh-visits` cookie so the server can read it) and on the set of recent resets (fetched from Supabase).
+The home page renders gyms in a personalized order — freshest-for-this-user first. The freshness ranking depends on the user's visit history (stored in `localStorage`, mirrored into the `fh-visits` cookie so the server can read it) and on the set of recent resets (fetched from Postgres).
 
 We want:
 

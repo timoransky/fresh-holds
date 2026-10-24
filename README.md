@@ -26,7 +26,7 @@ The full domain model and scoring formula are in [`CONTEXT.md`](CONTEXT.md) and 
 | --- | --- |
 | Framework | **Next.js 16** (App Router, Server Components, Server Actions, parallel routes for the detail modal) |
 | UI | **React 19**, **Tailwind CSS v4**, **shadcn/ui** (Radix primitives), **Vaul** drawers, **Hugeicons** |
-| Data | **Supabase** (Postgres + RLS + Auth) via **`@supabase/ssr`** |
+| Data | **Postgres** via **Drizzle** (`DATABASE_URL`, Supabase today); **Supabase Auth** via **`@supabase/ssr`** |
 | Storage | **`localStorage`** as the canonical visit log for anonymous users; **cookie mirror** so the server can pre-rank; **`visits` table** for cross-device sync when signed in |
 | Cache | Next.js **`unstable_cache`** with daily revalidation and tag-based invalidation |
 | Offline | **Service worker** with stale-while-revalidate for the home page and static assets; **Web App Manifest** for installable PWA |
@@ -35,7 +35,7 @@ The full domain model and scoring formula are in [`CONTEXT.md`](CONTEXT.md) and 
 
 ### Architecture notes
 
-- **No auth required to use it.** The home page is rendered with a Supabase publishable key behind RLS public-read policies. Sign-in is purely opt-in (for visit sync).
+- **No auth required to use it.** The home page is a public Drizzle read over `DATABASE_URL`. Sign-in is purely opt-in (for visit sync). App queries bypass RLS, so access checks live in server code — see [`docs/adr/0007-direct-postgres-checks-in-code.md`](docs/adr/0007-direct-postgres-checks-in-code.md).
 - **Visit log lives in three places** (`src/lib/visit-log/`): browser `localStorage` (canonical), a `fh-visits` cookie (latest-per-gym mirror), and the server `visits` table for signed-in users. A pure `reconcile(local, remote)` function merges them on tab start.
 - **Freshness is pure.** `src/lib/freshness/` takes gyms + last-visited dates and returns `ScoredGym` objects. Components consume the scored output — they never re-derive.
 - **Two cache layers** (`src/lib/db/`): the raw Supabase query (`unstable_cache`, tagged `"gyms"`, daily) and the per-user ranking (`unstable_cache` keyed on visit cookie + day). Admin reset/approve actions call `revalidateTag("gyms", "max")` to flush both. See [`docs/adr/0001-cache-architecture.md`](docs/adr/0001-cache-architecture.md).
@@ -52,6 +52,7 @@ src/
     admin/              Admin dashboard for approving reset suggestions
     login/, profile/    Auth pages
     manifest.json       PWA manifest
+  db/                   Drizzle client + schema (pulled from the DB)
   components/           Client components (gym cards, drawers, forms, SW register)
   hooks/                React hooks
   lib/
@@ -83,7 +84,8 @@ docs/
    cp .env.local.example .env.local
    ```
    - `NEXT_PUBLIC_SUPABASE_URL` — your project URL
-   - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` — publishable (anon-equivalent) key. Reads are protected by the RLS public-read policies set up by the migration.
+   - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` — publishable (anon-equivalent) key, used for auth.
+   - `DATABASE_URL` — Postgres connection string for app queries (Supabase → **Connect** → Transaction pooler, port 6543).
 
 ## Supabase setup
 
@@ -118,9 +120,10 @@ pnpm fmt:check
 
 1. Push the repo to GitHub.
 2. In Vercel, **Add New Project** → import the repo.
-3. Add the two env vars under **Project Settings → Environment Variables** for **Production**, **Preview**, and **Development**:
+3. Add the env vars under **Project Settings → Environment Variables** for **Production**, **Preview**, and **Development**:
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+   - `DATABASE_URL`
 4. Deploy.
 
 ## Further reading
